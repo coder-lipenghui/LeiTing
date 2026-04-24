@@ -14,11 +14,11 @@ TagManager:
   - 
   - 
   - 
-  - 
-  - 
-  - 
-  - 
-  - 
+  - Player
+  - Enemy
+  - PlayerBullet
+  - EnemyBullet
+  - Effect
   - 
   - 
   - 
