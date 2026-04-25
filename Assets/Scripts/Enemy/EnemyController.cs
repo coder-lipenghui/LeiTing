@@ -28,6 +28,7 @@ namespace LeiTing.Enemy
         private Color originalColor = Color.white;
         private Vector3 spawnPosition;
         private Vector3 baseScale = Vector3.one;
+        private Vector3 flashBaseLocalScale = Vector3.one;
         private string attackPatternId;
         private string movementPath;
         private float pathAmplitude;
@@ -176,6 +177,7 @@ namespace LeiTing.Enemy
                 flashRenderer.sprite = spriteRenderer.sprite;
                 flashRenderer.flipY = true;
                 flashRenderer.color = new Color(1f, 1f, 1f, 0f);
+                SyncFlashRendererTransform();
             }
         }
 
@@ -400,7 +402,7 @@ namespace LeiTing.Enemy
 
         public void TakeDamage(int damage)
         {
-            if (damage <= 0)
+            if (isDead || damage <= 0)
             {
                 return;
             }
@@ -457,7 +459,7 @@ namespace LeiTing.Enemy
             {
                 flashRenderer.sprite = spriteRenderer.sprite;
                 flashRenderer.color = isFlashing ? new Color(1f, 1f, 1f, 0.72f) : new Color(1f, 1f, 1f, 0f);
-                flashRenderer.transform.localScale = isFlashing ? Vector3.one * 1.08f : Vector3.one;
+                flashRenderer.transform.localScale = flashBaseLocalScale;
             }
         }
 
@@ -493,6 +495,21 @@ namespace LeiTing.Enemy
             {
                 hitbox.enabled = false;
             }
+        }
+
+        private void SyncFlashRendererTransform()
+        {
+            if (flashRenderer == null || spriteRenderer == null)
+            {
+                return;
+            }
+
+            var flashTransform = flashRenderer.transform;
+            var visualTransform = spriteRenderer.transform;
+            flashTransform.localPosition = visualTransform == transform ? Vector3.zero : visualTransform.localPosition;
+            flashTransform.localRotation = visualTransform == transform ? Quaternion.identity : visualTransform.localRotation;
+            flashBaseLocalScale = visualTransform == transform ? Vector3.one : visualTransform.localScale;
+            flashTransform.localScale = flashBaseLocalScale;
         }
 
         private Color GetEnemyColor()
