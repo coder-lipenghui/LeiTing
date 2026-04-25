@@ -57,6 +57,7 @@ namespace LeiTing.EditorTools
             AddIfMissing<GameManager>(managers);
             AddIfMissing<EnemyManager>(managers);
             AddIfMissing<BulletManager>(managers);
+            AddIfMissing<BulletPatternManager>(managers);
             AddIfMissing<StageManager>(managers);
             AddIfMissing<UIManager>(managers);
             AddIfMissing<AudioManager>(managers);
@@ -152,8 +153,10 @@ namespace LeiTing.EditorTools
             body.freezeRotation = true;
 
             AddIfMissing<PlayerController>(player);
+            AddIfMissing<PlayerShooter>(player);
             EnsurePlayerVisual(player.transform);
             EnsurePlayerHitbox(player.transform);
+            EnsurePlayerFirePoint(player.transform);
         }
 
         private static void CreatePlayerPrefab()
@@ -173,9 +176,11 @@ namespace LeiTing.EditorTools
             body.gravityScale = 0f;
             body.freezeRotation = true;
             prefabRoot.AddComponent<PlayerController>();
+            prefabRoot.AddComponent<PlayerShooter>();
 
             EnsurePlayerVisual(prefabRoot.transform);
             EnsurePlayerHitbox(prefabRoot.transform);
+            EnsurePlayerFirePoint(prefabRoot.transform);
 
             PrefabUtility.SaveAsPrefabAsset(prefabRoot, PlayerPrefabPath);
             Object.DestroyImmediate(prefabRoot);
@@ -217,6 +222,21 @@ namespace LeiTing.EditorTools
 
             var playerHitbox = AddIfMissing<PlayerHitbox>(hitbox.gameObject);
             playerHitbox.Configure(player.GetComponent<PlayerController>(), 0.18f, new Vector2(0f, -0.08f));
+        }
+
+        private static void EnsurePlayerFirePoint(Transform player)
+        {
+            var firePoint = player.Find("FirePoint");
+
+            if (firePoint == null)
+            {
+                firePoint = new GameObject("FirePoint").transform;
+                firePoint.SetParent(player);
+            }
+
+            firePoint.localPosition = new Vector3(0f, 0.45f, 0f);
+            firePoint.localRotation = Quaternion.identity;
+            firePoint.localScale = Vector3.one;
         }
 
         private static void CreateBackground(Transform root)

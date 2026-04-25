@@ -4,11 +4,15 @@
     "displayName": "Warplane 01",
     "prefabPath": "Assets/Prefabs/Player/warplane-01.prefab",
     "hp": 3,
-    "moveSpeed": 18.0,
+    "shield": 1,
+    "moveSpeed": 18,
     "invincibleTime": 1.5,
     "visualScale": 0.55,
     "hitboxRadius": 0.18,
-    "hitboxOffset": { "x": 0.0, "y": -0.08 },
+    "hitboxOffset": {
+      "x": 0,
+      "y": -0.08
+    },
     "defaultBulletId": "player_bullet_01",
     "fireInterval": 0.16
   },
@@ -25,7 +29,9 @@
       "moveSpeed": 2.4,
       "attackInterval": 1.8,
       "bulletId": "enemy_bullet_01",
-      "score": 100
+      "bulletPatternId": "enemy_aim_single",
+      "score": 100,
+      "prefabPath": "Assets/Prefabs/Enemies/enemy_01.prefab"
     },
     {
       "id": "enemy_b",
@@ -34,7 +40,9 @@
       "moveSpeed": 1.8,
       "attackInterval": 1.2,
       "bulletId": "enemy_bullet_01",
-      "score": 220
+      "bulletPatternId": "enemy_fan_07",
+      "score": 220,
+      "prefabPath": "Assets/Prefabs/Enemies/enemy_01.prefab"
     },
     {
       "id": "enemy_c",
@@ -43,64 +51,1075 @@
       "moveSpeed": 3.2,
       "attackInterval": 0.9,
       "bulletId": "enemy_bullet_02",
-      "score": 160
+      "bulletPatternId": "enemy_rotating_05",
+      "score": 160,
+      "prefabPath": "Assets/Prefabs/Enemies/enemy_01.prefab"
+    },
+    {
+      "id": "enemy_d",
+      "displayName": "单发直线弹型",
+      "hp": 4,
+      "moveSpeed": 2.8,
+      "attackInterval": 1.1,
+      "bulletId": "enemy_bullet_01",
+      "bulletPatternId": "enemy_single_down",
+      "score": 120,
+      "prefabPath": "Assets/Prefabs/Enemies/enemy_01.prefab"
+    },
+    {
+      "id": "enemy_e",
+      "displayName": "圆环弹幕型",
+      "hp": 10,
+      "moveSpeed": 1.5,
+      "attackInterval": 1.8,
+      "bulletId": "enemy_bullet_02",
+      "bulletPatternId": "enemy_ring_16",
+      "score": 260,
+      "prefabPath": "Assets/Prefabs/Enemies/enemy_01.prefab"
+    },
+    {
+      "id": "boss_01",
+      "displayName": "雷核重装舰",
+      "hp": 160,
+      "moveSpeed": 1.2,
+      "attackInterval": 1.6,
+      "bulletId": "enemy_bullet_02",
+      "bulletPatternId": "",
+      "hitScaleFeedback": false,
+      "score": 5000,
+      "prefabPath": "Assets/Prefabs/Enemies/boss_01.prefab"
+    },
+    {
+      "id": "boss_02",
+      "displayName": "赤焰巡航舰",
+      "hp": 172,
+      "moveSpeed": 1.2,
+      "attackInterval": 1.6,
+      "bulletId": "enemy_bullet_02",
+      "bulletPatternId": "",
+      "hitScaleFeedback": false,
+      "score": 5300,
+      "prefabPath": "Assets/Prefabs/Enemies/boss_02.prefab"
+    },
+    {
+      "id": "boss_03",
+      "displayName": "苍穹压制舰",
+      "hp": 184,
+      "moveSpeed": 1.2,
+      "attackInterval": 1.6,
+      "bulletId": "enemy_bullet_02",
+      "bulletPatternId": "",
+      "hitScaleFeedback": false,
+      "score": 5600,
+      "prefabPath": "Assets/Prefabs/Enemies/boss_03.prefab"
+    },
+    {
+      "id": "boss_04",
+      "displayName": "霜刃拦截舰",
+      "hp": 196,
+      "moveSpeed": 1.2,
+      "attackInterval": 1.6,
+      "bulletId": "enemy_bullet_02",
+      "bulletPatternId": "",
+      "hitScaleFeedback": false,
+      "score": 5900,
+      "prefabPath": "Assets/Prefabs/Enemies/boss_04.prefab"
+    },
+    {
+      "id": "boss_05",
+      "displayName": "紫电核心舰",
+      "hp": 208,
+      "moveSpeed": 1.2,
+      "attackInterval": 1.6,
+      "bulletId": "enemy_bullet_02",
+      "bulletPatternId": "",
+      "hitScaleFeedback": false,
+      "score": 6200,
+      "prefabPath": "Assets/Prefabs/Enemies/boss_05.prefab"
+    },
+    {
+      "id": "boss_06",
+      "displayName": "黑曜炮垒舰",
+      "hp": 220,
+      "moveSpeed": 1.2,
+      "attackInterval": 1.6,
+      "bulletId": "enemy_bullet_02",
+      "bulletPatternId": "",
+      "hitScaleFeedback": false,
+      "score": 6500,
+      "prefabPath": "Assets/Prefabs/Enemies/boss_06.prefab"
+    },
+    {
+      "id": "boss_07",
+      "displayName": "银翼指挥舰",
+      "hp": 232,
+      "moveSpeed": 1.2,
+      "attackInterval": 1.6,
+      "bulletId": "enemy_bullet_02",
+      "bulletPatternId": "",
+      "hitScaleFeedback": false,
+      "score": 6800,
+      "prefabPath": "Assets/Prefabs/Enemies/boss_07.prefab"
+    },
+    {
+      "id": "boss_08",
+      "displayName": "磁暴破阵舰",
+      "hp": 244,
+      "moveSpeed": 1.2,
+      "attackInterval": 1.6,
+      "bulletId": "enemy_bullet_02",
+      "bulletPatternId": "",
+      "hitScaleFeedback": false,
+      "score": 7100,
+      "prefabPath": "Assets/Prefabs/Enemies/boss_08.prefab"
+    },
+    {
+      "id": "boss_09",
+      "displayName": "幽蓝歼灭舰",
+      "hp": 256,
+      "moveSpeed": 1.2,
+      "attackInterval": 1.6,
+      "bulletId": "enemy_bullet_02",
+      "bulletPatternId": "",
+      "hitScaleFeedback": false,
+      "score": 7400,
+      "prefabPath": "Assets/Prefabs/Enemies/boss_09.prefab"
+    },
+    {
+      "id": "boss_10",
+      "displayName": "炽星母舰",
+      "hp": 268,
+      "moveSpeed": 1.2,
+      "attackInterval": 1.6,
+      "bulletId": "enemy_bullet_02",
+      "bulletPatternId": "",
+      "hitScaleFeedback": false,
+      "score": 7700,
+      "prefabPath": "Assets/Prefabs/Enemies/boss_10.prefab"
+    },
+    {
+      "id": "boss_11",
+      "displayName": "量子壁垒舰",
+      "hp": 280,
+      "moveSpeed": 1.2,
+      "attackInterval": 1.6,
+      "bulletId": "enemy_bullet_02",
+      "bulletPatternId": "",
+      "hitScaleFeedback": false,
+      "score": 8000,
+      "prefabPath": "Assets/Prefabs/Enemies/boss_11.prefab"
+    },
+    {
+      "id": "boss_12",
+      "displayName": "终末雷霆舰",
+      "hp": 292,
+      "moveSpeed": 1.2,
+      "attackInterval": 1.6,
+      "bulletId": "enemy_bullet_02",
+      "bulletPatternId": "",
+      "hitScaleFeedback": false,
+      "score": 8300,
+      "prefabPath": "Assets/Prefabs/Enemies/boss_12.prefab"
     }
   ],
   "bullets": [
     {
       "id": "player_bullet_01",
       "owner": "Player",
+      "firePattern": "Single",
+      "spritePath": "Assets/Art/Sprites/Bullets/player_bullet_01.png",
       "damage": 1,
-      "speed": 12.0,
-      "lifetime": 2.0,
-      "size": { "x": 0.12, "y": 0.32 }
+      "speed": 12,
+      "lifetime": 2,
+      "size": {
+        "x": 0.12,
+        "y": 0.32
+      },
+      "projectileCount": 1,
+      "spreadAngle": 0,
+      "muzzleSpacing": 0,
+      "pierceCount": 0,
+      "laserLength": 0
+    },
+    {
+      "id": "player_bullet_double_01",
+      "owner": "Player",
+      "firePattern": "Double",
+      "spritePath": "Assets/Art/Sprites/Bullets/player_bullet_01.png",
+      "damage": 1,
+      "speed": 12,
+      "lifetime": 2,
+      "size": {
+        "x": 0.12,
+        "y": 0.32
+      },
+      "projectileCount": 2,
+      "spreadAngle": 0,
+      "muzzleSpacing": 0.28,
+      "pierceCount": 0,
+      "laserLength": 0
+    },
+    {
+      "id": "player_bullet_spread_01",
+      "owner": "Player",
+      "firePattern": "Spread",
+      "spritePath": "Assets/Art/Sprites/Bullets/player_bullet_01.png",
+      "damage": 1,
+      "speed": 11,
+      "lifetime": 2,
+      "size": {
+        "x": 0.12,
+        "y": 0.32
+      },
+      "projectileCount": 5,
+      "spreadAngle": 32,
+      "muzzleSpacing": 0.08,
+      "pierceCount": 0,
+      "laserLength": 0
+    },
+    {
+      "id": "player_bullet_pierce_01",
+      "owner": "Player",
+      "firePattern": "Single",
+      "spritePath": "Assets/Art/Sprites/Bullets/player_bullet_01.png",
+      "damage": 1,
+      "speed": 13,
+      "lifetime": 2.2,
+      "size": {
+        "x": 0.14,
+        "y": 0.4
+      },
+      "projectileCount": 1,
+      "spreadAngle": 0,
+      "muzzleSpacing": 0,
+      "pierceCount": 2,
+      "laserLength": 0
+    },
+    {
+      "id": "player_laser_01",
+      "owner": "Player",
+      "firePattern": "Laser",
+      "spritePath": "Assets/Art/Sprites/Bullets/player_laser_01.png",
+      "damage": 1,
+      "speed": 0,
+      "lifetime": 0.12,
+      "size": {
+        "x": 0.22,
+        "y": 4.8
+      },
+      "projectileCount": 1,
+      "spreadAngle": 0,
+      "muzzleSpacing": 0,
+      "pierceCount": -1,
+      "laserLength": 4.8
     },
     {
       "id": "enemy_bullet_01",
       "owner": "Enemy",
+      "firePattern": "Single",
+      "spritePath": "Assets/Art/Sprites/Bullets/enemy_bullet_01.png",
       "damage": 1,
-      "speed": 4.0,
-      "lifetime": 5.0,
-      "size": { "x": 0.18, "y": 0.18 }
+      "speed": 4,
+      "lifetime": 5,
+      "size": {
+        "x": 0.18,
+        "y": 0.18
+      },
+      "projectileCount": 1,
+      "spreadAngle": 0,
+      "muzzleSpacing": 0,
+      "pierceCount": 0,
+      "laserLength": 0
     },
     {
       "id": "enemy_bullet_02",
       "owner": "Enemy",
+      "firePattern": "Single",
+      "spritePath": "Assets/Art/Sprites/Bullets/enemy_bullet_01.png",
       "damage": 1,
       "speed": 5.2,
-      "lifetime": 5.0,
-      "size": { "x": 0.16, "y": 0.16 }
+      "lifetime": 5,
+      "size": {
+        "x": 0.16,
+        "y": 0.16
+      },
+      "projectileCount": 1,
+      "spreadAngle": 0,
+      "muzzleSpacing": 0,
+      "pierceCount": 0,
+      "laserLength": 0
+    }
+  ],
+  "bulletPatterns": [
+    {
+      "id": "enemy_single_down",
+      "patternType": "Single",
+      "bulletId": "enemy_bullet_01",
+      "firePointOffset": {
+        "x": 0,
+        "y": -0.38
+      },
+      "baseAngle": -90,
+      "bulletCount": 1,
+      "angleStep": 0,
+      "spreadAngle": 0,
+      "bulletSpeed": 4,
+      "bulletLifetime": 5,
+      "rotate": false,
+      "rotationSpeed": 0,
+      "aimAtPlayer": false,
+      "burstCount": 1,
+      "fireInterval": 0,
+      "firePointGroup": "center"
+    },
+    {
+      "id": "enemy_aim_single",
+      "patternType": "Aim",
+      "bulletId": "enemy_bullet_01",
+      "firePointOffset": {
+        "x": 0,
+        "y": -0.38
+      },
+      "baseAngle": -90,
+      "bulletCount": 1,
+      "angleStep": 0,
+      "spreadAngle": 0,
+      "bulletSpeed": 4.4,
+      "bulletLifetime": 5,
+      "rotate": false,
+      "rotationSpeed": 0,
+      "aimAtPlayer": true,
+      "burstCount": 1,
+      "fireInterval": 0,
+      "firePointGroup": "center"
+    },
+    {
+      "id": "enemy_fan_07",
+      "patternType": "Fan",
+      "bulletId": "enemy_bullet_01",
+      "firePointOffset": {
+        "x": 0,
+        "y": -0.35
+      },
+      "baseAngle": -90,
+      "bulletCount": 7,
+      "angleStep": 0,
+      "spreadAngle": 72,
+      "bulletSpeed": 3.8,
+      "bulletLifetime": 5.2,
+      "rotate": false,
+      "rotationSpeed": 0,
+      "aimAtPlayer": false,
+      "burstCount": 1,
+      "fireInterval": 0,
+      "firePointGroup": "center"
+    },
+    {
+      "id": "enemy_ring_16",
+      "patternType": "Ring",
+      "bulletId": "enemy_bullet_02",
+      "firePointOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "baseAngle": 0,
+      "bulletCount": 16,
+      "angleStep": 22.5,
+      "spreadAngle": 360,
+      "bulletSpeed": 3.4,
+      "bulletLifetime": 4.4,
+      "rotate": false,
+      "rotationSpeed": 0,
+      "aimAtPlayer": false,
+      "burstCount": 1,
+      "fireInterval": 0,
+      "firePointGroup": "center"
+    },
+    {
+      "id": "enemy_rotating_05",
+      "patternType": "Rotating",
+      "bulletId": "enemy_bullet_02",
+      "firePointOffset": {
+        "x": 0,
+        "y": -0.32
+      },
+      "baseAngle": -90,
+      "bulletCount": 5,
+      "angleStep": 14,
+      "spreadAngle": 56,
+      "bulletSpeed": 4.6,
+      "bulletLifetime": 4.8,
+      "rotate": true,
+      "rotationSpeed": 18,
+      "aimAtPlayer": false,
+      "burstCount": 1,
+      "fireInterval": 0,
+      "firePointGroup": "center"
+    },
+    {
+      "id": "boss_p1_fan_09",
+      "patternType": "Fan",
+      "bulletId": "enemy_bullet_01",
+      "firePointOffset": {
+        "x": 0,
+        "y": -0.72
+      },
+      "baseAngle": -90,
+      "bulletCount": 9,
+      "angleStep": 0,
+      "spreadAngle": 72,
+      "bulletSpeed": 3.3,
+      "bulletLifetime": 5.2,
+      "rotate": false,
+      "rotationSpeed": 0,
+      "aimAtPlayer": false,
+      "burstCount": 1,
+      "fireInterval": 0,
+      "firePointGroup": "main_3"
+    },
+    {
+      "id": "boss_p1_sweep_single",
+      "patternType": "Rotating",
+      "bulletId": "enemy_bullet_01",
+      "firePointOffset": {
+        "x": 0,
+        "y": -0.72
+      },
+      "baseAngle": -125,
+      "bulletCount": 1,
+      "angleStep": 0,
+      "spreadAngle": 0,
+      "bulletSpeed": 4,
+      "bulletLifetime": 5,
+      "rotate": true,
+      "rotationSpeed": 16,
+      "aimAtPlayer": false,
+      "burstCount": 1,
+      "fireInterval": 0,
+      "firePointGroup": "main_3"
+    },
+    {
+      "id": "boss_p2_ring_20",
+      "patternType": "Ring",
+      "bulletId": "enemy_bullet_02",
+      "firePointOffset": {
+        "x": 0,
+        "y": -0.05
+      },
+      "baseAngle": 0,
+      "bulletCount": 20,
+      "angleStep": 18,
+      "spreadAngle": 360,
+      "bulletSpeed": 3,
+      "bulletLifetime": 4.8,
+      "rotate": true,
+      "rotationSpeed": 7,
+      "aimAtPlayer": false,
+      "burstCount": 1,
+      "fireInterval": 0,
+      "firePointGroup": "center"
+    },
+    {
+      "id": "boss_p2_aim_03",
+      "patternType": "Aim",
+      "bulletId": "enemy_bullet_02",
+      "firePointOffset": {
+        "x": 0,
+        "y": -0.72
+      },
+      "baseAngle": -90,
+      "bulletCount": 3,
+      "angleStep": 0,
+      "spreadAngle": 18,
+      "bulletSpeed": 4.8,
+      "bulletLifetime": 4.6,
+      "rotate": false,
+      "rotationSpeed": 0,
+      "aimAtPlayer": true,
+      "burstCount": 1,
+      "fireInterval": 0,
+      "firePointGroup": "main_3"
+    },
+    {
+      "id": "boss_p2_block_left",
+      "patternType": "Fan",
+      "bulletId": "enemy_bullet_01",
+      "firePointOffset": {
+        "x": -0.42,
+        "y": -0.62
+      },
+      "baseAngle": -116,
+      "bulletCount": 5,
+      "angleStep": 0,
+      "spreadAngle": 34,
+      "bulletSpeed": 3.15,
+      "bulletLifetime": 5,
+      "rotate": false,
+      "rotationSpeed": 0,
+      "aimAtPlayer": false,
+      "burstCount": 1,
+      "fireInterval": 0,
+      "firePointGroup": "left"
+    },
+    {
+      "id": "boss_p2_block_right",
+      "patternType": "Fan",
+      "bulletId": "enemy_bullet_01",
+      "firePointOffset": {
+        "x": 0.42,
+        "y": -0.62
+      },
+      "baseAngle": -64,
+      "bulletCount": 5,
+      "angleStep": 0,
+      "spreadAngle": 34,
+      "bulletSpeed": 3.15,
+      "bulletLifetime": 5,
+      "rotate": false,
+      "rotationSpeed": 0,
+      "aimAtPlayer": false,
+      "burstCount": 1,
+      "fireInterval": 0,
+      "firePointGroup": "right"
+    },
+    {
+      "id": "boss_p3_rotating_11",
+      "patternType": "Rotating",
+      "bulletId": "enemy_bullet_02",
+      "firePointOffset": {
+        "x": 0,
+        "y": -0.5
+      },
+      "baseAngle": -90,
+      "bulletCount": 11,
+      "angleStep": 0,
+      "spreadAngle": 112,
+      "bulletSpeed": 4.15,
+      "bulletLifetime": 4.4,
+      "rotate": true,
+      "rotationSpeed": 23,
+      "aimAtPlayer": false,
+      "burstCount": 1,
+      "fireInterval": 0,
+      "firePointGroup": "main_3"
+    },
+    {
+      "id": "boss_p3_ring_28",
+      "patternType": "Ring",
+      "bulletId": "enemy_bullet_02",
+      "firePointOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "baseAngle": 0,
+      "bulletCount": 28,
+      "angleStep": 12.85,
+      "spreadAngle": 360,
+      "bulletSpeed": 3.45,
+      "bulletLifetime": 4.2,
+      "rotate": true,
+      "rotationSpeed": 9,
+      "aimAtPlayer": false,
+      "burstCount": 1,
+      "fireInterval": 0,
+      "firePointGroup": "center"
+    },
+    {
+      "id": "boss_p3_aim_05",
+      "patternType": "Aim",
+      "bulletId": "enemy_bullet_02",
+      "firePointOffset": {
+        "x": 0,
+        "y": -0.72
+      },
+      "baseAngle": -90,
+      "bulletCount": 5,
+      "angleStep": 0,
+      "spreadAngle": 26,
+      "bulletSpeed": 5.2,
+      "bulletLifetime": 4.2,
+      "rotate": false,
+      "rotationSpeed": 0,
+      "aimAtPlayer": true,
+      "burstCount": 1,
+      "fireInterval": 0,
+      "firePointGroup": "main_3"
     }
   ],
   "waves": [
     {
-      "id": "wave_001",
-      "startTime": 1.0,
+      "id": "wave_tutorial_001",
+      "startTime": 3,
       "spawns": [
         {
           "enemyId": "enemy_a",
-          "count": 5,
-          "interval": 0.45,
-          "startPosition": { "x": 0.0, "y": 5.8 }
+          "count": 3,
+          "interval": 1.2,
+          "startPosition": {
+            "x": -1.4,
+            "y": 5.8
+          },
+          "attackPatternId": "enemy_aim_single",
+          "movementPath": "Straight",
+          "pathAmplitude": 0,
+          "pathSpeed": 0,
+          "holdDuration": 0
         }
       ]
     },
     {
-      "id": "wave_002",
-      "startTime": 8.0,
+      "id": "wave_tutorial_002",
+      "startTime": 14,
+      "spawns": [
+        {
+          "enemyId": "enemy_a",
+          "count": 4,
+          "interval": 0.9,
+          "startPosition": {
+            "x": 1.4,
+            "y": 5.8
+          },
+          "attackPatternId": "enemy_aim_single",
+          "movementPath": "Straight",
+          "pathAmplitude": 0,
+          "pathSpeed": 0,
+          "holdDuration": 0
+        }
+      ]
+    },
+    {
+      "id": "wave_tutorial_003",
+      "startTime": 25,
+      "spawns": [
+        {
+          "enemyId": "enemy_d",
+          "count": 3,
+          "interval": 1,
+          "startPosition": {
+            "x": 0,
+            "y": 5.8
+          },
+          "attackPatternId": "enemy_single_down",
+          "movementPath": "StopAndLeave",
+          "pathAmplitude": 0,
+          "pathSpeed": 0,
+          "holdDuration": 2.4
+        }
+      ]
+    },
+    {
+      "id": "wave_battle_001",
+      "startTime": 36,
+      "spawns": [
+        {
+          "enemyId": "enemy_a",
+          "count": 6,
+          "interval": 0.55,
+          "startPosition": {
+            "x": -2.1,
+            "y": 5.8
+          },
+          "attackPatternId": "enemy_aim_single",
+          "movementPath": "DriftRight",
+          "pathAmplitude": 0,
+          "pathSpeed": 0.35,
+          "holdDuration": 0
+        },
+        {
+          "enemyId": "enemy_d",
+          "count": 3,
+          "interval": 1.1,
+          "startPosition": {
+            "x": 2.1,
+            "y": 5.8
+          },
+          "attackPatternId": "enemy_single_down",
+          "movementPath": "Straight",
+          "pathAmplitude": 0,
+          "pathSpeed": 0,
+          "holdDuration": 0
+        }
+      ]
+    },
+    {
+      "id": "wave_battle_002",
+      "startTime": 52,
+      "spawns": [
+        {
+          "enemyId": "enemy_b",
+          "count": 2,
+          "interval": 1.4,
+          "startPosition": {
+            "x": -1.4,
+            "y": 5.8
+          },
+          "attackPatternId": "enemy_fan_07",
+          "movementPath": "StopAndLeave",
+          "pathAmplitude": 0,
+          "pathSpeed": 0,
+          "holdDuration": 4.2
+        },
+        {
+          "enemyId": "enemy_a",
+          "count": 5,
+          "interval": 0.45,
+          "startPosition": {
+            "x": 1.8,
+            "y": 5.8
+          },
+          "attackPatternId": "enemy_aim_single",
+          "movementPath": "DriftLeft",
+          "pathAmplitude": 0,
+          "pathSpeed": 0.42,
+          "holdDuration": 0
+        }
+      ]
+    },
+    {
+      "id": "wave_battle_003",
+      "startTime": 68,
+      "spawns": [
+        {
+          "enemyId": "enemy_c",
+          "count": 4,
+          "interval": 0.9,
+          "startPosition": {
+            "x": 0,
+            "y": 5.8
+          },
+          "attackPatternId": "enemy_rotating_05",
+          "movementPath": "Sine",
+          "pathAmplitude": 1.2,
+          "pathSpeed": 2.7,
+          "holdDuration": 0
+        }
+      ]
+    },
+    {
+      "id": "wave_battle_004",
+      "startTime": 84,
       "spawns": [
         {
           "enemyId": "enemy_b",
           "count": 3,
-          "interval": 1.0,
-          "startPosition": { "x": -2.4, "y": 5.8 }
+          "interval": 1.2,
+          "startPosition": {
+            "x": 0,
+            "y": 5.8
+          },
+          "attackPatternId": "enemy_fan_07",
+          "movementPath": "StopAndLeave",
+          "pathAmplitude": 0,
+          "pathSpeed": 0,
+          "holdDuration": 3.8
+        }
+      ]
+    },
+    {
+      "id": "wave_power_001",
+      "startTime": 96,
+      "spawns": [
+        {
+          "enemyId": "enemy_a",
+          "count": 8,
+          "interval": 0.38,
+          "startPosition": {
+            "x": 0,
+            "y": 5.8
+          },
+          "attackPatternId": "enemy_aim_single",
+          "movementPath": "DriftRight",
+          "pathAmplitude": 0,
+          "pathSpeed": 0.5,
+          "holdDuration": 0
         },
         {
           "enemyId": "enemy_c",
           "count": 3,
-          "interval": 1.0,
-          "startPosition": { "x": 2.4, "y": 5.8 }
+          "interval": 1,
+          "startPosition": {
+            "x": -2.2,
+            "y": 5.8
+          },
+          "attackPatternId": "enemy_rotating_05",
+          "movementPath": "Sine",
+          "pathAmplitude": 0.9,
+          "pathSpeed": 3.1,
+          "holdDuration": 0
         }
+      ]
+    },
+    {
+      "id": "wave_power_002",
+      "startTime": 112,
+      "spawns": [
+        {
+          "enemyId": "enemy_e",
+          "count": 1,
+          "interval": 0.1,
+          "startPosition": {
+            "x": 0,
+            "y": 5.8
+          },
+          "attackPatternId": "enemy_ring_16",
+          "movementPath": "StopAndLeave",
+          "pathAmplitude": 0,
+          "pathSpeed": 0,
+          "holdDuration": 5.2
+        },
+        {
+          "enemyId": "enemy_d",
+          "count": 6,
+          "interval": 0.45,
+          "startPosition": {
+            "x": -2.5,
+            "y": 5.8
+          },
+          "attackPatternId": "enemy_single_down",
+          "movementPath": "DriftRight",
+          "pathAmplitude": 0,
+          "pathSpeed": 0.55,
+          "holdDuration": 0
+        }
+      ]
+    },
+    {
+      "id": "wave_power_003",
+      "startTime": 128,
+      "spawns": [
+        {
+          "enemyId": "enemy_c",
+          "count": 5,
+          "interval": 0.7,
+          "startPosition": {
+            "x": 2.2,
+            "y": 5.8
+          },
+          "attackPatternId": "enemy_rotating_05",
+          "movementPath": "Sine",
+          "pathAmplitude": 1.4,
+          "pathSpeed": 3.5,
+          "holdDuration": 0
+        },
+        {
+          "enemyId": "enemy_b",
+          "count": 2,
+          "interval": 1.3,
+          "startPosition": {
+            "x": -1.6,
+            "y": 5.8
+          },
+          "attackPatternId": "enemy_fan_07",
+          "movementPath": "StopAndLeave",
+          "pathAmplitude": 0,
+          "pathSpeed": 0,
+          "holdDuration": 4.5
+        },
+        {
+          "enemyId": "enemy_a",
+          "count": 4,
+          "interval": 0.42,
+          "startPosition": {
+            "x": -2.8,
+            "y": 5.8
+          },
+          "attackPatternId": "enemy_aim_single",
+          "movementPath": "DriftRight",
+          "pathAmplitude": 0,
+          "pathSpeed": 0.65,
+          "holdDuration": 0
+        }
+      ]
+    },
+    {
+      "id": "wave_power_004",
+      "startTime": 144,
+      "spawns": [
+        {
+          "enemyId": "enemy_e",
+          "count": 2,
+          "interval": 2,
+          "startPosition": {
+            "x": -1.2,
+            "y": 5.8
+          },
+          "attackPatternId": "enemy_ring_16",
+          "movementPath": "StopAndLeave",
+          "pathAmplitude": 0,
+          "pathSpeed": 0,
+          "holdDuration": 5.2
+        },
+        {
+          "enemyId": "enemy_a",
+          "count": 6,
+          "interval": 0.35,
+          "startPosition": {
+            "x": 2.4,
+            "y": 5.8
+          },
+          "attackPatternId": "enemy_aim_single",
+          "movementPath": "DriftLeft",
+          "pathAmplitude": 0,
+          "pathSpeed": 0.62,
+          "holdDuration": 0
+        }
+      ]
+    },
+    {
+      "id": "wave_transition_001",
+      "startTime": 152,
+      "spawns": [
+        {
+          "enemyId": "enemy_d",
+          "count": 4,
+          "interval": 0.7,
+          "startPosition": {
+            "x": 0,
+            "y": 5.8
+          },
+          "attackPatternId": "enemy_single_down",
+          "movementPath": "Straight",
+          "pathAmplitude": 0,
+          "pathSpeed": 0,
+          "holdDuration": 0
+        }
+      ]
+    },
+    {
+      "id": "wave_transition_002",
+      "startTime": 162,
+      "spawns": [
+        {
+          "enemyId": "enemy_a",
+          "count": 5,
+          "interval": 0.5,
+          "startPosition": {
+            "x": 0,
+            "y": 5.8
+          },
+          "attackPatternId": "enemy_aim_single",
+          "movementPath": "DriftLeft",
+          "pathAmplitude": 0,
+          "pathSpeed": 0.55,
+          "holdDuration": 0
+        }
+      ]
+    },
+    {
+      "id": "wave_boss_001",
+      "startTime": 180,
+      "spawns": [
+        {
+          "enemyId": "boss_01",
+          "count": 1,
+          "interval": 0.1,
+          "startPosition": {
+            "x": 0,
+            "y": 6.2
+          },
+          "attackPatternId": "",
+          "movementPath": "BossEntry",
+          "pathAmplitude": 0,
+          "pathSpeed": 0,
+          "holdDuration": 0
+        }
+      ]
+    }
+  ],
+  "stageEvents": [
+    {
+      "id": "stage_notice_tutorial",
+      "startTime": 1,
+      "message": "TRAINING START",
+      "clearEnemyBullets": false
+    },
+    {
+      "id": "stage_notice_first_battle",
+      "startTime": 30,
+      "message": "ENEMY WAVE",
+      "clearEnemyBullets": false
+    },
+    {
+      "id": "stage_notice_power",
+      "startTime": 90,
+      "message": "BULLET PATTERN ESCALATION",
+      "clearEnemyBullets": false
+    },
+    {
+      "id": "stage_notice_transition",
+      "startTime": 150,
+      "message": "CLEAR THE FIELD",
+      "clearEnemyBullets": true
+    },
+    {
+      "id": "stage_notice_boss_signal",
+      "startTime": 165,
+      "message": "BOSS SIGNAL DETECTED",
+      "clearEnemyBullets": true
+    },
+    {
+      "id": "stage_notice_boss_warning",
+      "startTime": 176,
+      "message": "WARNING\nBOSS APPROACHING",
+      "clearEnemyBullets": true
+    }
+  ],
+  "bossPhases": [
+    {
+      "id": "boss_phase_01",
+      "bossId": "boss_01",
+      "displayName": "PHASE 1  弹幕教学",
+      "triggerHpPercent": 1,
+      "attackInterval": 1.55,
+      "burstCount": 2,
+      "burstInterval": 0.22,
+      "movementRange": {
+        "x": 0.9,
+        "y": 0.1
+      },
+      "movementSpeed": 0.85,
+      "bulletPatternIds": [
+        "boss_p1_fan_09",
+        "boss_p1_sweep_single"
+      ]
+    },
+    {
+      "id": "boss_phase_02",
+      "bossId": "boss_01",
+      "displayName": "PHASE 2  压迫提升",
+      "triggerHpPercent": 0.66,
+      "attackInterval": 1.35,
+      "burstCount": 3,
+      "burstInterval": 0.18,
+      "movementRange": {
+        "x": 1.35,
+        "y": 0.16
+      },
+      "movementSpeed": 1.12,
+      "bulletPatternIds": [
+        "boss_p2_ring_20",
+        "boss_p2_aim_03",
+        "boss_p2_block_left",
+        "boss_p2_block_right"
+      ]
+    },
+    {
+      "id": "boss_phase_03",
+      "bossId": "boss_01",
+      "displayName": "PHASE 3  雷核过载",
+      "triggerHpPercent": 0.33,
+      "attackInterval": 1.1,
+      "burstCount": 4,
+      "burstInterval": 0.12,
+      "movementRange": {
+        "x": 1.65,
+        "y": 0.2
+      },
+      "movementSpeed": 1.35,
+      "bulletPatternIds": [
+        "boss_p3_rotating_11",
+        "boss_p3_aim_05",
+        "boss_p3_ring_28"
       ]
     }
   ],
@@ -109,19 +1128,19 @@
       "id": "boss_skill_fan_01",
       "bossId": "boss_01",
       "bulletId": "enemy_bullet_01",
-      "triggerHpPercent": 1.0,
+      "triggerHpPercent": 1,
       "cooldown": 2.4,
       "bulletCount": 7,
-      "spreadAngle": 80.0
+      "spreadAngle": 80
     },
     {
       "id": "boss_skill_ring_01",
       "bossId": "boss_01",
       "bulletId": "enemy_bullet_02",
       "triggerHpPercent": 0.55,
-      "cooldown": 3.0,
+      "cooldown": 3,
       "bulletCount": 18,
-      "spreadAngle": 360.0
+      "spreadAngle": 360
     }
   ]
 }

@@ -1,6 +1,9 @@
 using LeiTing.Config;
 using LeiTing.Core;
+using LeiTing.Effects;
+using LeiTing.Audio;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 namespace LeiTing.Player
 {
@@ -11,9 +14,11 @@ namespace LeiTing.Player
         [SerializeField] private PlayerConfig config;
         [SerializeField] private Transform visualRoot;
         [SerializeField] private PlayerHitbox playerHitbox;
+        [SerializeField] private PlayerShooter playerShooter;
         [SerializeField] private Camera gameplayCamera;
         [SerializeField] private LayerMask damageSourceLayers;
         [SerializeField] private float fallbackMoveSpeed = 6f;
+        [SerializeField] private int fallbackShield = 1;
         [SerializeField] private float fallbackInvincibleTime = 1.5f;
         [SerializeField] private float hitboxRadius = 0.18f;
         [SerializeField] private Vector2 hitboxOffset;
@@ -24,10 +29,13 @@ namespace LeiTing.Player
         private SpriteRenderer spriteRenderer;
         private Vector3 targetPosition;
         private int currentHp;
+        private int currentShield;
         private float invincibleUntil;
+        private bool isDead;
         private Color originalColor = Color.white;
 
         public int CurrentHp => currentHp;
+        public int CurrentShield => currentShield;
         public bool IsInvincible => Time.time < invincibleUntil;
         public float MoveSpeed => GetMoveSpeed();
 
@@ -35,22 +43,40 @@ namespace LeiTing.Player
         {
             config = playerConfig;
             currentHp = Mathf.Max(1, config != null ? config.hp : currentHp);
+            currentShield = Mathf.Max(0, config != null ? config.shield : currentShield);
+            if (playerShooter != null)
+            {
+                playerShooter.ApplyConfig(config);
+            }
+
             ApplyAircraftConfig();
         }
 
         public bool TakeDamage(int damage)
         {
-            if (damage <= 0 || IsInvincible || currentHp <= 0)
+            if (damage <= 0 || IsInvincible || currentHp <= 0 || isDead)
             {
                 return false;
             }
 
-            currentHp = Mathf.Max(0, currentHp - damage);
+            var remainingDamage = damage;
+            if (currentShield > 0)
+            {
+                var absorbed = Mathf.Min(currentShield, remainingDamage);
+                currentShield -= absorbed;
+                remainingDamage -= absorbed;
+            }
+
+            if (remainingDamage > 0)
+            {
+                currentHp = Mathf.Max(0, currentHp - remainingDamage);
+            }
+
             BeginInvincible();
 
-            if (currentHp <= 0 && GameManager.Instance != null)
+            if (currentHp <= 0)
             {
-                GameManager.Instance.LoseGame();
+                Die();
             }
 
             return true;
@@ -76,6 +102,7 @@ namespace LeiTing.Player
 
             EnsureVisual();
             EnsureHitbox();
+            EnsureShooter();
             ConfigurePhysics();
             EnsureFallbackSprite();
             ApplyAircraftConfig();
@@ -99,6 +126,11 @@ namespace LeiTing.Player
             if (currentHp <= 0)
             {
                 currentHp = Mathf.Max(1, config != null ? config.hp : 1);
+            }
+
+            if (config == null && currentShield <= 0)
+            {
+                currentShield = Mathf.Max(0, fallbackShield);
             }
         }
 
@@ -132,6 +164,31 @@ namespace LeiTing.Player
             HandleHitboxTrigger(other);
         }
 
+        private void Die()
+        {
+            if (isDead)
+            {
+                return;
+            }
+
+            isDead = true;
+            currentHp = 0;
+            currentShield = 0;
+            ExplosionEffect.Spawn(transform.position, 1.2f);
+
+            if (AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlayPlayerDestroyed();
+            }
+
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.LoseGame();
+            }
+
+            gameObject.SetActive(false);
+        }
+
         private bool TryGetPointerWorldPosition(out Vector3 worldPosition)
         {
             var screenPosition = Vector3.zero;
@@ -140,12 +197,14 @@ namespace LeiTing.Player
             if (Input.touchCount > 0)
             {
                 var touch = Input.GetTouch(0);
-                hasPointer = touch.phase != TouchPhase.Canceled && touch.phase != TouchPhase.Ended;
+                hasPointer = touch.phase != TouchPhase.Canceled
+                    && touch.phase != TouchPhase.Ended
+                    && !IsPointerOverUi(touch.fingerId);
                 screenPosition = touch.position;
             }
             else
             {
-                hasPointer = Input.mousePresent;
+                hasPointer = Input.mousePresent && Input.GetMouseButton(0) && !IsPointerOverUi();
                 screenPosition = Input.mousePosition;
             }
 
@@ -159,6 +218,16 @@ namespace LeiTing.Player
             worldPosition = gameplayCamera.ScreenToWorldPoint(screenPosition);
             worldPosition.z = transform.position.z;
             return true;
+        }
+
+        private bool IsPointerOverUi(int pointerId = -1)
+        {
+            if (EventSystem.current == null)
+            {
+                return false;
+            }
+
+            return pointerId >= 0 ? EventSystem.current.IsPointerOverGameObject(pointerId) : EventSystem.current.IsPointerOverGameObject();
         }
 
         private void SetPosition(Vector3 position)
@@ -373,11 +442,29 @@ namespace LeiTing.Player
             {
                 playerHitbox.Configure(this, GetHitboxRadius(), hitboxOffset);
             }
+
+            if (playerShooter != null)
+            {
+                playerShooter.ApplyConfig(config);
+            }
         }
 
         private float GetHitboxRadius()
         {
             return Mathf.Max(0.01f, config != null && config.hitboxRadius > 0f ? config.hitboxRadius : hitboxRadius);
+        }
+
+        private void EnsureShooter()
+        {
+            if (playerShooter == null)
+            {
+                playerShooter = GetComponent<PlayerShooter>();
+            }
+
+            if (playerShooter == null)
+            {
+                playerShooter = gameObject.AddComponent<PlayerShooter>();
+            }
         }
     }
 }

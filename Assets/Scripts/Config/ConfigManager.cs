@@ -47,6 +47,21 @@ namespace LeiTing.Config
             return config?.bullets.FirstOrDefault(item => item.id == id);
         }
 
+        public BulletPatternConfig GetBulletPattern(string id)
+        {
+            return config?.bulletPatterns.FirstOrDefault(item => item.id == id);
+        }
+
+        public BossPhaseConfig[] GetBossPhases(string bossId)
+        {
+            return config?.bossPhases == null
+                ? null
+                : config.bossPhases
+                .Where(item => item != null && item.bossId == bossId)
+                .OrderByDescending(item => item.triggerHpPercent)
+                .ToArray();
+        }
+
         public BossSkillConfig GetBossSkill(string id)
         {
             return config?.bossSkills.FirstOrDefault(item => item.id == id);
