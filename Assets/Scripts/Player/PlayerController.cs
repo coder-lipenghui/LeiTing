@@ -6,23 +6,21 @@ namespace LeiTing.Player
 {
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Rigidbody2D))]
-    [RequireComponent(typeof(CircleCollider2D))]
-    [RequireComponent(typeof(SpriteRenderer))]
     public class PlayerController : MonoBehaviour
     {
-        private const float SnapDistance = 0.02f;
-
         [SerializeField] private PlayerConfig config;
+        [SerializeField] private Transform visualRoot;
+        [SerializeField] private PlayerHitbox playerHitbox;
         [SerializeField] private Camera gameplayCamera;
         [SerializeField] private LayerMask damageSourceLayers;
         [SerializeField] private float fallbackMoveSpeed = 6f;
         [SerializeField] private float fallbackInvincibleTime = 1.5f;
         [SerializeField] private float hitboxRadius = 0.18f;
+        [SerializeField] private Vector2 hitboxOffset;
         [SerializeField] private int contactDamage = 1;
         [SerializeField] private float flashInterval = 0.08f;
 
         private Rigidbody2D body;
-        private CircleCollider2D hitbox;
         private SpriteRenderer spriteRenderer;
         private Vector3 targetPosition;
         private int currentHp;
@@ -31,11 +29,13 @@ namespace LeiTing.Player
 
         public int CurrentHp => currentHp;
         public bool IsInvincible => Time.time < invincibleUntil;
+        public float MoveSpeed => GetMoveSpeed();
 
         public void ApplyConfig(PlayerConfig playerConfig)
         {
             config = playerConfig;
             currentHp = Mathf.Max(1, config != null ? config.hp : currentHp);
+            ApplyAircraftConfig();
         }
 
         public bool TakeDamage(int damage)
@@ -61,15 +61,24 @@ namespace LeiTing.Player
             invincibleUntil = Time.time + GetInvincibleTime();
         }
 
+        public void HandleHitboxTrigger(Collider2D other)
+        {
+            if (CanTakeContactDamageFrom(other))
+            {
+                TakeDamage(contactDamage);
+            }
+        }
+
         private void Awake()
         {
             body = GetComponent<Rigidbody2D>();
-            hitbox = GetComponent<CircleCollider2D>();
-            spriteRenderer = GetComponent<SpriteRenderer>();
             gameplayCamera = gameplayCamera != null ? gameplayCamera : Camera.main;
 
+            EnsureVisual();
+            EnsureHitbox();
             ConfigurePhysics();
             EnsureFallbackSprite();
+            ApplyAircraftConfig();
 
             originalColor = spriteRenderer.color;
             targetPosition = transform.position;
@@ -106,7 +115,7 @@ namespace LeiTing.Player
                 targetPosition = ClampToCameraBounds(pointerWorldPosition);
             }
 
-            MoveTowardsTarget();
+            SetPosition(targetPosition);
             UpdateInvincibleVisual();
         }
 
@@ -120,10 +129,7 @@ namespace LeiTing.Player
 
         private void OnTriggerEnter2D(Collider2D other)
         {
-            if (CanTakeContactDamageFrom(other))
-            {
-                TakeDamage(contactDamage);
-            }
+            HandleHitboxTrigger(other);
         }
 
         private bool TryGetPointerWorldPosition(out Vector3 worldPosition)
@@ -155,21 +161,6 @@ namespace LeiTing.Player
             return true;
         }
 
-        private void MoveTowardsTarget()
-        {
-            var current = transform.position;
-            var delta = targetPosition - current;
-
-            if (delta.sqrMagnitude <= SnapDistance * SnapDistance)
-            {
-                SetPosition(targetPosition);
-                return;
-            }
-
-            var next = Vector3.MoveTowards(current, targetPosition, GetMoveSpeed() * Time.deltaTime);
-            SetPosition(next);
-        }
-
         private void SetPosition(Vector3 position)
         {
             if (body != null)
@@ -192,7 +183,7 @@ namespace LeiTing.Player
             var distance = Mathf.Abs(gameplayCamera.transform.position.z - transform.position.z);
             var min = gameplayCamera.ViewportToWorldPoint(new Vector3(0f, 0f, distance));
             var max = gameplayCamera.ViewportToWorldPoint(new Vector3(1f, 1f, distance));
-            var radius = Mathf.Max(0f, hitboxRadius) * Mathf.Max(transform.lossyScale.x, transform.lossyScale.y);
+            var radius = GetHitboxRadius() * Mathf.Max(transform.lossyScale.x, transform.lossyScale.y);
 
             worldPosition.x = Mathf.Clamp(worldPosition.x, min.x + radius, max.x - radius);
             worldPosition.y = Mathf.Clamp(worldPosition.y, min.y + radius, max.y - radius);
@@ -217,19 +208,19 @@ namespace LeiTing.Player
             body.gravityScale = 0f;
             body.freezeRotation = true;
             body.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
-
-            hitbox.isTrigger = true;
-            hitbox.radius = Mathf.Max(0.01f, hitboxRadius);
         }
 
         private void EnsureFallbackSprite()
         {
-            if (spriteRenderer.sprite == null)
+            if (spriteRenderer != null && spriteRenderer.sprite == null)
             {
                 spriteRenderer.sprite = CreateFallbackPlayerSprite();
             }
 
-            spriteRenderer.sortingOrder = 10;
+            if (spriteRenderer != null)
+            {
+                spriteRenderer.sortingOrder = 10;
+            }
         }
 
         private Sprite CreateFallbackPlayerSprite()
@@ -306,6 +297,87 @@ namespace LeiTing.Player
         private float GetInvincibleTime()
         {
             return Mathf.Max(0f, config != null && config.invincibleTime > 0f ? config.invincibleTime : fallbackInvincibleTime);
+        }
+
+        private void EnsureVisual()
+        {
+            if (visualRoot == null)
+            {
+                var visual = transform.Find("Visual");
+
+                if (visual == null)
+                {
+                    var visualObject = new GameObject("Visual");
+                    visual = visualObject.transform;
+                    visual.SetParent(transform);
+                    visual.localPosition = Vector3.zero;
+                    visual.localRotation = Quaternion.identity;
+                    visual.localScale = Vector3.one;
+                }
+
+                visualRoot = visual;
+            }
+
+            spriteRenderer = visualRoot.GetComponent<SpriteRenderer>();
+
+            if (spriteRenderer == null)
+            {
+                spriteRenderer = visualRoot.gameObject.AddComponent<SpriteRenderer>();
+            }
+        }
+
+        private void EnsureHitbox()
+        {
+            if (playerHitbox == null)
+            {
+                playerHitbox = GetComponentInChildren<PlayerHitbox>();
+            }
+
+            if (playerHitbox == null)
+            {
+                var hitbox = transform.Find("Hitbox");
+
+                if (hitbox == null)
+                {
+                    var hitboxObject = new GameObject("Hitbox");
+                    hitbox = hitboxObject.transform;
+                    hitbox.SetParent(transform);
+                    hitbox.localRotation = Quaternion.identity;
+                    hitbox.localScale = Vector3.one;
+                }
+
+                playerHitbox = hitbox.GetComponent<PlayerHitbox>();
+
+                if (playerHitbox == null)
+                {
+                    playerHitbox = hitbox.gameObject.AddComponent<PlayerHitbox>();
+                }
+            }
+        }
+
+        private void ApplyAircraftConfig()
+        {
+            if (visualRoot != null)
+            {
+                var scale = config != null && config.visualScale > 0f ? config.visualScale : 1f;
+                visualRoot.localScale = new Vector3(scale, scale, 1f);
+            }
+
+            if (config != null)
+            {
+                hitboxRadius = config.hitboxRadius > 0f ? config.hitboxRadius : hitboxRadius;
+                hitboxOffset = config.hitboxOffset;
+            }
+
+            if (playerHitbox != null)
+            {
+                playerHitbox.Configure(this, GetHitboxRadius(), hitboxOffset);
+            }
+        }
+
+        private float GetHitboxRadius()
+        {
+            return Mathf.Max(0.01f, config != null && config.hitboxRadius > 0f ? config.hitboxRadius : hitboxRadius);
         }
     }
 }

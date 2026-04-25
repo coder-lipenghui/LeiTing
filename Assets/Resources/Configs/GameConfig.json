@@ -1,11 +1,21 @@
 {
   "player": {
-    "id": "player_default",
+    "id": "warplane_01",
+    "displayName": "Warplane 01",
+    "prefabPath": "Assets/Prefabs/Player/warplane-01.prefab",
     "hp": 3,
-    "moveSpeed": 6.0,
+    "moveSpeed": 18.0,
     "invincibleTime": 1.5,
+    "visualScale": 0.55,
+    "hitboxRadius": 0.18,
+    "hitboxOffset": { "x": 0.0, "y": -0.08 },
     "defaultBulletId": "player_bullet_01",
     "fireInterval": 0.16
+  },
+  "background": {
+    "id": "background_01",
+    "spritePath": "Assets/Art/Sprites/Backgrounds/background-01.png",
+    "scrollSpeed": 2.1
   },
   "enemies": [
     {

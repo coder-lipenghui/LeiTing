@@ -33,6 +33,11 @@ namespace LeiTing.EditorTools
             "Effect"
         };
 
+        private const string PlayerPrefabPath = "Assets/Prefabs/Player/warplane-01.prefab";
+        private const string PlayerSpritePath = "Assets/Art/Animations/Player/warplane-01.png";
+        private const string BackgroundSpritePath = "Assets/Art/Sprites/Backgrounds/background-01.png";
+        private const float DesignOrthographicSize = 9.6f;
+
         [MenuItem("LeiTing/Setup/Create Demo Scene Skeleton")]
         public static void CreateDemoSceneSkeleton()
         {
@@ -56,11 +61,20 @@ namespace LeiTing.EditorTools
             AddIfMissing<UIManager>(managers);
             AddIfMissing<AudioManager>(managers);
 
+            EnsureCamera();
+            CreatePlayerPrefab();
             CreatePlayer(root.transform);
+            CreateBackground(root.transform);
 
             EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
             EditorSceneManager.SaveOpenScenes();
             Debug.Log("LeiTing demo scene skeleton created.");
+        }
+
+        [MenuItem("LeiTing/Setup/Apply Demo Art Setup")]
+        public static void ApplyDemoArtSetup()
+        {
+            CreateDemoSceneSkeleton();
         }
 
         private static void EnsureSceneLoaded()
@@ -109,13 +123,27 @@ namespace LeiTing.EditorTools
 
         private static void CreatePlayer(Transform root)
         {
-            var player = GetOrCreate("Player", root);
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PlayerPrefabPath);
+            var player = GameObject.Find("Player");
+
+            if (player == null && prefab != null)
+            {
+                player = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+                player.name = "Player";
+            }
+
+            if (player == null)
+            {
+                player = GetOrCreate("Player", root);
+            }
+
+            player.transform.SetParent(root);
             player.transform.position = new Vector3(0f, -3.5f, 0f);
 
             var playerLayer = LayerMask.NameToLayer("Player");
             if (playerLayer >= 0)
             {
-                player.layer = playerLayer;
+                SetLayerRecursively(player, playerLayer);
             }
 
             var body = AddIfMissing<Rigidbody2D>(player);
@@ -123,12 +151,102 @@ namespace LeiTing.EditorTools
             body.gravityScale = 0f;
             body.freezeRotation = true;
 
-            var hitbox = AddIfMissing<CircleCollider2D>(player);
-            hitbox.isTrigger = true;
-            hitbox.radius = 0.18f;
-
-            AddIfMissing<SpriteRenderer>(player);
             AddIfMissing<PlayerController>(player);
+            EnsurePlayerVisual(player.transform);
+            EnsurePlayerHitbox(player.transform);
+        }
+
+        private static void CreatePlayerPrefab()
+        {
+            EnsureFolder("Assets", "Prefabs");
+            EnsureFolder("Assets/Prefabs", "Player");
+
+            var prefabRoot = new GameObject("warplane-01");
+            var playerLayer = LayerMask.NameToLayer("Player");
+            if (playerLayer >= 0)
+            {
+                SetLayerRecursively(prefabRoot, playerLayer);
+            }
+
+            var body = prefabRoot.AddComponent<Rigidbody2D>();
+            body.bodyType = RigidbodyType2D.Kinematic;
+            body.gravityScale = 0f;
+            body.freezeRotation = true;
+            prefabRoot.AddComponent<PlayerController>();
+
+            EnsurePlayerVisual(prefabRoot.transform);
+            EnsurePlayerHitbox(prefabRoot.transform);
+
+            PrefabUtility.SaveAsPrefabAsset(prefabRoot, PlayerPrefabPath);
+            Object.DestroyImmediate(prefabRoot);
+            AssetDatabase.SaveAssets();
+        }
+
+        private static void EnsurePlayerVisual(Transform player)
+        {
+            var visual = player.Find("Visual");
+
+            if (visual == null)
+            {
+                visual = new GameObject("Visual").transform;
+                visual.SetParent(player);
+            }
+
+            visual.localPosition = Vector3.zero;
+            visual.localRotation = Quaternion.identity;
+            visual.localScale = Vector3.one * 0.55f;
+
+            var spriteRenderer = AddIfMissing<SpriteRenderer>(visual.gameObject);
+            spriteRenderer.sprite = AssetDatabase.LoadAssetAtPath<Sprite>(PlayerSpritePath);
+            spriteRenderer.sortingOrder = 10;
+        }
+
+        private static void EnsurePlayerHitbox(Transform player)
+        {
+            var hitbox = player.Find("Hitbox");
+
+            if (hitbox == null)
+            {
+                hitbox = new GameObject("Hitbox").transform;
+                hitbox.SetParent(player);
+            }
+
+            hitbox.localPosition = new Vector3(0f, -0.08f, 0f);
+            hitbox.localRotation = Quaternion.identity;
+            hitbox.localScale = Vector3.one;
+
+            var playerHitbox = AddIfMissing<PlayerHitbox>(hitbox.gameObject);
+            playerHitbox.Configure(player.GetComponent<PlayerController>(), 0.18f, new Vector2(0f, -0.08f));
+        }
+
+        private static void CreateBackground(Transform root)
+        {
+            var bgLayer = GetOrCreate("BgLayer", root);
+            var background = GameObject.Find("ScrollingBackground") ?? GameObject.Find("background-01") ?? new GameObject("ScrollingBackground");
+            background.name = "ScrollingBackground";
+            background.transform.SetParent(bgLayer.transform);
+            background.transform.localPosition = Vector3.zero;
+            background.transform.localRotation = Quaternion.identity;
+            background.transform.localScale = Vector3.one;
+
+            var sourceRenderer = AddIfMissing<SpriteRenderer>(background);
+            sourceRenderer.sprite = AssetDatabase.LoadAssetAtPath<Sprite>(BackgroundSpritePath);
+            sourceRenderer.sortingOrder = -10;
+
+            var scroller = AddIfMissing<BackgroundScroller>(background);
+            scroller.Configure(sourceRenderer.sprite, 2.1f);
+        }
+
+        private static void EnsureCamera()
+        {
+            var camera = Camera.main;
+            if (camera == null)
+            {
+                return;
+            }
+
+            camera.orthographic = true;
+            camera.orthographicSize = DesignOrthographicSize;
         }
 
         private static void EnsureProjectLayers()
@@ -163,6 +281,25 @@ namespace LeiTing.EditorTools
             }
 
             Debug.LogWarning($"No empty Unity layer slot is available for {layerName}.");
+        }
+
+        private static void EnsureFolder(string parent, string folderName)
+        {
+            var path = $"{parent}/{folderName}";
+            if (!AssetDatabase.IsValidFolder(path))
+            {
+                AssetDatabase.CreateFolder(parent, folderName);
+            }
+        }
+
+        private static void SetLayerRecursively(GameObject target, int layer)
+        {
+            target.layer = layer;
+
+            foreach (Transform child in target.transform)
+            {
+                SetLayerRecursively(child.gameObject, layer);
+            }
         }
     }
 }

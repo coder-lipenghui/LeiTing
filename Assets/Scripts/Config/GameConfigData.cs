@@ -8,6 +8,7 @@ namespace LeiTing.Config
     public class GameConfig
     {
         public PlayerConfig player;
+        public BackgroundConfig background;
         public List<EnemyConfig> enemies = new List<EnemyConfig>();
         public List<BulletConfig> bullets = new List<BulletConfig>();
         public List<WaveConfig> waves = new List<WaveConfig>();
@@ -18,11 +19,24 @@ namespace LeiTing.Config
     public class PlayerConfig
     {
         public string id;
+        public string displayName;
+        public string prefabPath;
         public int hp;
         public float moveSpeed;
         public float invincibleTime;
+        public float visualScale;
+        public float hitboxRadius;
+        public Vector2 hitboxOffset;
         public string defaultBulletId;
         public float fireInterval;
+    }
+
+    [Serializable]
+    public class BackgroundConfig
+    {
+        public string id;
+        public string spritePath;
+        public float scrollSpeed;
     }
 
     [Serializable]

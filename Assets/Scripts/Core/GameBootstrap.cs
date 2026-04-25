@@ -1,6 +1,11 @@
 using LeiTing.Config;
 using LeiTing.Player;
+using LeiTing.Stage;
 using UnityEngine;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace LeiTing.Core
 {
@@ -10,6 +15,8 @@ namespace LeiTing.Core
         [SerializeField] private bool startGameOnAwake = true;
         [SerializeField] private bool createPlayerIfMissing = true;
         [SerializeField] private Vector3 defaultPlayerPosition = new Vector3(0f, -3.5f, 0f);
+        [SerializeField] private Vector2Int designResolution = new Vector2Int(1080, 1920);
+        [SerializeField] private float pixelsPerUnit = 100f;
 
         private void Awake()
         {
@@ -18,7 +25,9 @@ namespace LeiTing.Core
                 ConfigManager.Instance.LoadDefaultConfig();
             }
 
+            EnsureDesignCamera();
             EnsurePlayerReady();
+            EnsureBackgroundReady();
 
             if (GameManager.Instance != null)
             {
@@ -37,7 +46,7 @@ namespace LeiTing.Core
 
             if (player == null && createPlayerIfMissing)
             {
-                var playerObject = new GameObject("Player");
+                var playerObject = CreateConfiguredPlayerObject();
                 var root = GameObject.Find("GameRoot");
 
                 if (root != null)
@@ -58,6 +67,68 @@ namespace LeiTing.Core
             if (player != null && ConfigManager.Instance != null && ConfigManager.Instance.IsLoaded)
             {
                 player.ApplyConfig(ConfigManager.Instance.Config.player);
+            }
+        }
+
+        private GameObject CreateConfiguredPlayerObject()
+        {
+#if UNITY_EDITOR
+            var prefabPath = ConfigManager.Instance != null && ConfigManager.Instance.IsLoaded && ConfigManager.Instance.Config.player != null
+                ? ConfigManager.Instance.Config.player.prefabPath
+                : string.Empty;
+
+            if (!string.IsNullOrEmpty(prefabPath))
+            {
+                var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+                if (prefab != null)
+                {
+                    return (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+                }
+            }
+#endif
+
+            return new GameObject("Player");
+        }
+
+        private void EnsureDesignCamera()
+        {
+            var camera = Camera.main;
+            if (camera == null || pixelsPerUnit <= 0f || designResolution.y <= 0)
+            {
+                return;
+            }
+
+            camera.orthographic = true;
+            camera.orthographicSize = designResolution.y * 0.5f / pixelsPerUnit;
+        }
+
+        private void EnsureBackgroundReady()
+        {
+            var scroller = FindObjectOfType<BackgroundScroller>();
+
+            if (scroller == null)
+            {
+                var backgroundObject = GameObject.Find("ScrollingBackground") ?? GameObject.Find("background-01");
+                if (backgroundObject == null)
+                {
+                    backgroundObject = new GameObject("ScrollingBackground");
+                }
+
+                scroller = backgroundObject.AddComponent<BackgroundScroller>();
+            }
+
+            var bgLayer = GameObject.Find("BgLayer");
+            if (bgLayer != null)
+            {
+                scroller.transform.SetParent(bgLayer.transform);
+            }
+
+            scroller.transform.localPosition = Vector3.zero;
+            scroller.transform.localScale = Vector3.one;
+
+            if (ConfigManager.Instance != null && ConfigManager.Instance.IsLoaded && ConfigManager.Instance.Config.background != null)
+            {
+                scroller.Configure(null, ConfigManager.Instance.Config.background.scrollSpeed);
             }
         }
     }
