@@ -3,6 +3,7 @@ using LeiTing.Bullets;
 using LeiTing.Config;
 using LeiTing.Core;
 using LeiTing.Enemy;
+using LeiTing.Pickups;
 using LeiTing.Player;
 using LeiTing.Stage;
 using LeiTing.UI;
@@ -18,6 +19,7 @@ namespace LeiTing.EditorTools
         {
             "BgLayer",
             "EnemyLayer",
+            "PickupLayer",
             "BulletLayer_Player",
             "BulletLayer_Enemy",
             "EffectLayer",
@@ -56,6 +58,7 @@ namespace LeiTing.EditorTools
             AddIfMissing<ConfigManager>(managers);
             AddIfMissing<GameManager>(managers);
             AddIfMissing<EnemyManager>(managers);
+            AddIfMissing<PickupManager>(managers);
             AddIfMissing<BulletManager>(managers);
             AddIfMissing<BulletPatternManager>(managers);
             AddIfMissing<StageManager>(managers);

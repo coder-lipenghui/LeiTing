@@ -1,4 +1,5 @@
 using LeiTing.Config;
+using LeiTing.Pickups;
 using LeiTing.Player;
 using LeiTing.Stage;
 using UnityEngine;
@@ -26,6 +27,7 @@ namespace LeiTing.Core
             }
 
             EnsureDesignCamera();
+            EnsurePickupManager();
             EnsurePlayerReady();
             EnsureBackgroundReady();
 
@@ -68,6 +70,11 @@ namespace LeiTing.Core
             {
                 player.ApplyConfig(ConfigManager.Instance.Config.player);
             }
+        }
+
+        private void EnsurePickupManager()
+        {
+            PickupManager.GetOrCreate();
         }
 
         private GameObject CreateConfiguredPlayerObject()

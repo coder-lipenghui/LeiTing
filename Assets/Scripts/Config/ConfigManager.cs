@@ -47,6 +47,11 @@ namespace LeiTing.Config
             return config?.bullets.FirstOrDefault(item => item.id == id);
         }
 
+        public PickupItemConfig GetPickupItem(string id)
+        {
+            return config?.pickupItems.FirstOrDefault(item => item.id == id);
+        }
+
         public BulletPatternConfig GetBulletPattern(string id)
         {
             return config?.bulletPatterns.FirstOrDefault(item => item.id == id);

@@ -5,8 +5,11 @@
     "prefabPath": "Assets/Prefabs/Player/warplane-01.prefab",
     "hp": 3,
     "shield": 1,
+    "stars": 0,
     "moveSpeed": 18,
     "invincibleTime": 1.5,
+    "pickupAttractRange": 2.2,
+    "pickupAttractSpeed": 8,
     "visualScale": 0.55,
     "hitboxRadius": 0.18,
     "hitboxOffset": {
@@ -31,6 +34,12 @@
       "bulletId": "enemy_bullet_01",
       "bulletPatternId": "enemy_aim_single",
       "score": 100,
+      "drops": [
+        {
+          "itemId": "star",
+          "count": 1
+        }
+      ],
       "prefabPath": "Assets/Prefabs/Enemies/enemy_01.prefab"
     },
     {
@@ -42,6 +51,12 @@
       "bulletId": "enemy_bullet_01",
       "bulletPatternId": "enemy_fan_07",
       "score": 220,
+      "drops": [
+        {
+          "itemId": "star",
+          "count": 2
+        }
+      ],
       "prefabPath": "Assets/Prefabs/Enemies/enemy_01.prefab"
     },
     {
@@ -53,6 +68,12 @@
       "bulletId": "enemy_bullet_02",
       "bulletPatternId": "enemy_rotating_05",
       "score": 160,
+      "drops": [
+        {
+          "itemId": "star",
+          "count": 1
+        }
+      ],
       "prefabPath": "Assets/Prefabs/Enemies/enemy_01.prefab"
     },
     {
@@ -64,6 +85,12 @@
       "bulletId": "enemy_bullet_01",
       "bulletPatternId": "enemy_single_down",
       "score": 120,
+      "drops": [
+        {
+          "itemId": "star",
+          "count": 1
+        }
+      ],
       "prefabPath": "Assets/Prefabs/Enemies/enemy_01.prefab"
     },
     {
@@ -75,6 +102,12 @@
       "bulletId": "enemy_bullet_02",
       "bulletPatternId": "enemy_ring_16",
       "score": 260,
+      "drops": [
+        {
+          "itemId": "star",
+          "count": 3
+        }
+      ],
       "prefabPath": "Assets/Prefabs/Enemies/enemy_01.prefab"
     },
     {
@@ -87,6 +120,12 @@
       "bulletPatternId": "",
       "hitScaleFeedback": false,
       "score": 5000,
+      "drops": [
+        {
+          "itemId": "star",
+          "count": 20
+        }
+      ],
       "prefabPath": "Assets/Prefabs/Enemies/boss_01.prefab"
     },
     {
@@ -99,6 +138,12 @@
       "bulletPatternId": "",
       "hitScaleFeedback": false,
       "score": 5300,
+      "drops": [
+        {
+          "itemId": "star",
+          "count": 20
+        }
+      ],
       "prefabPath": "Assets/Prefabs/Enemies/boss_02.prefab"
     },
     {
@@ -111,6 +156,12 @@
       "bulletPatternId": "",
       "hitScaleFeedback": false,
       "score": 5600,
+      "drops": [
+        {
+          "itemId": "star",
+          "count": 20
+        }
+      ],
       "prefabPath": "Assets/Prefabs/Enemies/boss_03.prefab"
     },
     {
@@ -123,6 +174,12 @@
       "bulletPatternId": "",
       "hitScaleFeedback": false,
       "score": 5900,
+      "drops": [
+        {
+          "itemId": "star",
+          "count": 20
+        }
+      ],
       "prefabPath": "Assets/Prefabs/Enemies/boss_04.prefab"
     },
     {
@@ -135,6 +192,12 @@
       "bulletPatternId": "",
       "hitScaleFeedback": false,
       "score": 6200,
+      "drops": [
+        {
+          "itemId": "star",
+          "count": 20
+        }
+      ],
       "prefabPath": "Assets/Prefabs/Enemies/boss_05.prefab"
     },
     {
@@ -147,6 +210,12 @@
       "bulletPatternId": "",
       "hitScaleFeedback": false,
       "score": 6500,
+      "drops": [
+        {
+          "itemId": "star",
+          "count": 20
+        }
+      ],
       "prefabPath": "Assets/Prefabs/Enemies/boss_06.prefab"
     },
     {
@@ -159,6 +228,12 @@
       "bulletPatternId": "",
       "hitScaleFeedback": false,
       "score": 6800,
+      "drops": [
+        {
+          "itemId": "star",
+          "count": 20
+        }
+      ],
       "prefabPath": "Assets/Prefabs/Enemies/boss_07.prefab"
     },
     {
@@ -171,6 +246,12 @@
       "bulletPatternId": "",
       "hitScaleFeedback": false,
       "score": 7100,
+      "drops": [
+        {
+          "itemId": "star",
+          "count": 20
+        }
+      ],
       "prefabPath": "Assets/Prefabs/Enemies/boss_08.prefab"
     },
     {
@@ -183,6 +264,12 @@
       "bulletPatternId": "",
       "hitScaleFeedback": false,
       "score": 7400,
+      "drops": [
+        {
+          "itemId": "star",
+          "count": 20
+        }
+      ],
       "prefabPath": "Assets/Prefabs/Enemies/boss_09.prefab"
     },
     {
@@ -195,6 +282,12 @@
       "bulletPatternId": "",
       "hitScaleFeedback": false,
       "score": 7700,
+      "drops": [
+        {
+          "itemId": "star",
+          "count": 20
+        }
+      ],
       "prefabPath": "Assets/Prefabs/Enemies/boss_10.prefab"
     },
     {
@@ -207,6 +300,12 @@
       "bulletPatternId": "",
       "hitScaleFeedback": false,
       "score": 8000,
+      "drops": [
+        {
+          "itemId": "star",
+          "count": 20
+        }
+      ],
       "prefabPath": "Assets/Prefabs/Enemies/boss_11.prefab"
     },
     {
@@ -219,6 +318,12 @@
       "bulletPatternId": "",
       "hitScaleFeedback": false,
       "score": 8300,
+      "drops": [
+        {
+          "itemId": "star",
+          "count": 20
+        }
+      ],
       "prefabPath": "Assets/Prefabs/Enemies/boss_12.prefab"
     }
   ],
@@ -348,6 +453,18 @@
       "muzzleSpacing": 0,
       "pierceCount": 0,
       "laserLength": 0
+    }
+  ],
+  "pickupItems": [
+    {
+      "id": "star",
+      "displayName": "星星",
+      "spritePath": "",
+      "starValue": 1,
+      "lifetime": 12,
+      "driftSpeed": 1.1,
+      "pickupRadius": 0.22,
+      "visualScale": 0.62
     }
   ],
   "bulletPatterns": [

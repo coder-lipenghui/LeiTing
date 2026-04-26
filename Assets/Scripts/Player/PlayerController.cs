@@ -20,6 +20,8 @@ namespace LeiTing.Player
         [SerializeField] private float fallbackMoveSpeed = 6f;
         [SerializeField] private int fallbackShield = 1;
         [SerializeField] private float fallbackInvincibleTime = 1.5f;
+        [SerializeField] private float fallbackPickupAttractRange = 2.2f;
+        [SerializeField] private float fallbackPickupAttractSpeed = 8f;
         [SerializeField] private float hitboxRadius = 0.18f;
         [SerializeField] private Vector2 hitboxOffset;
         [SerializeField] private int contactDamage = 1;
@@ -30,20 +32,26 @@ namespace LeiTing.Player
         private Vector3 targetPosition;
         private int currentHp;
         private int currentShield;
+        private int currentStars;
         private float invincibleUntil;
         private bool isDead;
         private Color originalColor = Color.white;
 
         public int CurrentHp => currentHp;
         public int CurrentShield => currentShield;
+        public int CurrentStars => currentStars;
         public bool IsInvincible => Time.time < invincibleUntil;
         public float MoveSpeed => GetMoveSpeed();
+        public float HitboxRadius => GetHitboxRadius();
+        public float PickupAttractRange => GetPickupAttractRange();
+        public float PickupAttractSpeed => GetPickupAttractSpeed();
 
         public void ApplyConfig(PlayerConfig playerConfig)
         {
             config = playerConfig;
             currentHp = Mathf.Max(1, config != null ? config.hp : currentHp);
             currentShield = Mathf.Max(0, config != null ? config.shield : currentShield);
+            currentStars = Mathf.Max(0, config != null ? config.stars : currentStars);
             if (playerShooter != null)
             {
                 playerShooter.ApplyConfig(config);
@@ -80,6 +88,16 @@ namespace LeiTing.Player
             }
 
             return true;
+        }
+
+        public void AddStars(int amount)
+        {
+            if (amount <= 0)
+            {
+                return;
+            }
+
+            currentStars += amount;
         }
 
         public void BeginInvincible()
@@ -366,6 +384,16 @@ namespace LeiTing.Player
         private float GetInvincibleTime()
         {
             return Mathf.Max(0f, config != null && config.invincibleTime > 0f ? config.invincibleTime : fallbackInvincibleTime);
+        }
+
+        private float GetPickupAttractRange()
+        {
+            return Mathf.Max(0f, config != null && config.pickupAttractRange > 0f ? config.pickupAttractRange : fallbackPickupAttractRange);
+        }
+
+        private float GetPickupAttractSpeed()
+        {
+            return Mathf.Max(0.01f, config != null && config.pickupAttractSpeed > 0f ? config.pickupAttractSpeed : fallbackPickupAttractSpeed);
         }
 
         private void EnsureVisual()

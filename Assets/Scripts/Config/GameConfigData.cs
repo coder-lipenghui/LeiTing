@@ -11,6 +11,7 @@ namespace LeiTing.Config
         public BackgroundConfig background;
         public List<EnemyConfig> enemies = new List<EnemyConfig>();
         public List<BulletConfig> bullets = new List<BulletConfig>();
+        public List<PickupItemConfig> pickupItems = new List<PickupItemConfig>();
         public List<BulletPatternConfig> bulletPatterns = new List<BulletPatternConfig>();
         public List<WaveConfig> waves = new List<WaveConfig>();
         public List<StageEventConfig> stageEvents = new List<StageEventConfig>();
@@ -26,8 +27,11 @@ namespace LeiTing.Config
         public string prefabPath;
         public int hp;
         public int shield;
+        public int stars;
         public float moveSpeed;
         public float invincibleTime;
+        public float pickupAttractRange;
+        public float pickupAttractSpeed;
         public float visualScale;
         public float hitboxRadius;
         public Vector2 hitboxOffset;
@@ -56,6 +60,27 @@ namespace LeiTing.Config
         public string bulletPatternId;
         public bool hitScaleFeedback;
         public int score;
+        public List<DropConfig> drops = new List<DropConfig>();
+    }
+
+    [Serializable]
+    public class DropConfig
+    {
+        public string itemId;
+        public int count;
+    }
+
+    [Serializable]
+    public class PickupItemConfig
+    {
+        public string id;
+        public string displayName;
+        public string spritePath;
+        public int starValue;
+        public float lifetime;
+        public float driftSpeed;
+        public float pickupRadius;
+        public float visualScale;
     }
 
     [Serializable]
