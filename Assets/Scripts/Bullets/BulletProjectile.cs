@@ -22,6 +22,8 @@ namespace LeiTing.Bullets
         private static Sprite playerSprite;
         private static Sprite enemySprite;
         private static Sprite laserSprite;
+        private static Material defaultSpriteMaterial;
+        private static Material laserMaterial;
         private static readonly Dictionary<string, Sprite> configuredSprites = new Dictionary<string, Sprite>();
 
         private BulletManager manager;
@@ -184,8 +186,9 @@ namespace LeiTing.Bullets
             boxCollider.size = size;
             boxCollider.offset = Vector2.zero;
 
-            spriteRenderer.sprite = LoadConfiguredSprite(bulletConfig.spritePath) ?? GetFallbackSprite();
+            spriteRenderer.sprite = isLaser ? GetLaserSprite() : LoadConfiguredSprite(bulletConfig.spritePath) ?? GetFallbackSprite();
             spriteRenderer.sortingOrder = IsPlayerOwned() ? 30 : 20;
+            spriteRenderer.sharedMaterial = isLaser ? GetLaserMaterial() : GetDefaultSpriteMaterial();
             visualRoot.localPosition = Vector3.zero;
             visualRoot.localRotation = Quaternion.identity;
             visualRoot.localScale = new Vector3(size.x / BaseSpriteWidth, size.y / BaseSpriteHeight, 1f);
@@ -345,6 +348,34 @@ namespace LeiTing.Bullets
             return laserSprite;
         }
 
+        private static Material GetDefaultSpriteMaterial()
+        {
+            if (defaultSpriteMaterial == null)
+            {
+                defaultSpriteMaterial = new Material(Shader.Find("Sprites/Default"));
+            }
+
+            return defaultSpriteMaterial;
+        }
+
+        private static Material GetLaserMaterial()
+        {
+            if (laserMaterial == null)
+            {
+                var shader = Shader.Find("LeiTing/ProceduralLaser") ?? Shader.Find("Sprites/Default");
+                laserMaterial = new Material(shader);
+                laserMaterial.SetColor("_CoreColor", Color.white);
+                laserMaterial.SetColor("_BeamColor", new Color(0.25f, 0.92f, 1f, 0.95f));
+                laserMaterial.SetColor("_GlowColor", new Color(0.08f, 0.55f, 1f, 0.42f));
+                laserMaterial.SetFloat("_PulseSpeed", 18f);
+                laserMaterial.SetFloat("_GlowWidth", 0.96f);
+                laserMaterial.SetFloat("_BodyWidth", 0.48f);
+                laserMaterial.SetFloat("_CoreWidth", 0.14f);
+            }
+
+            return laserMaterial;
+        }
+
         private static Sprite CreateBulletSprite(Color bodyColor, Color coreColor)
         {
             const int width = 12;
@@ -378,37 +409,16 @@ namespace LeiTing.Bullets
 
         private static Sprite CreateLaserSprite()
         {
-            const int width = 24;
-            const int height = 128;
+            const int width = 12;
+            const int height = 32;
             var texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
-            texture.filterMode = FilterMode.Bilinear;
-
-            var clear = new Color(0f, 0f, 0f, 0f);
-            var edge = new Color(0.2f, 0.72f, 1f, 0.45f);
-            var body = new Color(0.25f, 0.88f, 1f, 0.86f);
-            var core = new Color(1f, 1f, 1f, 1f);
+            texture.filterMode = FilterMode.Point;
 
             for (var y = 0; y < height; y++)
             {
                 for (var x = 0; x < width; x++)
                 {
-                    var normalizedX = Mathf.Abs((x + 0.5f) / width * 2f - 1f);
-                    var color = clear;
-
-                    if (normalizedX < 0.22f)
-                    {
-                        color = core;
-                    }
-                    else if (normalizedX < 0.48f)
-                    {
-                        color = body;
-                    }
-                    else if (normalizedX < 0.82f)
-                    {
-                        color = edge;
-                    }
-
-                    texture.SetPixel(x, y, color);
+                    texture.SetPixel(x, y, Color.white);
                 }
             }
 

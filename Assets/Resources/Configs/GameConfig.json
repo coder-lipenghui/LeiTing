@@ -13,7 +13,7 @@
       "x": 0,
       "y": -0.08
     },
-    "defaultBulletId": "player_bullet_01",
+    "defaultBulletId": "player_laser_01",
     "fireInterval": 0.16
   },
   "background": {
@@ -299,19 +299,19 @@
       "id": "player_laser_01",
       "owner": "Player",
       "firePattern": "Laser",
-      "spritePath": "Assets/Art/Sprites/Bullets/player_laser_01.png",
+      "spritePath": "",
       "damage": 1,
       "speed": 0,
-      "lifetime": 0.12,
+      "lifetime": 0.18,
       "size": {
-        "x": 0.22,
-        "y": 4.8
+        "x": 0.28,
+        "y": 7.2
       },
       "projectileCount": 1,
       "spreadAngle": 0,
       "muzzleSpacing": 0,
       "pierceCount": -1,
-      "laserLength": 4.8
+      "laserLength": 7.2
     },
     {
       "id": "enemy_bullet_01",

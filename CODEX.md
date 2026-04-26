@@ -149,13 +149,15 @@ For `main_3`, the pattern fires once from each child point in that group.
 
 Only `boss_01` currently has explicit `bossPhases`. Other bosses fallback to `boss_01` phase config until their own phases are added.
 
-Current `boss_01` HP is `160`. With default player bullet:
+Current `boss_01` HP is `160`. With the default player weapon:
 
-- bullet: `player_bullet_01`
+- bullet: `player_laser_01`
 - damage: `1`
 - fire interval: `0.16s`
 - theoretical DPS: `6.25`
 - full-hit kill time: `25.6s`
+
+`player_laser_01` is procedural: it uses `Assets/Shaders/ProceduralLaser.shader` and does not need a laser image asset.
 
 ## Hit Feedback Notes
 

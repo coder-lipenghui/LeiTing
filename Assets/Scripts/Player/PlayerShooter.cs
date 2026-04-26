@@ -8,7 +8,7 @@ namespace LeiTing.Player
     [DisallowMultipleComponent]
     public class PlayerShooter : MonoBehaviour
     {
-        private const string DefaultBulletId = "player_bullet_01";
+        private const string DefaultBulletId = "player_laser_01";
 
         [SerializeField] private PlayerConfig config;
         [SerializeField] private Transform firePoint;

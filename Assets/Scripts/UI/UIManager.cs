@@ -34,7 +34,7 @@ namespace LeiTing.UI
         private Text bossPhaseText;
         private Text bossNoticeText;
         private Coroutine bossNoticeRoutine;
-        private string selectedBulletId = SingleBulletId;
+        private string selectedBulletId = LaserBulletId;
 
         protected override void Awake()
         {
