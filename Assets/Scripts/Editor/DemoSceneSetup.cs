@@ -3,6 +3,7 @@ using LeiTing.Bullets;
 using LeiTing.Config;
 using LeiTing.Core;
 using LeiTing.Enemy;
+using LeiTing.Missiles;
 using LeiTing.Pickups;
 using LeiTing.Player;
 using LeiTing.Stage;
@@ -22,6 +23,7 @@ namespace LeiTing.EditorTools
             "PickupLayer",
             "BulletLayer_Player",
             "BulletLayer_Enemy",
+            "MissileLayer_Enemy",
             "EffectLayer",
             "UILayer"
         };
@@ -32,6 +34,7 @@ namespace LeiTing.EditorTools
             "Enemy",
             "PlayerBullet",
             "EnemyBullet",
+            "EnemyMissile",
             "Effect"
         };
 
@@ -61,6 +64,8 @@ namespace LeiTing.EditorTools
             AddIfMissing<PickupManager>(managers);
             AddIfMissing<BulletManager>(managers);
             AddIfMissing<BulletPatternManager>(managers);
+            AddIfMissing<MissileManager>(managers);
+            AddIfMissing<MissilePatternManager>(managers);
             AddIfMissing<StageManager>(managers);
             AddIfMissing<UIManager>(managers);
             AddIfMissing<AudioManager>(managers);

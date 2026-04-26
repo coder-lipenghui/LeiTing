@@ -11,8 +11,10 @@ namespace LeiTing.Config
         public BackgroundConfig background;
         public List<EnemyConfig> enemies = new List<EnemyConfig>();
         public List<BulletConfig> bullets = new List<BulletConfig>();
+        public List<MissileConfig> missiles = new List<MissileConfig>();
         public List<PickupItemConfig> pickupItems = new List<PickupItemConfig>();
         public List<BulletPatternConfig> bulletPatterns = new List<BulletPatternConfig>();
+        public List<MissilePatternConfig> missilePatterns = new List<MissilePatternConfig>();
         public List<WaveConfig> waves = new List<WaveConfig>();
         public List<StageEventConfig> stageEvents = new List<StageEventConfig>();
         public List<BossPhaseConfig> bossPhases = new List<BossPhaseConfig>();
@@ -110,6 +112,55 @@ namespace LeiTing.Config
     }
 
     [Serializable]
+    public class MissileConfig
+    {
+        public string id;
+        public int missileId;
+        public string name;
+        public int behaviorType;
+        public float speed;
+        public float maxSpeed;
+        public float acceleration;
+        public float lifeTime;
+        public int damage;
+        public float radius;
+        public float turnSpeed;
+        public float trackTime;
+        public float lockDelay;
+        public float warningTime;
+        public float explodeTime;
+        public float explodeRadius;
+        public float splitTime;
+        public int splitCount;
+        public float splitAngle;
+        public string childMissileId;
+        public bool canBeDestroyed;
+        public int hp;
+        public bool isLoopTrack;
+        public string prefabPath;
+        public string bodyRes;
+        public string flyAnim;
+        public string tailType;
+        public string tailRes;
+        public string tailColor;
+        public string warningRes;
+        public string lockEffectRes;
+        public string explodeEffectRes;
+        public string hitEffectRes;
+        public string destroyEffectRes;
+        public string effectRes;
+        public string soundRes;
+        public string soundLaunch;
+        public string soundLock;
+        public string soundExplode;
+        public float waveAmplitude;
+        public float waveFrequency;
+        public float releaseInterval;
+        public float triggerRadius;
+        public float returnDelay;
+    }
+
+    [Serializable]
     public class WaveConfig
     {
         public string id;
@@ -154,6 +205,27 @@ namespace LeiTing.Config
         public float spreadAngle;
         public float bulletSpeed;
         public float bulletLifetime;
+        public bool rotate;
+        public float rotationSpeed;
+        public bool aimAtPlayer;
+        public int burstCount;
+        public float fireInterval;
+    }
+
+    [Serializable]
+    public class MissilePatternConfig
+    {
+        public string id;
+        public string patternType;
+        public string missileId;
+        public string firePointGroup;
+        public Vector2 firePointOffset;
+        public float baseAngle;
+        public int missileCount;
+        public float angleStep;
+        public float spreadAngle;
+        public float missileSpeed;
+        public float missileLifetime;
         public bool rotate;
         public float rotationSpeed;
         public bool aimAtPlayer;

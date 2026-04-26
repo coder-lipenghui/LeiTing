@@ -47,6 +47,11 @@ namespace LeiTing.Config
             return config?.bullets.FirstOrDefault(item => item.id == id);
         }
 
+        public MissileConfig GetMissile(string id)
+        {
+            return config?.missiles?.FirstOrDefault(item => item.id == id);
+        }
+
         public PickupItemConfig GetPickupItem(string id)
         {
             return config?.pickupItems.FirstOrDefault(item => item.id == id);
@@ -55,6 +60,11 @@ namespace LeiTing.Config
         public BulletPatternConfig GetBulletPattern(string id)
         {
             return config?.bulletPatterns.FirstOrDefault(item => item.id == id);
+        }
+
+        public MissilePatternConfig GetMissilePattern(string id)
+        {
+            return config?.missilePatterns?.FirstOrDefault(item => item.id == id);
         }
 
         public BossPhaseConfig[] GetBossPhases(string bossId)
