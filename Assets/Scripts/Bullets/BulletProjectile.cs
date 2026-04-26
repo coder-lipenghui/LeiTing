@@ -41,6 +41,21 @@ namespace LeiTing.Bullets
         public string Owner { get; private set; }
         public int Damage { get; private set; }
 
+        public void RegisterExternalHit()
+        {
+            if (!isActiveProjectile)
+            {
+                return;
+            }
+
+            if (CanPierceHit())
+            {
+                return;
+            }
+
+            Recycle();
+        }
+
         public void Activate(BulletConfig bulletConfig, Vector2 fireDirection, BulletManager owningManager)
         {
             if (bulletConfig == null)

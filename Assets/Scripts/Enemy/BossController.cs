@@ -4,6 +4,7 @@ using LeiTing.Bullets;
 using LeiTing.Config;
 using LeiTing.Core;
 using LeiTing.Effects;
+using LeiTing.Missiles;
 using LeiTing.Pickups;
 using LeiTing.UI;
 using UnityEngine;
@@ -248,6 +249,11 @@ namespace LeiTing.Enemy
                 BulletManager.Instance.ClearEnemyBullets();
             }
 
+            if (!isInitial && MissileManager.Instance != null)
+            {
+                MissileManager.Instance.ClearEnemyMissiles();
+            }
+
             ExplosionEffect.Spawn(transform.position, isInitial ? 1.1f : 1.55f);
 
             if (UIManager.Instance != null)
@@ -315,25 +321,74 @@ namespace LeiTing.Enemy
             var patternId = phase.bulletPatternIds[volleyCursor % phase.bulletPatternIds.Count];
             volleyCursor++;
 
-            var patternManager = EnsureBulletPatternManager();
-            if (patternManager != null)
+            if (TryFireBulletPattern(patternId) || TryFireMissilePattern(patternId))
             {
-                var pattern = ConfigManager.Instance != null && ConfigManager.Instance.IsLoaded
-                    ? ConfigManager.Instance.GetBulletPattern(patternId)
-                    : null;
-                var firePoints = pattern != null ? GetFirePoints(pattern.firePointGroup) : null;
-                if (firePoints != null && firePoints.Length > 0)
-                {
-                    foreach (var firePoint in firePoints)
-                    {
-                        patternManager.FirePattern(pattern, firePoint.position);
-                    }
+                return;
+            }
 
-                    return;
+            FireFallbackShot();
+        }
+
+        private bool TryFireBulletPattern(string patternId)
+        {
+            var pattern = ConfigManager.Instance != null && ConfigManager.Instance.IsLoaded
+                ? ConfigManager.Instance.GetBulletPattern(patternId)
+                : null;
+            if (pattern == null)
+            {
+                return false;
+            }
+
+            var patternManager = EnsureBulletPatternManager();
+            if (patternManager == null)
+            {
+                return false;
+            }
+
+            var firePoints = GetFirePoints(pattern.firePointGroup);
+            if (firePoints != null && firePoints.Length > 0)
+            {
+                foreach (var firePoint in firePoints)
+                {
+                    patternManager.FirePattern(pattern, firePoint.position);
                 }
 
-                patternManager.FirePattern(patternId, transform.position);
+                return true;
             }
+
+            patternManager.FirePattern(pattern, transform.position);
+            return true;
+        }
+
+        private bool TryFireMissilePattern(string patternId)
+        {
+            var pattern = ConfigManager.Instance != null && ConfigManager.Instance.IsLoaded
+                ? ConfigManager.Instance.GetMissilePattern(patternId)
+                : null;
+            if (pattern == null)
+            {
+                return false;
+            }
+
+            var patternManager = EnsureMissilePatternManager();
+            if (patternManager == null)
+            {
+                return false;
+            }
+
+            var firePoints = GetFirePoints(pattern.firePointGroup);
+            if (firePoints != null && firePoints.Length > 0)
+            {
+                foreach (var firePoint in firePoints)
+                {
+                    patternManager.FirePattern(pattern, firePoint.position);
+                }
+
+                return true;
+            }
+
+            patternManager.FirePattern(pattern, transform.position);
+            return true;
         }
 
         private void FireFallbackShot()
@@ -384,6 +439,11 @@ namespace LeiTing.Enemy
             if (BulletManager.Instance != null)
             {
                 BulletManager.Instance.ClearEnemyBullets();
+            }
+
+            if (MissileManager.Instance != null)
+            {
+                MissileManager.Instance.ClearEnemyMissiles();
             }
 
             if (UIManager.Instance != null)
@@ -548,6 +608,17 @@ namespace LeiTing.Enemy
 
             var managers = GameObject.Find("Managers") ?? new GameObject("Managers");
             return managers.GetComponent<BulletPatternManager>() ?? managers.AddComponent<BulletPatternManager>();
+        }
+
+        private MissilePatternManager EnsureMissilePatternManager()
+        {
+            if (MissilePatternManager.Instance != null)
+            {
+                return MissilePatternManager.Instance;
+            }
+
+            var managers = GameObject.Find("Managers") ?? new GameObject("Managers");
+            return managers.GetComponent<MissilePatternManager>() ?? managers.AddComponent<MissilePatternManager>();
         }
 
         private Sprite LoadBossSprite()

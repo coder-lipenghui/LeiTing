@@ -2,6 +2,7 @@ using LeiTing.Config;
 using LeiTing.Core;
 using LeiTing.Effects;
 using LeiTing.Audio;
+using LeiTing.Missiles;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -282,6 +283,11 @@ namespace LeiTing.Player
         private bool CanTakeContactDamageFrom(Collider2D other)
         {
             if (other == null || other.attachedRigidbody == body || contactDamage <= 0)
+            {
+                return false;
+            }
+
+            if (other.GetComponentInParent<MissileController>() != null)
             {
                 return false;
             }

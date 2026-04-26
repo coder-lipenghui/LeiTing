@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using LeiTing.Bullets;
 using LeiTing.Config;
 using LeiTing.Core;
+using LeiTing.Missiles;
 using LeiTing.UI;
 using UnityEngine;
 
@@ -54,6 +55,11 @@ namespace LeiTing.Stage
             if (stageEvent.clearEnemyBullets && BulletManager.Instance != null)
             {
                 BulletManager.Instance.ClearEnemyBullets();
+            }
+
+            if (stageEvent.clearEnemyBullets && MissileManager.Instance != null)
+            {
+                MissileManager.Instance.ClearEnemyMissiles();
             }
 
             if (!string.IsNullOrEmpty(stageEvent.message) && UIManager.Instance != null)

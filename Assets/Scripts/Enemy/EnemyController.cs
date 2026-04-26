@@ -3,6 +3,7 @@ using LeiTing.Audio;
 using LeiTing.Config;
 using LeiTing.Core;
 using LeiTing.Effects;
+using LeiTing.Missiles;
 using LeiTing.Pickups;
 using LeiTing.Player;
 using LeiTing.UI;
@@ -320,29 +321,75 @@ namespace LeiTing.Enemy
         {
             if (!string.IsNullOrEmpty(attackPatternId))
             {
-                var patternManager = EnsureBulletPatternManager();
-                if (patternManager != null)
+                if (TryFireBulletPattern(attackPatternId) || TryFireMissilePattern(attackPatternId))
                 {
-                    var pattern = ConfigManager.Instance != null && ConfigManager.Instance.IsLoaded
-                        ? ConfigManager.Instance.GetBulletPattern(attackPatternId)
-                        : null;
-                    var firePoints = pattern != null ? GetFirePoints(pattern.firePointGroup) : null;
-                    if (firePoints != null && firePoints.Length > 0)
-                    {
-                        foreach (var firePoint in firePoints)
-                        {
-                            patternManager.FirePattern(pattern, firePoint.position);
-                        }
-
-                        return;
-                    }
-
-                    patternManager.FirePattern(attackPatternId, transform.position);
                     return;
                 }
             }
 
             FireSingleAtPlayer();
+        }
+
+        private bool TryFireBulletPattern(string patternId)
+        {
+            var pattern = ConfigManager.Instance != null && ConfigManager.Instance.IsLoaded
+                ? ConfigManager.Instance.GetBulletPattern(patternId)
+                : null;
+            if (pattern == null)
+            {
+                return false;
+            }
+
+            var patternManager = EnsureBulletPatternManager();
+            if (patternManager == null)
+            {
+                return false;
+            }
+
+            var firePoints = GetFirePoints(pattern.firePointGroup);
+            if (firePoints != null && firePoints.Length > 0)
+            {
+                foreach (var firePoint in firePoints)
+                {
+                    patternManager.FirePattern(pattern, firePoint.position);
+                }
+
+                return true;
+            }
+
+            patternManager.FirePattern(pattern, transform.position);
+            return true;
+        }
+
+        private bool TryFireMissilePattern(string patternId)
+        {
+            var pattern = ConfigManager.Instance != null && ConfigManager.Instance.IsLoaded
+                ? ConfigManager.Instance.GetMissilePattern(patternId)
+                : null;
+            if (pattern == null)
+            {
+                return false;
+            }
+
+            var patternManager = EnsureMissilePatternManager();
+            if (patternManager == null)
+            {
+                return false;
+            }
+
+            var firePoints = GetFirePoints(pattern.firePointGroup);
+            if (firePoints != null && firePoints.Length > 0)
+            {
+                foreach (var firePoint in firePoints)
+                {
+                    patternManager.FirePattern(pattern, firePoint.position);
+                }
+
+                return true;
+            }
+
+            patternManager.FirePattern(pattern, transform.position);
+            return true;
         }
 
         private void FireSingleAtPlayer()
@@ -387,6 +434,17 @@ namespace LeiTing.Enemy
 
             var managers = GameObject.Find("Managers") ?? new GameObject("Managers");
             return managers.GetComponent<BulletPatternManager>() ?? managers.AddComponent<BulletPatternManager>();
+        }
+
+        private MissilePatternManager EnsureMissilePatternManager()
+        {
+            if (MissilePatternManager.Instance != null)
+            {
+                return MissilePatternManager.Instance;
+            }
+
+            var managers = GameObject.Find("Managers") ?? new GameObject("Managers");
+            return managers.GetComponent<MissilePatternManager>() ?? managers.AddComponent<MissilePatternManager>();
         }
 
         private Vector2 ResolveDirectionToPlayer()
