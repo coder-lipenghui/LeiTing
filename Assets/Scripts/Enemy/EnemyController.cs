@@ -3,6 +3,7 @@ using LeiTing.Audio;
 using LeiTing.Config;
 using LeiTing.Core;
 using LeiTing.Effects;
+using LeiTing.Pickups;
 using LeiTing.Player;
 using LeiTing.UI;
 using UnityEngine;
@@ -429,6 +430,11 @@ namespace LeiTing.Enemy
             if (GameManager.Instance != null && config != null)
             {
                 GameManager.Instance.AddScore(config.score);
+            }
+
+            if (config != null)
+            {
+                PickupManager.GetOrCreate().SpawnDrops(config, transform.position);
             }
 
             if (UIManager.Instance != null && config != null)

@@ -4,6 +4,7 @@ using LeiTing.Bullets;
 using LeiTing.Config;
 using LeiTing.Core;
 using LeiTing.Effects;
+using LeiTing.Pickups;
 using LeiTing.UI;
 using UnityEngine;
 
@@ -374,6 +375,11 @@ namespace LeiTing.Enemy
 
             isDead = true;
             hitbox.enabled = false;
+
+            if (config != null)
+            {
+                PickupManager.GetOrCreate().SpawnDrops(config, transform.position);
+            }
 
             if (BulletManager.Instance != null)
             {

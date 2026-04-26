@@ -1,0 +1,308 @@
+using LeiTing.Config;
+using LeiTing.Core;
+using LeiTing.Player;
+using UnityEngine;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
+namespace LeiTing.Pickups
+{
+    [DisallowMultipleComponent]
+    [RequireComponent(typeof(Rigidbody2D))]
+    [RequireComponent(typeof(CircleCollider2D))]
+    public class PickupItemController : MonoBehaviour
+    {
+        private const float DespawnY = -6.4f;
+
+        [SerializeField] private PickupItemConfig config;
+
+        private Rigidbody2D body;
+        private CircleCollider2D pickupCollider;
+        private SpriteRenderer spriteRenderer;
+        private float spawnTime;
+        private bool isCollected;
+
+        public void Initialize(PickupItemConfig pickupConfig)
+        {
+            EnsureComponents();
+
+            config = pickupConfig;
+            spawnTime = Time.time;
+            isCollected = false;
+            gameObject.name = config != null && !string.IsNullOrEmpty(config.id) ? config.id : "Pickup";
+            ApplyVisual();
+            ApplyCollider();
+        }
+
+        private void Awake()
+        {
+            EnsureComponents();
+        }
+
+        private void Update()
+        {
+            if (isCollected)
+            {
+                return;
+            }
+
+            if (GameManager.Instance != null && GameManager.Instance.CurrentState != GameState.Playing)
+            {
+                return;
+            }
+
+            var player = FindObjectOfType<PlayerController>();
+            if (player != null && TryAttractToPlayer(player))
+            {
+                return;
+            }
+
+            DriftDown();
+            CheckLifetime();
+        }
+
+        private void OnTriggerEnter2D(Collider2D other)
+        {
+            if (isCollected || other == null)
+            {
+                return;
+            }
+
+            var player = other.GetComponentInParent<PlayerController>();
+            if (player != null)
+            {
+                Collect(player);
+            }
+        }
+
+        private void EnsureComponents()
+        {
+            body = body != null ? body : GetComponent<Rigidbody2D>();
+            body.bodyType = RigidbodyType2D.Kinematic;
+            body.gravityScale = 0f;
+            body.freezeRotation = true;
+
+            pickupCollider = pickupCollider != null ? pickupCollider : GetComponent<CircleCollider2D>();
+            pickupCollider.isTrigger = true;
+
+            spriteRenderer = spriteRenderer != null ? spriteRenderer : GetComponent<SpriteRenderer>();
+            if (spriteRenderer == null)
+            {
+                spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
+            }
+        }
+
+        private bool TryAttractToPlayer(PlayerController player)
+        {
+            var toPlayer = player.transform.position - transform.position;
+            var distance = toPlayer.magnitude;
+
+            if (distance <= GetCollectDistance(player))
+            {
+                Collect(player);
+                return true;
+            }
+
+            if (distance > player.PickupAttractRange)
+            {
+                return false;
+            }
+
+            var speed = Mathf.Max(0.01f, player.PickupAttractSpeed);
+            var nextPosition = Vector3.MoveTowards(transform.position, player.transform.position, speed * Time.deltaTime);
+            MoveTo(nextPosition);
+            return true;
+        }
+
+        private void DriftDown()
+        {
+            var speed = Mathf.Max(0f, config != null && config.driftSpeed > 0f ? config.driftSpeed : 1.1f);
+            MoveTo(transform.position + Vector3.down * speed * Time.deltaTime);
+
+            if (transform.position.y < DespawnY)
+            {
+                Destroy(gameObject);
+            }
+        }
+
+        private void MoveTo(Vector3 position)
+        {
+            if (body != null)
+            {
+                body.MovePosition(position);
+            }
+            else
+            {
+                transform.position = position;
+            }
+        }
+
+        private void CheckLifetime()
+        {
+            var lifetime = config != null && config.lifetime > 0f ? config.lifetime : 12f;
+            if (Time.time - spawnTime >= lifetime)
+            {
+                Destroy(gameObject);
+            }
+        }
+
+        private void Collect(PlayerController player)
+        {
+            if (isCollected || player == null)
+            {
+                return;
+            }
+
+            isCollected = true;
+
+            if (IsStar())
+            {
+                player.AddStars(GetStarValue());
+            }
+
+            Destroy(gameObject);
+        }
+
+        private bool IsStar()
+        {
+            return config != null && string.Equals(config.id, "star", System.StringComparison.OrdinalIgnoreCase);
+        }
+
+        private int GetStarValue()
+        {
+            return Mathf.Max(1, config != null ? config.starValue : 1);
+        }
+
+        private float GetCollectDistance(PlayerController player)
+        {
+            var pickupRadius = config != null && config.pickupRadius > 0f ? config.pickupRadius : 0.22f;
+            return Mathf.Max(0.05f, pickupRadius + player.HitboxRadius);
+        }
+
+        private void ApplyCollider()
+        {
+            if (pickupCollider == null)
+            {
+                return;
+            }
+
+            pickupCollider.radius = config != null && config.pickupRadius > 0f ? config.pickupRadius : 0.22f;
+            pickupCollider.offset = Vector2.zero;
+        }
+
+        private void ApplyVisual()
+        {
+            if (spriteRenderer == null)
+            {
+                return;
+            }
+
+            spriteRenderer.sprite = LoadPickupSprite() ?? CreateFallbackStarSprite();
+            spriteRenderer.sortingOrder = 18;
+            spriteRenderer.color = Color.white;
+
+            var scale = config != null && config.visualScale > 0f ? config.visualScale : 0.62f;
+            transform.localScale = new Vector3(scale, scale, 1f);
+        }
+
+        private Sprite LoadPickupSprite()
+        {
+            if (config == null || string.IsNullOrEmpty(config.spritePath))
+            {
+                return null;
+            }
+
+#if UNITY_EDITOR
+            if (config.spritePath.StartsWith("Assets/", System.StringComparison.OrdinalIgnoreCase))
+            {
+                return AssetDatabase.LoadAssetAtPath<Sprite>(config.spritePath);
+            }
+#endif
+
+            return Resources.Load<Sprite>(NormalizeResourcesPath(config.spritePath));
+        }
+
+        private static string NormalizeResourcesPath(string assetPath)
+        {
+            const string resourcesSegment = "/Resources/";
+            var normalized = assetPath.Replace("\\", "/");
+            var resourcesIndex = normalized.IndexOf(resourcesSegment, System.StringComparison.OrdinalIgnoreCase);
+
+            if (resourcesIndex >= 0)
+            {
+                normalized = normalized.Substring(resourcesIndex + resourcesSegment.Length);
+            }
+
+            var extensionIndex = normalized.LastIndexOf(".", System.StringComparison.Ordinal);
+            if (extensionIndex >= 0)
+            {
+                normalized = normalized.Substring(0, extensionIndex);
+            }
+
+            return normalized;
+        }
+
+        private static Sprite CreateFallbackStarSprite()
+        {
+            const int size = 32;
+            var texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
+            texture.filterMode = FilterMode.Point;
+
+            var clear = new Color(0f, 0f, 0f, 0f);
+            var fill = new Color(1f, 0.86f, 0.18f, 1f);
+            var shine = new Color(1f, 1f, 0.72f, 1f);
+            var center = new Vector2((size - 1) * 0.5f, (size - 1) * 0.5f);
+
+            for (var y = 0; y < size; y++)
+            {
+                for (var x = 0; x < size; x++)
+                {
+                    texture.SetPixel(x, y, clear);
+                }
+            }
+
+            var points = new Vector2[10];
+            for (var index = 0; index < points.Length; index++)
+            {
+                var radius = index % 2 == 0 ? 14f : 6.2f;
+                var angle = Mathf.Deg2Rad * (-90f + index * 36f);
+                points[index] = center + new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * radius;
+            }
+
+            for (var y = 0; y < size; y++)
+            {
+                for (var x = 0; x < size; x++)
+                {
+                    if (IsPointInPolygon(new Vector2(x, y), points))
+                    {
+                        texture.SetPixel(x, y, y > center.y ? shine : fill);
+                    }
+                }
+            }
+
+            texture.Apply();
+            return Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
+        }
+
+        private static bool IsPointInPolygon(Vector2 point, Vector2[] polygon)
+        {
+            var inside = false;
+            for (int i = 0, j = polygon.Length - 1; i < polygon.Length; j = i++)
+            {
+                var crosses = (polygon[i].y > point.y) != (polygon[j].y > point.y);
+                if (crosses)
+                {
+                    var x = (polygon[j].x - polygon[i].x) * (point.y - polygon[i].y) / (polygon[j].y - polygon[i].y) + polygon[i].x;
+                    if (point.x < x)
+                    {
+                        inside = !inside;
+                    }
+                }
+            }
+
+            return inside;
+        }
+    }
+}
