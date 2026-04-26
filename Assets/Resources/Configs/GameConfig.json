@@ -6,6 +6,7 @@
     "hp": 3,
     "shield": 1,
     "stars": 0,
+    "coins": 0,
     "moveSpeed": 18,
     "invincibleTime": 1.5,
     "pickupAttractRange": 2.2,
@@ -38,6 +39,15 @@
         {
           "itemId": "star",
           "count": 1
+        },
+        {
+          "itemId": "coin",
+          "count": 1
+        },
+        {
+          "itemId": "magnet",
+          "count": 1,
+          "dropOnce": true
         }
       ],
       "prefabPath": "Assets/Prefabs/Enemies/enemy_01.prefab"
@@ -55,6 +65,15 @@
         {
           "itemId": "star",
           "count": 2
+        },
+        {
+          "itemId": "coin",
+          "count": 2
+        },
+        {
+          "itemId": "boom",
+          "count": 1,
+          "dropOnce": true
         }
       ],
       "prefabPath": "Assets/Prefabs/Enemies/enemy_01.prefab"
@@ -72,6 +91,15 @@
         {
           "itemId": "star",
           "count": 1
+        },
+        {
+          "itemId": "coin",
+          "count": 2
+        },
+        {
+          "itemId": "shield",
+          "count": 1,
+          "dropOnce": true
         }
       ],
       "prefabPath": "Assets/Prefabs/Enemies/enemy_01.prefab"
@@ -89,6 +117,15 @@
         {
           "itemId": "star",
           "count": 1
+        },
+        {
+          "itemId": "coin",
+          "count": 1
+        },
+        {
+          "itemId": "hp",
+          "count": 1,
+          "dropOnce": true
         }
       ],
       "prefabPath": "Assets/Prefabs/Enemies/enemy_01.prefab"
@@ -105,6 +142,10 @@
       "drops": [
         {
           "itemId": "star",
+          "count": 3
+        },
+        {
+          "itemId": "coin",
           "count": 3
         }
       ],
@@ -124,6 +165,10 @@
         {
           "itemId": "star",
           "count": 20
+        },
+        {
+          "itemId": "coin",
+          "count": 20
         }
       ],
       "prefabPath": "Assets/Prefabs/Enemies/boss_01.prefab"
@@ -141,6 +186,10 @@
       "drops": [
         {
           "itemId": "star",
+          "count": 20
+        },
+        {
+          "itemId": "coin",
           "count": 20
         }
       ],
@@ -160,6 +209,10 @@
         {
           "itemId": "star",
           "count": 20
+        },
+        {
+          "itemId": "coin",
+          "count": 20
         }
       ],
       "prefabPath": "Assets/Prefabs/Enemies/boss_03.prefab"
@@ -177,6 +230,10 @@
       "drops": [
         {
           "itemId": "star",
+          "count": 20
+        },
+        {
+          "itemId": "coin",
           "count": 20
         }
       ],
@@ -196,6 +253,10 @@
         {
           "itemId": "star",
           "count": 20
+        },
+        {
+          "itemId": "coin",
+          "count": 20
         }
       ],
       "prefabPath": "Assets/Prefabs/Enemies/boss_05.prefab"
@@ -213,6 +274,10 @@
       "drops": [
         {
           "itemId": "star",
+          "count": 20
+        },
+        {
+          "itemId": "coin",
           "count": 20
         }
       ],
@@ -232,6 +297,10 @@
         {
           "itemId": "star",
           "count": 20
+        },
+        {
+          "itemId": "coin",
+          "count": 20
         }
       ],
       "prefabPath": "Assets/Prefabs/Enemies/boss_07.prefab"
@@ -249,6 +318,10 @@
       "drops": [
         {
           "itemId": "star",
+          "count": 20
+        },
+        {
+          "itemId": "coin",
           "count": 20
         }
       ],
@@ -268,6 +341,10 @@
         {
           "itemId": "star",
           "count": 20
+        },
+        {
+          "itemId": "coin",
+          "count": 20
         }
       ],
       "prefabPath": "Assets/Prefabs/Enemies/boss_09.prefab"
@@ -285,6 +362,10 @@
       "drops": [
         {
           "itemId": "star",
+          "count": 20
+        },
+        {
+          "itemId": "coin",
           "count": 20
         }
       ],
@@ -304,6 +385,10 @@
         {
           "itemId": "star",
           "count": 20
+        },
+        {
+          "itemId": "coin",
+          "count": 20
         }
       ],
       "prefabPath": "Assets/Prefabs/Enemies/boss_11.prefab"
@@ -321,6 +406,10 @@
       "drops": [
         {
           "itemId": "star",
+          "count": 20
+        },
+        {
+          "itemId": "coin",
           "count": 20
         }
       ],
@@ -340,6 +429,13 @@
         "x": 0.12,
         "y": 0.32
       },
+      "glowColor": {
+        "r": 0,
+        "g": 0,
+        "b": 0,
+        "a": 0
+      },
+      "glowRange": 0,
       "projectileCount": 1,
       "spreadAngle": 0,
       "muzzleSpacing": 0,
@@ -358,6 +454,13 @@
         "x": 0.12,
         "y": 0.32
       },
+      "glowColor": {
+        "r": 0,
+        "g": 0,
+        "b": 0,
+        "a": 0
+      },
+      "glowRange": 0,
       "projectileCount": 2,
       "spreadAngle": 0,
       "muzzleSpacing": 0.28,
@@ -376,6 +479,13 @@
         "x": 0.12,
         "y": 0.32
       },
+      "glowColor": {
+        "r": 0,
+        "g": 0,
+        "b": 0,
+        "a": 0
+      },
+      "glowRange": 0,
       "projectileCount": 5,
       "spreadAngle": 32,
       "muzzleSpacing": 0.08,
@@ -394,6 +504,13 @@
         "x": 0.14,
         "y": 0.4
       },
+      "glowColor": {
+        "r": 0,
+        "g": 0,
+        "b": 0,
+        "a": 0
+      },
+      "glowRange": 0,
       "projectileCount": 1,
       "spreadAngle": 0,
       "muzzleSpacing": 0,
@@ -410,13 +527,20 @@
       "lifetime": 0.18,
       "size": {
         "x": 0.28,
-        "y": 7.2
+        "y": 13
       },
+      "glowColor": {
+        "r": 0,
+        "g": 0,
+        "b": 0,
+        "a": 0
+      },
+      "glowRange": 0,
       "projectileCount": 1,
       "spreadAngle": 0,
       "muzzleSpacing": 0,
       "pierceCount": -1,
-      "laserLength": 7.2
+      "laserLength": 13
     },
     {
       "id": "enemy_bullet_01",
@@ -427,9 +551,16 @@
       "speed": 4,
       "lifetime": 5,
       "size": {
-        "x": 0.18,
-        "y": 0.18
+        "x": 0.2,
+        "y": 0.2
       },
+      "glowColor": {
+        "r": 1,
+        "g": 0.48,
+        "b": 0.12,
+        "a": 0.58
+      },
+      "glowRange": 0.18,
       "projectileCount": 1,
       "spreadAngle": 0,
       "muzzleSpacing": 0,
@@ -448,6 +579,13 @@
         "x": 0.16,
         "y": 0.16
       },
+      "glowColor": {
+        "r": 1,
+        "g": 0.32,
+        "b": 0.12,
+        "a": 0.5
+      },
+      "glowRange": 0.16,
       "projectileCount": 1,
       "spreadAngle": 0,
       "muzzleSpacing": 0,
@@ -459,12 +597,86 @@
     {
       "id": "star",
       "displayName": "星星",
-      "spritePath": "",
+      "itemType": "Star",
+      "spritePath": "Assets/Art/Sprites/Item/item_star.png",
       "starValue": 1,
+      "coinValue": 0,
+      "healValue": 0,
+      "shieldDuration": 0,
       "lifetime": 12,
       "driftSpeed": 1.1,
       "pickupRadius": 0.22,
-      "visualScale": 0.62
+      "visualScale": 1
+    },
+    {
+      "id": "coin",
+      "displayName": "金币",
+      "itemType": "Coin",
+      "spritePath": "Assets/Art/Sprites/Item/item_coin.png",
+      "starValue": 0,
+      "coinValue": 1,
+      "healValue": 0,
+      "shieldDuration": 0,
+      "lifetime": 12,
+      "driftSpeed": 1.1,
+      "pickupRadius": 0.22,
+      "visualScale": 1
+    },
+    {
+      "id": "magnet",
+      "displayName": "磁体",
+      "itemType": "Magnet",
+      "spritePath": "Assets/Art/Sprites/Item/item_magnet.png",
+      "starValue": 0,
+      "coinValue": 0,
+      "healValue": 0,
+      "shieldDuration": 0,
+      "lifetime": 12,
+      "driftSpeed": 1.1,
+      "pickupRadius": 0.22,
+      "visualScale": 1
+    },
+    {
+      "id": "boom",
+      "displayName": "炸弹",
+      "itemType": "Bomb",
+      "spritePath": "Assets/Art/Sprites/Item/item_boom.png",
+      "starValue": 0,
+      "coinValue": 0,
+      "healValue": 0,
+      "shieldDuration": 0,
+      "lifetime": 12,
+      "driftSpeed": 1.1,
+      "pickupRadius": 0.22,
+      "visualScale": 1
+    },
+    {
+      "id": "hp",
+      "displayName": "红心",
+      "itemType": "Heal",
+      "spritePath": "Assets/Art/Sprites/Item/item_hp.png",
+      "starValue": 0,
+      "coinValue": 0,
+      "healValue": 1,
+      "shieldDuration": 0,
+      "lifetime": 12,
+      "driftSpeed": 1.1,
+      "pickupRadius": 0.22,
+      "visualScale": 1
+    },
+    {
+      "id": "shield",
+      "displayName": "盾牌",
+      "itemType": "Shield",
+      "spritePath": "Assets/Art/Sprites/Item/item_shield.png",
+      "starValue": 0,
+      "coinValue": 0,
+      "healValue": 0,
+      "shieldDuration": 5,
+      "lifetime": 12,
+      "driftSpeed": 1.1,
+      "pickupRadius": 0.22,
+      "visualScale": 1
     }
   ],
   "bulletPatterns": [

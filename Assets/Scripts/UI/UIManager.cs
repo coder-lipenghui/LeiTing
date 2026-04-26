@@ -439,8 +439,9 @@ namespace LeiTing.UI
             var hp = player != null ? player.CurrentHp : 0;
             var shield = player != null ? player.CurrentShield : 0;
             var stars = player != null ? player.CurrentStars : 0;
+            var coins = player != null ? player.CurrentCoins : 0;
             var score = GameManager.Instance != null ? GameManager.Instance.Score : 0;
-            hudText.text = $"HP {hp}  SH {shield}  STAR {stars}\nSCORE {score}";
+            hudText.text = $"HP {hp}  SH {shield}  STAR {stars}  COIN {coins}\nSCORE {score}";
         }
 
         private void UpdateSettlement()

@@ -1,12 +1,19 @@
+using System.Collections.Generic;
 using LeiTing.Config;
 using LeiTing.Core;
+using LeiTing.Enemy;
+using LeiTing.Player;
 using UnityEngine;
 
 namespace LeiTing.Pickups
 {
     public class PickupManager : MonoSingleton<PickupManager>
     {
+        private const float DropScatterRadius = 0.7f;
+
         [SerializeField] private Transform pickupLayer;
+
+        private readonly HashSet<string> droppedOnceItemIds = new HashSet<string>();
 
         public static PickupManager GetOrCreate()
         {
@@ -26,6 +33,7 @@ namespace LeiTing.Pickups
                 return;
             }
 
+            var drops = new List<PickupItemConfig>();
             foreach (var drop in enemyConfig.drops)
             {
                 if (drop == null || string.IsNullOrEmpty(drop.itemId) || drop.count <= 0)
@@ -33,17 +41,66 @@ namespace LeiTing.Pickups
                     continue;
                 }
 
+                if (drop.dropOnce && droppedOnceItemIds.Contains(drop.itemId))
+                {
+                    continue;
+                }
+
                 var pickupConfig = ResolvePickupConfig(drop.itemId);
+                if (pickupConfig == null)
+                {
+                    continue;
+                }
+
+                if (drop.dropOnce)
+                {
+                    droppedOnceItemIds.Add(drop.itemId);
+                }
+
                 for (var index = 0; index < drop.count; index++)
                 {
-                    SpawnPickup(pickupConfig, position, index, drop.count);
+                    drops.Add(pickupConfig);
                 }
+            }
+
+            for (var index = 0; index < drops.Count; index++)
+            {
+                SpawnPickup(drops[index], position, index, drops.Count);
             }
         }
 
         public PickupItemController SpawnPickup(PickupItemConfig pickupConfig, Vector3 position)
         {
             return SpawnPickup(pickupConfig, position, 0, 1);
+        }
+
+        public void AttractAllStarsToPlayer(PlayerController player)
+        {
+            if (player == null)
+            {
+                return;
+            }
+
+            var pickups = FindObjectsOfType<PickupItemController>();
+            foreach (var pickup in pickups)
+            {
+                if (pickup != null && pickup.IsStarPickup)
+                {
+                    pickup.BeginForcedAttract(player);
+                }
+            }
+        }
+
+        public void KillAllMinions()
+        {
+            var enemies = FindObjectsOfType<EnemyController>();
+            foreach (var enemy in enemies)
+            {
+                if (enemy != null && enemy.GetComponent<BossController>() == null)
+                {
+                    enemy.KillInstantly();
+                }
+            }
         }
 
         protected override void Awake()
@@ -89,6 +146,8 @@ namespace LeiTing.Pickups
                 {
                     id = "star",
                     displayName = "Star",
+                    itemType = "Star",
+                    spritePath = "Assets/Art/Sprites/Item/item_star.png",
                     starValue = 1,
                     lifetime = 12f,
                     driftSpeed = 1.1f,
@@ -136,7 +195,7 @@ namespace LeiTing.Pickups
             }
 
             var angle = (index / (float)count) * Mathf.PI * 2f + 0.35f;
-            var radius = Mathf.Min(0.55f, 0.12f + count * 0.018f);
+            var radius = DropScatterRadius;
             return new Vector3(Mathf.Cos(angle), Mathf.Sin(angle), 0f) * radius;
         }
     }

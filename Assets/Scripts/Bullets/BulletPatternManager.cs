@@ -101,6 +101,8 @@ namespace LeiTing.Bullets
                 speed = pattern.bulletSpeed > 0f ? pattern.bulletSpeed : source.speed,
                 lifetime = pattern.bulletLifetime > 0f ? pattern.bulletLifetime : source.lifetime,
                 size = source.size,
+                glowColor = source.glowColor,
+                glowRange = source.glowRange,
                 projectileCount = source.projectileCount,
                 spreadAngle = source.spreadAngle,
                 muzzleSpacing = source.muzzleSpacing,

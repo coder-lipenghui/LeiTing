@@ -15,7 +15,7 @@ namespace LeiTing.Bullets
         private readonly Stack<BulletProjectile> pooledBullets = new Stack<BulletProjectile>();
         private bool isPoolWarmed;
 
-        public BulletProjectile Fire(BulletConfig bulletConfig, Vector2 position, Vector2 direction)
+        public BulletProjectile Fire(BulletConfig bulletConfig, Vector2 position, Vector2 direction, Transform followTarget = null)
         {
             if (bulletConfig == null)
             {
@@ -28,7 +28,7 @@ namespace LeiTing.Bullets
             projectile.transform.SetParent(GetLayerRoot(bulletConfig.owner), false);
             projectile.transform.position = position;
             projectile.transform.rotation = Quaternion.identity;
-            projectile.Activate(bulletConfig, direction, this);
+            projectile.Activate(bulletConfig, direction, this, followTarget);
             return projectile;
         }
 

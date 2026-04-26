@@ -14,13 +14,15 @@ namespace LeiTing.Pickups
     [RequireComponent(typeof(CircleCollider2D))]
     public class PickupItemController : MonoBehaviour
     {
-        private const float DespawnY = -6.4f;
+        private const float DespawnViewportMargin = 0.08f;
 
         [SerializeField] private PickupItemConfig config;
 
         private Rigidbody2D body;
         private CircleCollider2D pickupCollider;
         private SpriteRenderer spriteRenderer;
+        private Camera gameplayCamera;
+        private PlayerController forcedAttractTarget;
         private float spawnTime;
         private bool isCollected;
 
@@ -31,9 +33,22 @@ namespace LeiTing.Pickups
             config = pickupConfig;
             spawnTime = Time.time;
             isCollected = false;
+            forcedAttractTarget = null;
             gameObject.name = config != null && !string.IsNullOrEmpty(config.id) ? config.id : "Pickup";
             ApplyVisual();
             ApplyCollider();
+        }
+
+        public bool IsStarPickup => IsItemType("Star") || IsItemId("star");
+
+        public void BeginForcedAttract(PlayerController player)
+        {
+            if (isCollected || player == null)
+            {
+                return;
+            }
+
+            forcedAttractTarget = player;
         }
 
         private void Awake()
@@ -54,6 +69,14 @@ namespace LeiTing.Pickups
             }
 
             var player = FindObjectOfType<PlayerController>();
+            if (forcedAttractTarget != null)
+            {
+                if (TryAttractToPlayer(forcedAttractTarget, true))
+                {
+                    return;
+                }
+            }
+
             if (player != null && TryAttractToPlayer(player))
             {
                 return;
@@ -87,6 +110,8 @@ namespace LeiTing.Pickups
             pickupCollider = pickupCollider != null ? pickupCollider : GetComponent<CircleCollider2D>();
             pickupCollider.isTrigger = true;
 
+            gameplayCamera = gameplayCamera != null ? gameplayCamera : Camera.main;
+
             spriteRenderer = spriteRenderer != null ? spriteRenderer : GetComponent<SpriteRenderer>();
             if (spriteRenderer == null)
             {
@@ -94,7 +119,7 @@ namespace LeiTing.Pickups
             }
         }
 
-        private bool TryAttractToPlayer(PlayerController player)
+        private bool TryAttractToPlayer(PlayerController player, bool forceAttract = false)
         {
             var toPlayer = player.transform.position - transform.position;
             var distance = toPlayer.magnitude;
@@ -105,7 +130,7 @@ namespace LeiTing.Pickups
                 return true;
             }
 
-            if (distance > player.PickupAttractRange)
+            if (!forceAttract && distance > player.PickupAttractRange)
             {
                 return false;
             }
@@ -121,7 +146,7 @@ namespace LeiTing.Pickups
             var speed = Mathf.Max(0f, config != null && config.driftSpeed > 0f ? config.driftSpeed : 1.1f);
             MoveTo(transform.position + Vector3.down * speed * Time.deltaTime);
 
-            if (transform.position.y < DespawnY)
+            if (IsBelowScreen())
             {
                 Destroy(gameObject);
             }
@@ -131,12 +156,10 @@ namespace LeiTing.Pickups
         {
             if (body != null)
             {
-                body.MovePosition(position);
+                body.position = position;
             }
-            else
-            {
-                transform.position = position;
-            }
+
+            transform.position = position;
         }
 
         private void CheckLifetime()
@@ -148,6 +171,18 @@ namespace LeiTing.Pickups
             }
         }
 
+        private bool IsBelowScreen()
+        {
+            gameplayCamera = gameplayCamera != null ? gameplayCamera : Camera.main;
+            if (gameplayCamera == null)
+            {
+                return transform.position.y < -6.4f;
+            }
+
+            var viewportPosition = gameplayCamera.WorldToViewportPoint(transform.position);
+            return viewportPosition.y < -DespawnViewportMargin;
+        }
+
         private void Collect(PlayerController player)
         {
             if (isCollected || player == null)
@@ -157,22 +192,62 @@ namespace LeiTing.Pickups
 
             isCollected = true;
 
-            if (IsStar())
+            if (IsStarPickup)
             {
                 player.AddStars(GetStarValue());
+            }
+            else if (IsItemType("Coin") || IsItemId("coin"))
+            {
+                player.AddCoins(GetCoinValue());
+            }
+            else if (IsItemType("Magnet") || IsItemId("magnet"))
+            {
+                PickupManager.GetOrCreate().AttractAllStarsToPlayer(player);
+            }
+            else if (IsItemType("Bomb") || IsItemId("boom"))
+            {
+                PickupManager.GetOrCreate().KillAllMinions();
+            }
+            else if (IsItemType("Heal") || IsItemId("hp"))
+            {
+                player.Heal(GetHealValue());
+            }
+            else if (IsItemType("Shield") || IsItemId("shield"))
+            {
+                player.ActivateInvincibleShield(GetShieldDuration());
             }
 
             Destroy(gameObject);
         }
 
-        private bool IsStar()
+        private bool IsItemType(string itemType)
         {
-            return config != null && string.Equals(config.id, "star", System.StringComparison.OrdinalIgnoreCase);
+            return config != null && string.Equals(config.itemType, itemType, System.StringComparison.OrdinalIgnoreCase);
+        }
+
+        private bool IsItemId(string itemId)
+        {
+            return config != null && string.Equals(config.id, itemId, System.StringComparison.OrdinalIgnoreCase);
         }
 
         private int GetStarValue()
         {
             return Mathf.Max(1, config != null ? config.starValue : 1);
+        }
+
+        private int GetCoinValue()
+        {
+            return Mathf.Max(1, config != null ? config.coinValue : 1);
+        }
+
+        private int GetHealValue()
+        {
+            return Mathf.Max(1, config != null ? config.healValue : 1);
+        }
+
+        private float GetShieldDuration()
+        {
+            return Mathf.Max(0.1f, config != null ? config.shieldDuration : 5f);
         }
 
         private float GetCollectDistance(PlayerController player)

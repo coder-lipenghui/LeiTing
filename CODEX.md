@@ -157,7 +157,7 @@ Current `boss_01` HP is `160`. With the default player weapon:
 - theoretical DPS: `6.25`
 - full-hit kill time: `25.6s`
 
-`player_laser_01` is procedural: it uses `Assets/Shaders/ProceduralLaser.shader` and does not need a laser image asset.
+`player_laser_01` is procedural: it uses `Assets/Shaders/ProceduralLaser.shader` and does not need a laser image asset. During gameplay it follows the player's `FirePoint` every frame and dynamically stretches to the camera's top edge.
 
 ## Hit Feedback Notes
 

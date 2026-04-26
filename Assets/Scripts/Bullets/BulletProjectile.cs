@@ -18,22 +18,29 @@ namespace LeiTing.Bullets
         private const float SpritePixelsPerUnit = 100f;
         private const float BaseSpriteWidth = 0.12f;
         private const float BaseSpriteHeight = 0.32f;
+        private const float GlowSpriteSize = 1f;
 
         private static Sprite playerSprite;
         private static Sprite enemySprite;
         private static Sprite laserSprite;
+        private static Sprite glowSprite;
         private static Material defaultSpriteMaterial;
         private static Material laserMaterial;
         private static readonly Dictionary<string, Sprite> configuredSprites = new Dictionary<string, Sprite>();
 
         private BulletManager manager;
+        private Transform followTarget;
         private Rigidbody2D body;
         private BoxCollider2D boxCollider;
         private Transform visualRoot;
+        private Transform glowRoot;
         private SpriteRenderer spriteRenderer;
+        private SpriteRenderer glowRenderer;
         private Vector2 direction = Vector2.up;
         private float speed;
         private float lifetimeRemaining;
+        private float laserWidth;
+        private float laserLength;
         private int remainingPierceHits;
         private bool isLaser;
         private bool isActiveProjectile;
@@ -41,7 +48,7 @@ namespace LeiTing.Bullets
         public string Owner { get; private set; }
         public int Damage { get; private set; }
 
-        public void Activate(BulletConfig bulletConfig, Vector2 fireDirection, BulletManager owningManager)
+        public void Activate(BulletConfig bulletConfig, Vector2 fireDirection, BulletManager owningManager, Transform sourceFollowTarget = null)
         {
             if (bulletConfig == null)
             {
@@ -51,6 +58,7 @@ namespace LeiTing.Bullets
             EnsureComponents();
 
             manager = owningManager;
+            followTarget = sourceFollowTarget;
             Owner = string.IsNullOrEmpty(bulletConfig.owner) ? "Player" : bulletConfig.owner;
             Damage = Mathf.Max(1, bulletConfig.damage);
             speed = Mathf.Max(0f, bulletConfig.speed);
@@ -70,6 +78,7 @@ namespace LeiTing.Bullets
         public void DeactivateForPool()
         {
             isActiveProjectile = false;
+            followTarget = null;
             gameObject.SetActive(false);
         }
 
@@ -91,7 +100,11 @@ namespace LeiTing.Bullets
             }
 
             var delta = Time.deltaTime;
-            if (!isLaser)
+            if (isLaser)
+            {
+                UpdateLaserTransform();
+            }
+            else
             {
                 transform.position += (Vector3)(direction * speed * delta);
             }
@@ -152,6 +165,26 @@ namespace LeiTing.Bullets
             {
                 spriteRenderer = visualRoot.gameObject.AddComponent<SpriteRenderer>();
             }
+
+            if (glowRoot == null)
+            {
+                var glow = transform.Find("Glow");
+                if (glow == null)
+                {
+                    glow = new GameObject("Glow").transform;
+                    glow.SetParent(transform);
+                    glow.localPosition = Vector3.zero;
+                    glow.localRotation = Quaternion.identity;
+                }
+
+                glowRoot = glow;
+            }
+
+            glowRenderer = glowRenderer != null ? glowRenderer : glowRoot.GetComponent<SpriteRenderer>();
+            if (glowRenderer == null)
+            {
+                glowRenderer = glowRoot.gameObject.AddComponent<SpriteRenderer>();
+            }
         }
 
         private void ApplyLayer()
@@ -162,6 +195,7 @@ namespace LeiTing.Bullets
             {
                 gameObject.layer = layer;
                 visualRoot.gameObject.layer = layer;
+                glowRoot.gameObject.layer = layer;
             }
         }
 
@@ -183,6 +217,8 @@ namespace LeiTing.Bullets
                 size.y = Mathf.Max(size.y, bulletConfig.laserLength > 0f ? bulletConfig.laserLength : 4.8f);
             }
 
+            laserWidth = size.x;
+            laserLength = size.y;
             boxCollider.size = size;
             boxCollider.offset = Vector2.zero;
 
@@ -191,7 +227,30 @@ namespace LeiTing.Bullets
             spriteRenderer.sharedMaterial = isLaser ? GetLaserMaterial() : GetDefaultSpriteMaterial();
             visualRoot.localPosition = Vector3.zero;
             visualRoot.localRotation = Quaternion.identity;
-            visualRoot.localScale = new Vector3(size.x / BaseSpriteWidth, size.y / BaseSpriteHeight, 1f);
+            visualRoot.localScale = ResolveVisualScale(spriteRenderer.sprite, size);
+            ApplyGlowVisual(bulletConfig, size);
+        }
+
+        private void ApplyGlowVisual(BulletConfig bulletConfig, Vector2 size)
+        {
+            var glowRange = Mathf.Max(0f, bulletConfig.glowRange);
+            if (IsPlayerOwned() || isLaser || glowRange <= 0f)
+            {
+                glowRenderer.enabled = false;
+                return;
+            }
+
+            var glowColor = ResolveGlowColor(bulletConfig.glowColor);
+            var glowSize = new Vector2(size.x + glowRange * 2f, size.y + glowRange * 2f);
+
+            glowRenderer.enabled = true;
+            glowRenderer.sprite = GetGlowSprite();
+            glowRenderer.color = glowColor;
+            glowRenderer.sortingOrder = spriteRenderer.sortingOrder - 1;
+            glowRenderer.sharedMaterial = GetDefaultSpriteMaterial();
+            glowRoot.localPosition = Vector3.zero;
+            glowRoot.localRotation = Quaternion.identity;
+            glowRoot.localScale = new Vector3(glowSize.x / GlowSpriteSize, glowSize.y / GlowSpriteSize, 1f);
         }
 
         private void ApplyTransformForDirection(BulletConfig bulletConfig)
@@ -200,9 +259,47 @@ namespace LeiTing.Bullets
 
             if (isLaser)
             {
-                var length = bulletConfig.laserLength > 0f ? bulletConfig.laserLength : Mathf.Max(BaseSpriteHeight, bulletConfig.size.y);
-                transform.position += (Vector3)(direction * length * 0.5f);
+                UpdateLaserTransform();
             }
+        }
+
+        private void UpdateLaserTransform()
+        {
+            var origin = followTarget != null ? (Vector2)followTarget.position : (Vector2)transform.position - direction * laserLength * 0.5f;
+            var length = ResolveLaserLengthToScreenTop(origin);
+
+            transform.up = direction;
+            transform.position = origin + direction * length * 0.5f;
+            boxCollider.size = new Vector2(Mathf.Max(BaseSpriteWidth, laserWidth), length);
+            boxCollider.offset = Vector2.zero;
+            visualRoot.localPosition = Vector3.zero;
+            visualRoot.localRotation = Quaternion.identity;
+            visualRoot.localScale = new Vector3(Mathf.Max(BaseSpriteWidth, laserWidth) / BaseSpriteWidth, length / BaseSpriteHeight, 1f);
+            glowRenderer.enabled = false;
+            laserLength = length;
+        }
+
+        private static Vector3 ResolveVisualScale(Sprite sprite, Vector2 targetSize)
+        {
+            var spriteSize = sprite != null ? (Vector2)sprite.bounds.size : new Vector2(BaseSpriteWidth, BaseSpriteHeight);
+            var width = spriteSize.x > 0f ? spriteSize.x : BaseSpriteWidth;
+            var height = spriteSize.y > 0f ? spriteSize.y : BaseSpriteHeight;
+            return new Vector3(targetSize.x / width, targetSize.y / height, 1f);
+        }
+
+        private float ResolveLaserLengthToScreenTop(Vector2 origin)
+        {
+            var configuredLength = Mathf.Max(BaseSpriteHeight, laserLength);
+            var camera = Camera.main;
+            if (camera == null || direction.y <= 0.01f)
+            {
+                return configuredLength;
+            }
+
+            var distance = Mathf.Abs(camera.transform.position.z - transform.position.z);
+            var top = camera.ViewportToWorldPoint(new Vector3(0.5f, 1f, distance));
+            var lengthToTop = (top.y - origin.y) / direction.y;
+            return Mathf.Max(BaseSpriteHeight, lengthToTop + 0.25f);
         }
 
         private bool ShouldRecycleOnHit(Collider2D other)
@@ -348,6 +445,26 @@ namespace LeiTing.Bullets
             return laserSprite;
         }
 
+        private static Sprite GetGlowSprite()
+        {
+            if (glowSprite == null)
+            {
+                glowSprite = CreateGlowSprite();
+            }
+
+            return glowSprite;
+        }
+
+        private static Color ResolveGlowColor(Color configuredColor)
+        {
+            if (configuredColor.a > 0f)
+            {
+                return configuredColor;
+            }
+
+            return new Color(1f, 0.48f, 0.12f, 0.58f);
+        }
+
         private static Material GetDefaultSpriteMaterial()
         {
             if (defaultSpriteMaterial == null)
@@ -424,6 +541,30 @@ namespace LeiTing.Bullets
 
             texture.Apply();
             return Sprite.Create(texture, new Rect(0, 0, width, height), new Vector2(0.5f, 0.5f), SpritePixelsPerUnit);
+        }
+
+        private static Sprite CreateGlowSprite()
+        {
+            const int size = 96;
+            const float radius = size * 0.5f;
+            var texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
+            texture.filterMode = FilterMode.Bilinear;
+            texture.wrapMode = TextureWrapMode.Clamp;
+
+            for (var y = 0; y < size; y++)
+            {
+                for (var x = 0; x < size; x++)
+                {
+                    var dx = x + 0.5f - radius;
+                    var dy = y + 0.5f - radius;
+                    var distance = Mathf.Sqrt(dx * dx + dy * dy) / radius;
+                    var alpha = Mathf.Pow(Mathf.Clamp01(1f - distance), 2.35f);
+                    texture.SetPixel(x, y, new Color(1f, 1f, 1f, alpha));
+                }
+            }
+
+            texture.Apply();
+            return Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
         }
     }
 }

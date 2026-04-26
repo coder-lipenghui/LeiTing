@@ -182,7 +182,7 @@ namespace LeiTing.Player
 
             if (IsPattern(pattern, "Laser"))
             {
-                bulletManager.Fire(bulletConfig, origin, baseDirection);
+                bulletManager.Fire(bulletConfig, origin, baseDirection, firePoint);
                 return;
             }
 

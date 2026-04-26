@@ -31,15 +31,19 @@ namespace LeiTing.Player
         private SpriteRenderer spriteRenderer;
         private Vector3 targetPosition;
         private int currentHp;
+        private int maxHp;
         private int currentShield;
         private int currentStars;
+        private int currentCoins;
         private float invincibleUntil;
         private bool isDead;
         private Color originalColor = Color.white;
 
         public int CurrentHp => currentHp;
+        public int MaxHp => maxHp;
         public int CurrentShield => currentShield;
         public int CurrentStars => currentStars;
+        public int CurrentCoins => currentCoins;
         public bool IsInvincible => Time.time < invincibleUntil;
         public float MoveSpeed => GetMoveSpeed();
         public float HitboxRadius => GetHitboxRadius();
@@ -49,9 +53,11 @@ namespace LeiTing.Player
         public void ApplyConfig(PlayerConfig playerConfig)
         {
             config = playerConfig;
-            currentHp = Mathf.Max(1, config != null ? config.hp : currentHp);
+            maxHp = Mathf.Max(1, config != null ? config.hp : currentHp);
+            currentHp = maxHp;
             currentShield = Mathf.Max(0, config != null ? config.shield : currentShield);
             currentStars = Mathf.Max(0, config != null ? config.stars : currentStars);
+            currentCoins = Mathf.Max(0, config != null ? config.coins : currentCoins);
             if (playerShooter != null)
             {
                 playerShooter.ApplyConfig(config);
@@ -100,9 +106,39 @@ namespace LeiTing.Player
             currentStars += amount;
         }
 
+        public void AddCoins(int amount)
+        {
+            if (amount <= 0)
+            {
+                return;
+            }
+
+            currentCoins += amount;
+        }
+
+        public void Heal(int amount)
+        {
+            if (amount <= 0 || isDead)
+            {
+                return;
+            }
+
+            currentHp = Mathf.Min(GetMaxHp(), currentHp + amount);
+        }
+
+        public void ActivateInvincibleShield(float duration)
+        {
+            if (duration <= 0f || isDead)
+            {
+                return;
+            }
+
+            invincibleUntil = Mathf.Max(invincibleUntil, Time.time + duration);
+        }
+
         public void BeginInvincible()
         {
-            invincibleUntil = Time.time + GetInvincibleTime();
+            invincibleUntil = Mathf.Max(invincibleUntil, Time.time + GetInvincibleTime());
         }
 
         public void HandleHitboxTrigger(Collider2D other)
@@ -143,7 +179,8 @@ namespace LeiTing.Player
 
             if (currentHp <= 0)
             {
-                currentHp = Mathf.Max(1, config != null ? config.hp : 1);
+                maxHp = Mathf.Max(1, config != null ? config.hp : 1);
+                currentHp = maxHp;
             }
 
             if (config == null && currentShield <= 0)
@@ -379,6 +416,16 @@ namespace LeiTing.Player
         private float GetMoveSpeed()
         {
             return Mathf.Max(0f, config != null && config.moveSpeed > 0f ? config.moveSpeed : fallbackMoveSpeed);
+        }
+
+        private int GetMaxHp()
+        {
+            if (maxHp <= 0)
+            {
+                maxHp = Mathf.Max(1, config != null ? config.hp : currentHp);
+            }
+
+            return maxHp;
         }
 
         private float GetInvincibleTime()

@@ -417,6 +417,17 @@ namespace LeiTing.Enemy
             }
         }
 
+        public void KillInstantly()
+        {
+            if (isDead)
+            {
+                return;
+            }
+
+            currentHp = 0;
+            Die();
+        }
+
         private void Die()
         {
             if (isDead)

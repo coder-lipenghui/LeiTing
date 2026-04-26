@@ -28,6 +28,7 @@ namespace LeiTing.Config
         public int hp;
         public int shield;
         public int stars;
+        public int coins;
         public float moveSpeed;
         public float invincibleTime;
         public float pickupAttractRange;
@@ -68,6 +69,7 @@ namespace LeiTing.Config
     {
         public string itemId;
         public int count;
+        public bool dropOnce;
     }
 
     [Serializable]
@@ -75,8 +77,12 @@ namespace LeiTing.Config
     {
         public string id;
         public string displayName;
+        public string itemType;
         public string spritePath;
         public int starValue;
+        public int coinValue;
+        public int healValue;
+        public float shieldDuration;
         public float lifetime;
         public float driftSpeed;
         public float pickupRadius;
@@ -94,6 +100,8 @@ namespace LeiTing.Config
         public float speed;
         public float lifetime;
         public Vector2 size;
+        public Color glowColor;
+        public float glowRange;
         public int projectileCount;
         public float spreadAngle;
         public float muzzleSpacing;
