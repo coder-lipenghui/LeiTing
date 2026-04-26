@@ -482,7 +482,8 @@ namespace LeiTing.Enemy
                 UIManager.Instance.HideBossHud();
             }
 
-            if (GameManager.Instance != null)
+            var shouldWinGame = EnemyManager.Instance == null || EnemyManager.Instance.NotifyBossDefeated(config != null ? config.id : string.Empty);
+            if (shouldWinGame && GameManager.Instance != null)
             {
                 GameManager.Instance.WinGame();
             }

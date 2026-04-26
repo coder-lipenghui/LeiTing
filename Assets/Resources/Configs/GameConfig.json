@@ -414,6 +414,168 @@
         }
       ],
       "prefabPath": "Assets/Prefabs/Enemies/boss_12.prefab"
+    },
+    {
+      "id": "boss_helicopter_01",
+      "displayName": "直升机 BOSS 01",
+      "hp": 95,
+      "moveSpeed": 1.2,
+      "attackInterval": 1.28,
+      "bulletId": "enemy_bullet_02",
+      "bulletPatternId": "",
+      "hitScaleFeedback": false,
+      "score": 6100,
+      "drops": [
+        {
+          "itemId": "star",
+          "count": 10
+        },
+        {
+          "itemId": "coin",
+          "count": 10
+        },
+        {
+          "itemId": "shield",
+          "count": 1,
+          "dropOnce": true
+        }
+      ],
+      "prefabPath": "Assets/Prefabs/Enemies/boss_helicopter_01.prefab"
+    },
+    {
+      "id": "boss_helicopter_02",
+      "displayName": "直升机 BOSS 02",
+      "hp": 125,
+      "moveSpeed": 1.2,
+      "attackInterval": 1.21,
+      "bulletId": "enemy_bullet_02",
+      "bulletPatternId": "",
+      "hitScaleFeedback": false,
+      "score": 6600,
+      "drops": [
+        {
+          "itemId": "star",
+          "count": 12
+        },
+        {
+          "itemId": "coin",
+          "count": 12
+        },
+        {
+          "itemId": "shield",
+          "count": 1,
+          "dropOnce": true
+        }
+      ],
+      "prefabPath": "Assets/Prefabs/Enemies/boss_helicopter_02.prefab"
+    },
+    {
+      "id": "boss_helicopter_03",
+      "displayName": "直升机 BOSS 03",
+      "hp": 155,
+      "moveSpeed": 1.2,
+      "attackInterval": 1.1400000000000001,
+      "bulletId": "enemy_bullet_02",
+      "bulletPatternId": "",
+      "hitScaleFeedback": false,
+      "score": 7200,
+      "drops": [
+        {
+          "itemId": "star",
+          "count": 14
+        },
+        {
+          "itemId": "coin",
+          "count": 14
+        },
+        {
+          "itemId": "shield",
+          "count": 1,
+          "dropOnce": true
+        }
+      ],
+      "prefabPath": "Assets/Prefabs/Enemies/boss_helicopter_03.prefab"
+    },
+    {
+      "id": "boss_helicopter_04",
+      "displayName": "直升机 BOSS 04",
+      "hp": 185,
+      "moveSpeed": 1.2,
+      "attackInterval": 1.07,
+      "bulletId": "enemy_bullet_02",
+      "bulletPatternId": "",
+      "hitScaleFeedback": false,
+      "score": 7800,
+      "drops": [
+        {
+          "itemId": "star",
+          "count": 16
+        },
+        {
+          "itemId": "coin",
+          "count": 16
+        },
+        {
+          "itemId": "boom",
+          "count": 1,
+          "dropOnce": true
+        }
+      ],
+      "prefabPath": "Assets/Prefabs/Enemies/boss_helicopter_04.prefab"
+    },
+    {
+      "id": "boss_helicopter_05",
+      "displayName": "直升机 BOSS 05",
+      "hp": 230,
+      "moveSpeed": 1.2,
+      "attackInterval": 1,
+      "bulletId": "enemy_bullet_02",
+      "bulletPatternId": "",
+      "hitScaleFeedback": false,
+      "score": 8600,
+      "drops": [
+        {
+          "itemId": "star",
+          "count": 18
+        },
+        {
+          "itemId": "coin",
+          "count": 18
+        },
+        {
+          "itemId": "boom",
+          "count": 1,
+          "dropOnce": true
+        }
+      ],
+      "prefabPath": "Assets/Prefabs/Enemies/boss_helicopter_05.prefab"
+    },
+    {
+      "id": "boss_helicopter_06",
+      "displayName": "直升机 BOSS 06",
+      "hp": 290,
+      "moveSpeed": 1.2,
+      "attackInterval": 0.9299999999999999,
+      "bulletId": "enemy_bullet_02",
+      "bulletPatternId": "",
+      "hitScaleFeedback": false,
+      "score": 9800,
+      "drops": [
+        {
+          "itemId": "star",
+          "count": 20
+        },
+        {
+          "itemId": "coin",
+          "count": 20
+        },
+        {
+          "itemId": "boom",
+          "count": 1,
+          "dropOnce": true
+        }
+      ],
+      "prefabPath": "Assets/Prefabs/Enemies/boss_helicopter_06.prefab"
     }
   ],
   "bullets": [
@@ -619,7 +781,9 @@
       "hp": 1,
       "isLoopTrack": false,
       "tailType": "fire",
-      "tailColor": "#FFC23A"
+      "tailColor": "#FFC23A",
+      "prefabPath": "Assets/Prefabs/Missiles/missile_01_straight.prefab",
+      "bodyRes": "Assets/Art/Sprites/Bullets/missile_01.png"
     },
     {
       "id": "missile_weak_homing_1002",
@@ -646,7 +810,9 @@
       "hp": 1,
       "isLoopTrack": false,
       "tailType": "light",
-      "tailColor": "#FF3266"
+      "tailColor": "#FF3266",
+      "prefabPath": "Assets/Prefabs/Missiles/missile_03_weak_homing.prefab",
+      "bodyRes": "Assets/Art/Sprites/Bullets/missile_03.png"
     },
     {
       "id": "missile_lock_dash_1003",
@@ -673,7 +839,9 @@
       "hp": 1,
       "isLoopTrack": false,
       "tailType": "afterimage",
-      "tailColor": "#FFFFFF"
+      "tailColor": "#FFFFFF",
+      "prefabPath": "Assets/Prefabs/Missiles/missile_09_lock_dash.prefab",
+      "bodyRes": "Assets/Art/Sprites/Bullets/missile_09.png"
     },
     {
       "id": "missile_split_1004",
@@ -727,7 +895,9 @@
       "hp": 1,
       "isLoopTrack": false,
       "tailType": "smoke",
-      "tailColor": "#FF381E"
+      "tailColor": "#FF381E",
+      "prefabPath": "Assets/Prefabs/Missiles/missile_11_explode.prefab",
+      "bodyRes": "Assets/Art/Sprites/Bullets/missile_11.png"
     },
     {
       "id": "missile_heavy_destroyable_1006",
@@ -781,7 +951,9 @@
       "hp": 1,
       "isLoopTrack": false,
       "tailType": "light",
-      "tailColor": "#FFC23A"
+      "tailColor": "#FFC23A",
+      "prefabPath": "Assets/Prefabs/Missiles/missile_01_straight.prefab",
+      "bodyRes": "Assets/Art/Sprites/Bullets/missile_01.png"
     }
   ],
   "pickupItems": [
@@ -1164,6 +1336,48 @@
       "burstCount": 1,
       "fireInterval": 0,
       "firePointGroup": "main_3"
+    },
+    {
+      "id": "heli_bullet_single",
+      "patternType": "Aim",
+      "bulletId": "enemy_bullet_02",
+      "firePointGroup": "center",
+      "firePointOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "baseAngle": -90,
+      "bulletCount": 1,
+      "angleStep": 0,
+      "spreadAngle": 0,
+      "bulletSpeed": 5.1,
+      "bulletLifetime": 5,
+      "rotate": false,
+      "rotationSpeed": 0,
+      "aimAtPlayer": true,
+      "burstCount": 1,
+      "fireInterval": 0
+    },
+    {
+      "id": "heli_bullet_spread_2",
+      "patternType": "Fan",
+      "bulletId": "enemy_bullet_01",
+      "firePointGroup": "scatter_2",
+      "firePointOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "baseAngle": -90,
+      "bulletCount": 3,
+      "angleStep": 0,
+      "spreadAngle": 34,
+      "bulletSpeed": 4.2,
+      "bulletLifetime": 5.2,
+      "rotate": false,
+      "rotationSpeed": 0,
+      "aimAtPlayer": false,
+      "burstCount": 1,
+      "fireInterval": 0
     }
   ],
   "missilePatterns": [
@@ -1313,6 +1527,174 @@
       "burstCount": 1,
       "fireInterval": 0,
       "firePointGroup": "center"
+    },
+    {
+      "id": "heli_missile_straight_2",
+      "patternType": "Single",
+      "missileId": "missile_straight_1001",
+      "firePointGroup": "missile_straight_2",
+      "firePointOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "baseAngle": -90,
+      "missileCount": 1,
+      "angleStep": 0,
+      "spreadAngle": 0,
+      "missileSpeed": 3.4,
+      "missileLifetime": 5,
+      "rotate": false,
+      "rotationSpeed": 0,
+      "aimAtPlayer": false,
+      "burstCount": 1,
+      "fireInterval": 0
+    },
+    {
+      "id": "heli_missile_straight_3",
+      "patternType": "Single",
+      "missileId": "missile_straight_1001",
+      "firePointGroup": "missile_straight_3",
+      "firePointOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "baseAngle": -90,
+      "missileCount": 1,
+      "angleStep": 0,
+      "spreadAngle": 0,
+      "missileSpeed": 3.55,
+      "missileLifetime": 5,
+      "rotate": false,
+      "rotationSpeed": 0,
+      "aimAtPlayer": false,
+      "burstCount": 1,
+      "fireInterval": 0
+    },
+    {
+      "id": "heli_missile_weak_homing_2",
+      "patternType": "Aim",
+      "missileId": "missile_weak_homing_1002",
+      "firePointGroup": "missile_homing_2",
+      "firePointOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "baseAngle": -90,
+      "missileCount": 1,
+      "angleStep": 0,
+      "spreadAngle": 0,
+      "missileSpeed": 2.35,
+      "missileLifetime": 6,
+      "rotate": false,
+      "rotationSpeed": 0,
+      "aimAtPlayer": true,
+      "burstCount": 1,
+      "fireInterval": 0
+    },
+    {
+      "id": "heli_missile_weak_homing_3",
+      "patternType": "Aim",
+      "missileId": "missile_weak_homing_1002",
+      "firePointGroup": "missile_homing_3",
+      "firePointOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "baseAngle": -90,
+      "missileCount": 1,
+      "angleStep": 0,
+      "spreadAngle": 0,
+      "missileSpeed": 2.5,
+      "missileLifetime": 6,
+      "rotate": false,
+      "rotationSpeed": 0,
+      "aimAtPlayer": true,
+      "burstCount": 1,
+      "fireInterval": 0
+    },
+    {
+      "id": "heli_missile_lock_dash_2",
+      "patternType": "Aim",
+      "missileId": "missile_lock_dash_1003",
+      "firePointGroup": "missile_lock_2",
+      "firePointOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "baseAngle": -90,
+      "missileCount": 1,
+      "angleStep": 0,
+      "spreadAngle": 0,
+      "missileSpeed": 0.8,
+      "missileLifetime": 4.5,
+      "rotate": false,
+      "rotationSpeed": 0,
+      "aimAtPlayer": true,
+      "burstCount": 1,
+      "fireInterval": 0
+    },
+    {
+      "id": "heli_missile_lock_dash_3",
+      "patternType": "Aim",
+      "missileId": "missile_lock_dash_1003",
+      "firePointGroup": "missile_lock_3",
+      "firePointOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "baseAngle": -90,
+      "missileCount": 1,
+      "angleStep": 0,
+      "spreadAngle": 0,
+      "missileSpeed": 0.85,
+      "missileLifetime": 4.5,
+      "rotate": false,
+      "rotationSpeed": 0,
+      "aimAtPlayer": true,
+      "burstCount": 1,
+      "fireInterval": 0
+    },
+    {
+      "id": "heli_missile_explode_2",
+      "patternType": "Single",
+      "missileId": "missile_explode_1005",
+      "firePointGroup": "missile_explode_2",
+      "firePointOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "baseAngle": -90,
+      "missileCount": 1,
+      "angleStep": 0,
+      "spreadAngle": 0,
+      "missileSpeed": 1.75,
+      "missileLifetime": 4.4,
+      "rotate": false,
+      "rotationSpeed": 0,
+      "aimAtPlayer": false,
+      "burstCount": 1,
+      "fireInterval": 0
+    },
+    {
+      "id": "heli_missile_explode_3",
+      "patternType": "Single",
+      "missileId": "missile_explode_1005",
+      "firePointGroup": "missile_explode_3",
+      "firePointOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "baseAngle": -90,
+      "missileCount": 1,
+      "angleStep": 0,
+      "spreadAngle": 0,
+      "missileSpeed": 1.85,
+      "missileLifetime": 4.4,
+      "rotate": false,
+      "rotationSpeed": 0,
+      "aimAtPlayer": false,
+      "burstCount": 1,
+      "fireInterval": 0
     }
   ],
   "waves": [
@@ -1679,7 +2061,107 @@
       "startTime": 180,
       "spawns": [
         {
-          "enemyId": "boss_01",
+          "enemyId": "boss_helicopter_01",
+          "count": 1,
+          "interval": 0.1,
+          "startPosition": {
+            "x": 0,
+            "y": 6.2
+          },
+          "attackPatternId": "",
+          "movementPath": "BossEntry",
+          "pathAmplitude": 0,
+          "pathSpeed": 0,
+          "holdDuration": 0
+        }
+      ]
+    },
+    {
+      "id": "wave_boss_002",
+      "startTime": 208,
+      "spawns": [
+        {
+          "enemyId": "boss_helicopter_02",
+          "count": 1,
+          "interval": 0.1,
+          "startPosition": {
+            "x": 0,
+            "y": 6.2
+          },
+          "attackPatternId": "",
+          "movementPath": "BossEntry",
+          "pathAmplitude": 0,
+          "pathSpeed": 0,
+          "holdDuration": 0
+        }
+      ]
+    },
+    {
+      "id": "wave_boss_003",
+      "startTime": 236,
+      "spawns": [
+        {
+          "enemyId": "boss_helicopter_03",
+          "count": 1,
+          "interval": 0.1,
+          "startPosition": {
+            "x": 0,
+            "y": 6.2
+          },
+          "attackPatternId": "",
+          "movementPath": "BossEntry",
+          "pathAmplitude": 0,
+          "pathSpeed": 0,
+          "holdDuration": 0
+        }
+      ]
+    },
+    {
+      "id": "wave_boss_004",
+      "startTime": 264,
+      "spawns": [
+        {
+          "enemyId": "boss_helicopter_04",
+          "count": 1,
+          "interval": 0.1,
+          "startPosition": {
+            "x": 0,
+            "y": 6.2
+          },
+          "attackPatternId": "",
+          "movementPath": "BossEntry",
+          "pathAmplitude": 0,
+          "pathSpeed": 0,
+          "holdDuration": 0
+        }
+      ]
+    },
+    {
+      "id": "wave_boss_005",
+      "startTime": 292,
+      "spawns": [
+        {
+          "enemyId": "boss_helicopter_05",
+          "count": 1,
+          "interval": 0.1,
+          "startPosition": {
+            "x": 0,
+            "y": 6.2
+          },
+          "attackPatternId": "",
+          "movementPath": "BossEntry",
+          "pathAmplitude": 0,
+          "pathSpeed": 0,
+          "holdDuration": 0
+        }
+      ]
+    },
+    {
+      "id": "wave_boss_006",
+      "startTime": 320,
+      "spawns": [
+        {
+          "enemyId": "boss_helicopter_06",
           "count": 1,
           "interval": 0.1,
           "startPosition": {
@@ -1729,7 +2211,43 @@
     {
       "id": "stage_notice_boss_warning",
       "startTime": 176,
-      "message": "WARNING\nBOSS APPROACHING",
+      "message": "HELICOPTER UNIT\\nAPPROACHING",
+      "clearEnemyBullets": true
+    },
+    {
+      "id": "stage_notice_helicopter_01",
+      "startTime": 178,
+      "message": "HELICOPTER-01\\nENGAGING",
+      "clearEnemyBullets": true
+    },
+    {
+      "id": "stage_notice_helicopter_02",
+      "startTime": 206,
+      "message": "HELICOPTER-02\\nENGAGING",
+      "clearEnemyBullets": true
+    },
+    {
+      "id": "stage_notice_helicopter_03",
+      "startTime": 234,
+      "message": "HELICOPTER-03\\nENGAGING",
+      "clearEnemyBullets": true
+    },
+    {
+      "id": "stage_notice_helicopter_04",
+      "startTime": 262,
+      "message": "HELICOPTER-04\\nENGAGING",
+      "clearEnemyBullets": true
+    },
+    {
+      "id": "stage_notice_helicopter_05",
+      "startTime": 290,
+      "message": "HELICOPTER-05\\nENGAGING",
+      "clearEnemyBullets": true
+    },
+    {
+      "id": "stage_notice_helicopter_06",
+      "startTime": 318,
+      "message": "HELICOPTER-06\\nENGAGING",
       "clearEnemyBullets": true
     }
   ],
@@ -1792,6 +2310,127 @@
         "boss_p3_ring_28",
         "boss_missile_explode_03",
         "boss_missile_heavy_destroyable"
+      ]
+    },
+    {
+      "id": "boss_helicopter_01_phase_01",
+      "bossId": "boss_helicopter_01",
+      "displayName": "LOADOUT 1  直升机 BOSS 01",
+      "triggerHpPercent": 1,
+      "attackInterval": 1.25,
+      "burstCount": 2,
+      "burstInterval": 0.22,
+      "movementRange": {
+        "x": 0.8,
+        "y": 0.08
+      },
+      "movementSpeed": 0.9,
+      "bulletPatternIds": [
+        "heli_bullet_single",
+        "heli_bullet_spread_2",
+        "heli_missile_straight_2"
+      ]
+    },
+    {
+      "id": "boss_helicopter_02_phase_01",
+      "bossId": "boss_helicopter_02",
+      "displayName": "LOADOUT 2  直升机 BOSS 02",
+      "triggerHpPercent": 1,
+      "attackInterval": 1.19,
+      "burstCount": 2,
+      "burstInterval": 0.22,
+      "movementRange": {
+        "x": 0.9400000000000001,
+        "y": 0.1
+      },
+      "movementSpeed": 0.98,
+      "bulletPatternIds": [
+        "heli_bullet_single",
+        "heli_bullet_spread_2",
+        "heli_missile_straight_2",
+        "heli_missile_weak_homing_2"
+      ]
+    },
+    {
+      "id": "boss_helicopter_03_phase_01",
+      "bossId": "boss_helicopter_03",
+      "displayName": "LOADOUT 3  直升机 BOSS 03",
+      "triggerHpPercent": 1,
+      "attackInterval": 1.13,
+      "burstCount": 2,
+      "burstInterval": 0.22,
+      "movementRange": {
+        "x": 1.08,
+        "y": 0.12
+      },
+      "movementSpeed": 1.06,
+      "bulletPatternIds": [
+        "heli_bullet_single",
+        "heli_bullet_spread_2",
+        "heli_missile_straight_2",
+        "heli_missile_lock_dash_2"
+      ]
+    },
+    {
+      "id": "boss_helicopter_04_phase_01",
+      "bossId": "boss_helicopter_04",
+      "displayName": "LOADOUT 4  直升机 BOSS 04",
+      "triggerHpPercent": 1,
+      "attackInterval": 1.07,
+      "burstCount": 2,
+      "burstInterval": 0.22,
+      "movementRange": {
+        "x": 1.2200000000000002,
+        "y": 0.14
+      },
+      "movementSpeed": 1.1400000000000001,
+      "bulletPatternIds": [
+        "heli_bullet_single",
+        "heli_bullet_spread_2",
+        "heli_missile_straight_2",
+        "heli_missile_explode_2"
+      ]
+    },
+    {
+      "id": "boss_helicopter_05_phase_01",
+      "bossId": "boss_helicopter_05",
+      "displayName": "LOADOUT 5  直升机 BOSS 05",
+      "triggerHpPercent": 1,
+      "attackInterval": 1.01,
+      "burstCount": 3,
+      "burstInterval": 0.16,
+      "movementRange": {
+        "x": 1.36,
+        "y": 0.16
+      },
+      "movementSpeed": 1.22,
+      "bulletPatternIds": [
+        "heli_bullet_single",
+        "heli_missile_straight_2",
+        "heli_missile_weak_homing_2",
+        "heli_missile_lock_dash_2",
+        "heli_missile_explode_2"
+      ]
+    },
+    {
+      "id": "boss_helicopter_06_phase_01",
+      "bossId": "boss_helicopter_06",
+      "displayName": "LOADOUT 6  直升机 BOSS 06",
+      "triggerHpPercent": 1,
+      "attackInterval": 0.95,
+      "burstCount": 3,
+      "burstInterval": 0.16,
+      "movementRange": {
+        "x": 1.5,
+        "y": 0.18
+      },
+      "movementSpeed": 1.3,
+      "bulletPatternIds": [
+        "heli_bullet_single",
+        "heli_missile_straight_3",
+        "heli_missile_weak_homing_3",
+        "heli_missile_lock_dash_3",
+        "heli_missile_explode_3"
       ]
     }
   ],

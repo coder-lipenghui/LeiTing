@@ -13,6 +13,8 @@ namespace LeiTing.Enemy
     public class EnemyManager : MonoSingleton<EnemyManager>
     {
         private readonly HashSet<string> startedWaves = new HashSet<string>();
+        private int activeBossCount;
+        private int pendingBossSpawnCount;
         private float stageTime;
 
         private void Update()
@@ -67,12 +69,24 @@ namespace LeiTing.Enemy
         {
             var count = Mathf.Max(1, spawn.count);
             var interval = Mathf.Max(0.01f, spawn.interval);
+            var isBossGroup = IsBossId(spawn.enemyId);
 
             for (var index = 0; index < count; index++)
             {
                 while (GameManager.Instance != null && GameManager.Instance.CurrentState != GameState.Playing)
                 {
                     yield return null;
+                }
+
+                if (isBossGroup)
+                {
+                    pendingBossSpawnCount++;
+                    while (activeBossCount > 0)
+                    {
+                        yield return null;
+                    }
+
+                    pendingBossSpawnCount = Mathf.Max(0, pendingBossSpawnCount - 1);
                 }
 
                 SpawnEnemy(spawn.enemyId, ResolveSpawnPosition(spawn, index, count), spawn);
@@ -114,6 +128,7 @@ namespace LeiTing.Enemy
 
             if (IsBossEnemy(enemyConfig))
             {
+                activeBossCount++;
                 var boss = enemyObject.GetComponent<BossController>() ?? enemyObject.AddComponent<BossController>();
                 boss.Initialize(enemyConfig, position);
                 return null;
@@ -122,6 +137,12 @@ namespace LeiTing.Enemy
             var enemy = enemyObject.GetComponent<EnemyController>() ?? enemyObject.AddComponent<EnemyController>();
             enemy.Initialize(enemyConfig, position, spawnConfig);
             return enemy;
+        }
+
+        public bool NotifyBossDefeated(string bossId)
+        {
+            activeBossCount = Mathf.Max(0, activeBossCount - 1);
+            return activeBossCount <= 0 && pendingBossSpawnCount <= 0 && !HasUnstartedBossWaves();
         }
 
         private static GameObject CreateEnemyObject(EnemyConfig enemyConfig)
@@ -176,9 +197,39 @@ namespace LeiTing.Enemy
 
         private static bool IsBossEnemy(EnemyConfig enemyConfig)
         {
-            return enemyConfig != null
-                && !string.IsNullOrEmpty(enemyConfig.id)
-                && enemyConfig.id.StartsWith("boss", System.StringComparison.OrdinalIgnoreCase);
+            return enemyConfig != null && IsBossId(enemyConfig.id);
+        }
+
+        private bool HasUnstartedBossWaves()
+        {
+            if (ConfigManager.Instance == null || !ConfigManager.Instance.IsLoaded || ConfigManager.Instance.Config == null)
+            {
+                return false;
+            }
+
+            foreach (var wave in ConfigManager.Instance.Config.waves)
+            {
+                if (wave == null || startedWaves.Contains(wave.id) || wave.spawns == null)
+                {
+                    continue;
+                }
+
+                foreach (var spawn in wave.spawns)
+                {
+                    if (spawn != null && IsBossId(spawn.enemyId))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private static bool IsBossId(string enemyId)
+        {
+            return !string.IsNullOrEmpty(enemyId)
+                && enemyId.StartsWith("boss", System.StringComparison.OrdinalIgnoreCase);
         }
     }
 }
