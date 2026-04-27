@@ -19,6 +19,8 @@ namespace LeiTing.Bullets
         private const float BaseSpriteWidth = 0.12f;
         private const float BaseSpriteHeight = 0.32f;
         private const float GlowSpriteSize = 1f;
+        private const float LaserGlowMinWidth = 0.72f;
+        private const float LaserGlowLengthPadding = 0.35f;
 
         private static Sprite playerSprite;
         private static Sprite enemySprite;
@@ -240,6 +242,7 @@ namespace LeiTing.Bullets
             spriteRenderer.sprite = isLaser ? GetLaserSprite() : LoadConfiguredSprite(bulletConfig.spritePath) ?? GetFallbackSprite();
             spriteRenderer.sortingOrder = IsPlayerOwned() ? 30 : 20;
             spriteRenderer.sharedMaterial = isLaser ? GetLaserMaterial() : GetDefaultSpriteMaterial();
+            spriteRenderer.color = Color.white;
             visualRoot.localPosition = Vector3.zero;
             visualRoot.localRotation = Quaternion.identity;
             visualRoot.localScale = ResolveVisualScale(spriteRenderer.sprite, size);
@@ -248,8 +251,14 @@ namespace LeiTing.Bullets
 
         private void ApplyGlowVisual(BulletConfig bulletConfig, Vector2 size)
         {
+            if (isLaser)
+            {
+                ConfigureLaserGlow(size.y);
+                return;
+            }
+
             var glowRange = Mathf.Max(0f, bulletConfig.glowRange);
-            if (IsPlayerOwned() || isLaser || glowRange <= 0f)
+            if (IsPlayerOwned() || glowRange <= 0f)
             {
                 glowRenderer.enabled = false;
                 return;
@@ -290,8 +299,42 @@ namespace LeiTing.Bullets
             visualRoot.localPosition = Vector3.zero;
             visualRoot.localRotation = Quaternion.identity;
             visualRoot.localScale = new Vector3(Mathf.Max(BaseSpriteWidth, laserWidth) / BaseSpriteWidth, length / BaseSpriteHeight, 1f);
-            glowRenderer.enabled = false;
+            UpdateLaserGlowTransform(length);
             laserLength = length;
+        }
+
+        private void ConfigureLaserGlow(float length)
+        {
+            if (glowRenderer == null)
+            {
+                return;
+            }
+
+            glowRenderer.enabled = true;
+            glowRenderer.sprite = GetGlowSprite();
+            glowRenderer.sortingOrder = spriteRenderer != null ? spriteRenderer.sortingOrder - 1 : 29;
+            glowRenderer.sharedMaterial = GetDefaultSpriteMaterial();
+            glowRoot.localPosition = Vector3.zero;
+            glowRoot.localRotation = Quaternion.identity;
+            UpdateLaserGlowTransform(length);
+        }
+
+        private void UpdateLaserGlowTransform(float length)
+        {
+            if (glowRenderer == null || glowRoot == null)
+            {
+                return;
+            }
+
+            var glowWidth = Mathf.Max(LaserGlowMinWidth, laserWidth * 3.2f);
+            var glowLength = Mathf.Max(BaseSpriteHeight, length + LaserGlowLengthPadding);
+            var pulse = 0.3f + Mathf.PingPong(Time.time * 5.2f, 0.14f);
+
+            glowRenderer.enabled = true;
+            glowRenderer.color = new Color(0.08f, 0.68f, 1f, pulse);
+            glowRoot.localPosition = Vector3.zero;
+            glowRoot.localRotation = Quaternion.identity;
+            glowRoot.localScale = new Vector3(glowWidth / GlowSpriteSize, glowLength / GlowSpriteSize, 1f);
         }
 
         private static Vector3 ResolveVisualScale(Sprite sprite, Vector2 targetSize)
@@ -387,11 +430,16 @@ namespace LeiTing.Bullets
 #if UNITY_EDITOR
             if (spritePath.StartsWith("Assets/", StringComparison.OrdinalIgnoreCase))
             {
-                return AssetDatabase.LoadAssetAtPath<Sprite>(spritePath);
+                var editorSprite = AssetDatabase.LoadAssetAtPath<Sprite>(spritePath);
+                if (editorSprite != null)
+                {
+                    return editorSprite;
+                }
             }
 #endif
 
-            return Resources.Load<Sprite>(NormalizeResourcesPath(spritePath));
+            return RuntimeAssetCatalog.LoadSprite(spritePath)
+                ?? Resources.Load<Sprite>(NormalizeResourcesPath(spritePath));
         }
 
         private static string NormalizeResourcesPath(string spritePath)
@@ -494,15 +542,7 @@ namespace LeiTing.Bullets
         {
             if (laserMaterial == null)
             {
-                var shader = Shader.Find("LeiTing/ProceduralLaser") ?? Shader.Find("Sprites/Default");
-                laserMaterial = new Material(shader);
-                laserMaterial.SetColor("_CoreColor", Color.white);
-                laserMaterial.SetColor("_BeamColor", new Color(0.25f, 0.92f, 1f, 0.95f));
-                laserMaterial.SetColor("_GlowColor", new Color(0.08f, 0.55f, 1f, 0.42f));
-                laserMaterial.SetFloat("_PulseSpeed", 18f);
-                laserMaterial.SetFloat("_GlowWidth", 0.96f);
-                laserMaterial.SetFloat("_BodyWidth", 0.48f);
-                laserMaterial.SetFloat("_CoreWidth", 0.14f);
+                laserMaterial = new Material(Shader.Find("Sprites/Default"));
             }
 
             return laserMaterial;
@@ -544,18 +584,36 @@ namespace LeiTing.Bullets
             const int width = 12;
             const int height = 32;
             var texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
-            texture.filterMode = FilterMode.Point;
+            texture.filterMode = FilterMode.Bilinear;
+            texture.wrapMode = TextureWrapMode.Clamp;
+
+            var glowColor = new Color(0.08f, 0.68f, 1f, 0.28f);
+            var beamColor = new Color(0.24f, 0.92f, 1f, 0.92f);
+            var coreColor = Color.white;
 
             for (var y = 0; y < height; y++)
             {
                 for (var x = 0; x < width; x++)
                 {
-                    texture.SetPixel(x, y, Color.white);
+                    var horizontal = Mathf.Abs((x + 0.5f) / width * 2f - 1f);
+                    var core = 1f - SmoothStep(0.12f, 0.26f, horizontal);
+                    var beam = 1f - SmoothStep(0.38f, 0.64f, horizontal);
+                    var glow = 1f - SmoothStep(0.68f, 1f, horizontal);
+                    var color = Color.Lerp(glowColor, beamColor, beam);
+                    color = Color.Lerp(color, coreColor, core);
+                    color.a = Mathf.Clamp01(Mathf.Max(glow * 0.34f, Mathf.Max(beam * 0.82f, core)));
+                    texture.SetPixel(x, y, color);
                 }
             }
 
             texture.Apply();
             return Sprite.Create(texture, new Rect(0, 0, width, height), new Vector2(0.5f, 0.5f), SpritePixelsPerUnit);
+        }
+
+        private static float SmoothStep(float edge0, float edge1, float value)
+        {
+            var t = Mathf.Clamp01((value - edge0) / Mathf.Max(0.0001f, edge1 - edge0));
+            return t * t * (3f - 2f * t);
         }
 
         private static Sprite CreateGlowSprite()

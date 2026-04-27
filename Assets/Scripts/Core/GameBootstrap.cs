@@ -79,20 +79,28 @@ namespace LeiTing.Core
 
         private GameObject CreateConfiguredPlayerObject()
         {
-#if UNITY_EDITOR
             var prefabPath = ConfigManager.Instance != null && ConfigManager.Instance.IsLoaded && ConfigManager.Instance.Config.player != null
                 ? ConfigManager.Instance.Config.player.prefabPath
                 : string.Empty;
+            GameObject prefab = null;
 
+#if UNITY_EDITOR
             if (!string.IsNullOrEmpty(prefabPath))
             {
-                var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
-                if (prefab != null)
-                {
-                    return (GameObject)PrefabUtility.InstantiatePrefab(prefab);
-                }
+                prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
             }
 #endif
+
+            prefab = prefab != null ? prefab : RuntimeAssetCatalog.LoadPrefab(prefabPath);
+
+            if (prefab != null)
+            {
+#if UNITY_EDITOR
+                return (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+#else
+                return Instantiate(prefab);
+#endif
+            }
 
             return new GameObject("Player");
         }

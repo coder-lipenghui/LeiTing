@@ -185,14 +185,17 @@ namespace LeiTing.Enemy
 
         private Sprite LoadEnemySprite()
         {
+            const string enemySpritePath = "Assets/Art/Animations/Enemies/enemy-01.png";
+
 #if UNITY_EDITOR
-            var sprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Art/Animations/Enemies/enemy-01.png");
+            var sprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(enemySpritePath);
             if (sprite != null)
             {
                 return sprite;
             }
 #endif
-            return Resources.Load<Sprite>("Enemies/enemy-01");
+            return RuntimeAssetCatalog.LoadSprite(enemySpritePath)
+                ?? Resources.Load<Sprite>("Enemies/enemy-01");
         }
 
         private SpriteRenderer ResolveSpriteRenderer()

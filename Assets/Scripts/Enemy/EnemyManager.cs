@@ -168,11 +168,16 @@ namespace LeiTing.Enemy
 #if UNITY_EDITOR
             if (enemyConfig.prefabPath.StartsWith("Assets/", System.StringComparison.OrdinalIgnoreCase))
             {
-                return AssetDatabase.LoadAssetAtPath<GameObject>(enemyConfig.prefabPath);
+                var editorPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(enemyConfig.prefabPath);
+                if (editorPrefab != null)
+                {
+                    return editorPrefab;
+                }
             }
 #endif
 
-            return Resources.Load<GameObject>(NormalizeResourcesPath(enemyConfig.prefabPath));
+            return RuntimeAssetCatalog.LoadPrefab(enemyConfig.prefabPath)
+                ?? Resources.Load<GameObject>(NormalizeResourcesPath(enemyConfig.prefabPath));
         }
 
         private static string NormalizeResourcesPath(string assetPath)

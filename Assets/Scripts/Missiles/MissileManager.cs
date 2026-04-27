@@ -149,11 +149,16 @@ namespace LeiTing.Missiles
 #if UNITY_EDITOR
             if (missileConfig.prefabPath.StartsWith("Assets/", StringComparison.OrdinalIgnoreCase))
             {
-                return AssetDatabase.LoadAssetAtPath<GameObject>(missileConfig.prefabPath);
+                var editorPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(missileConfig.prefabPath);
+                if (editorPrefab != null)
+                {
+                    return editorPrefab;
+                }
             }
 #endif
 
-            return Resources.Load<GameObject>(NormalizeResourcesPath(missileConfig.prefabPath));
+            return RuntimeAssetCatalog.LoadPrefab(missileConfig.prefabPath)
+                ?? Resources.Load<GameObject>(NormalizeResourcesPath(missileConfig.prefabPath));
         }
 
         private static string NormalizeResourcesPath(string assetPath)

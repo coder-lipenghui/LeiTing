@@ -28,6 +28,8 @@ namespace LeiTing.UI
         private RectTransform canvasRoot;
         private Text hudText;
         private Text settlementText;
+        private GameObject restartChallengeRoot;
+        private Button restartChallengeButton;
         private GameObject bossHudRoot;
         private Image bossHealthFill;
         private Text bossNameText;
@@ -99,6 +101,7 @@ namespace LeiTing.UI
             CreateBossHud(canvasObject.transform);
             CreateBossNotice(canvasObject.transform);
             CreateSettlementText(canvasObject.transform);
+            CreateRestartChallengeButton(canvasObject.transform);
         }
 
         private Button CreateWeaponButton(Transform parent, WeaponButton weaponButton)
@@ -181,6 +184,48 @@ namespace LeiTing.UI
             settlementText.color = new Color(1f, 0.95f, 0.75f, 1f);
             settlementText.raycastTarget = false;
             settlementText.enabled = false;
+        }
+
+        private void CreateRestartChallengeButton(Transform parent)
+        {
+            restartChallengeRoot = new GameObject("RestartChallengeButton", typeof(RectTransform));
+            restartChallengeRoot.transform.SetParent(parent, false);
+
+            var rect = restartChallengeRoot.GetComponent<RectTransform>();
+            rect.anchorMin = new Vector2(0.5f, 0.5f);
+            rect.anchorMax = new Vector2(0.5f, 0.5f);
+            rect.pivot = new Vector2(0.5f, 0.5f);
+            rect.anchoredPosition = new Vector2(0f, -178f);
+            rect.sizeDelta = new Vector2(340f, 82f);
+
+            var image = restartChallengeRoot.AddComponent<Image>();
+            image.color = new Color(0.1f, 0.62f, 1f, 0.94f);
+
+            restartChallengeButton = restartChallengeRoot.AddComponent<Button>();
+            restartChallengeButton.targetGraphic = image;
+            restartChallengeButton.transition = Selectable.Transition.ColorTint;
+            restartChallengeButton.colors = CreateButtonColors();
+            restartChallengeButton.onClick.AddListener(RestartChallenge);
+
+            var labelObject = new GameObject("Label", typeof(RectTransform));
+            labelObject.transform.SetParent(restartChallengeRoot.transform, false);
+
+            var labelRect = labelObject.GetComponent<RectTransform>();
+            labelRect.anchorMin = Vector2.zero;
+            labelRect.anchorMax = Vector2.one;
+            labelRect.offsetMin = Vector2.zero;
+            labelRect.offsetMax = Vector2.zero;
+
+            var text = labelObject.AddComponent<Text>();
+            text.text = "重新挑战";
+            text.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            text.fontSize = 34;
+            text.fontStyle = FontStyle.Bold;
+            text.alignment = TextAnchor.MiddleCenter;
+            text.color = Color.white;
+            text.raycastTarget = false;
+
+            restartChallengeRoot.SetActive(false);
         }
 
         private void CreateBossHud(Transform parent)
@@ -454,6 +499,7 @@ namespace LeiTing.UI
             var state = GameManager.Instance.CurrentState;
             var finished = state == GameState.Defeat || state == GameState.Victory;
             settlementText.enabled = finished;
+            SetRestartChallengeVisible(finished);
 
             if (!finished)
             {
@@ -462,6 +508,27 @@ namespace LeiTing.UI
 
             var title = state == GameState.Victory ? "CLEAR" : "GAME OVER";
             settlementText.text = $"{title}\nSCORE {GameManager.Instance.Score}";
+        }
+
+        private void SetRestartChallengeVisible(bool visible)
+        {
+            if (restartChallengeRoot != null && restartChallengeRoot.activeSelf != visible)
+            {
+                restartChallengeRoot.SetActive(visible);
+            }
+
+            if (restartChallengeButton != null)
+            {
+                restartChallengeButton.interactable = visible;
+            }
+        }
+
+        private static void RestartChallenge()
+        {
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.RestartCurrentScene();
+            }
         }
 
         private void ApplyWeaponSelection(string bulletId)

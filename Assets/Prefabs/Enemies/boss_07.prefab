@@ -110,6 +110,7 @@ MonoBehaviour:
     bulletPatternId: 
     hitScaleFeedback: 0
     score: 0
+    drops: []
   currentHp: 0
   maxHp: 0
 --- !u!1 &100006

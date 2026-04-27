@@ -376,11 +376,16 @@ namespace LeiTing.Pickups
 #if UNITY_EDITOR
             if (config.spritePath.StartsWith("Assets/", System.StringComparison.OrdinalIgnoreCase))
             {
-                return AssetDatabase.LoadAssetAtPath<Sprite>(config.spritePath);
+                var editorSprite = AssetDatabase.LoadAssetAtPath<Sprite>(config.spritePath);
+                if (editorSprite != null)
+                {
+                    return editorSprite;
+                }
             }
 #endif
 
-            return Resources.Load<Sprite>(NormalizeResourcesPath(config.spritePath));
+            return RuntimeAssetCatalog.LoadSprite(config.spritePath)
+                ?? Resources.Load<Sprite>(NormalizeResourcesPath(config.spritePath));
         }
 
         private static string NormalizeResourcesPath(string assetPath)

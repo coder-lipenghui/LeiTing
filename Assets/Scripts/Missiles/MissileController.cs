@@ -25,6 +25,8 @@ namespace LeiTing.Missiles
         private static Sprite fallbackHeavyMissileSprite;
         private static Sprite warningCircleSprite;
         private static Material defaultMaterial;
+        private static Material smokeTrailMaterial;
+        private static Texture2D smokeTrailTexture;
         private static readonly Dictionary<string, Sprite> configuredSprites = new Dictionary<string, Sprite>();
 
         private MissileManager manager;
@@ -32,8 +34,13 @@ namespace LeiTing.Missiles
         private Rigidbody2D body;
         private CircleCollider2D hitbox;
         private Transform visualRoot;
+        private Transform lightTrailRoot;
+        private Transform smokeTrailRoot;
         private SpriteRenderer bodyRenderer;
+        private TrailRenderer rootTrailRenderer;
         private TrailRenderer trailRenderer;
+        private ParticleSystem smokeTrail;
+        private ParticleSystemRenderer smokeTrailRenderer;
         private SpriteRenderer warningCircleRenderer;
         private LineRenderer warningLineRenderer;
         private Transform target;
@@ -99,6 +106,7 @@ namespace LeiTing.Missiles
             UpdateWarningVisuals();
 
             gameObject.SetActive(true);
+            PlayTrail();
         }
 
         public void DeactivateForPool()
@@ -110,6 +118,16 @@ namespace LeiTing.Missiles
             if (trailRenderer != null)
             {
                 trailRenderer.Clear();
+            }
+
+            if (rootTrailRenderer != null)
+            {
+                rootTrailRenderer.Clear();
+            }
+
+            if (smokeTrail != null)
+            {
+                smokeTrail.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             }
 
             gameObject.SetActive(false);
@@ -210,11 +228,50 @@ namespace LeiTing.Missiles
                 bodyRenderer = visualRoot.gameObject.AddComponent<SpriteRenderer>();
             }
 
-            trailRenderer = trailRenderer != null ? trailRenderer : GetComponent<TrailRenderer>();
+            rootTrailRenderer = rootTrailRenderer != null ? rootTrailRenderer : GetComponent<TrailRenderer>();
+            if (rootTrailRenderer != null)
+            {
+                rootTrailRenderer.enabled = false;
+                rootTrailRenderer.Clear();
+            }
+
+            if (lightTrailRoot == null)
+            {
+                var lightTrailTransform = transform.Find("LightTrail");
+                if (lightTrailTransform == null)
+                {
+                    lightTrailTransform = new GameObject("LightTrail").transform;
+                    lightTrailTransform.SetParent(transform, false);
+                }
+
+                lightTrailRoot = lightTrailTransform;
+            }
+
+            trailRenderer = trailRenderer != null ? trailRenderer : lightTrailRoot.GetComponent<TrailRenderer>();
             if (trailRenderer == null)
             {
-                trailRenderer = gameObject.AddComponent<TrailRenderer>();
+                trailRenderer = lightTrailRoot.gameObject.AddComponent<TrailRenderer>();
             }
+
+            if (smokeTrailRoot == null)
+            {
+                var smokeTrailTransform = transform.Find("SmokeTrail");
+                if (smokeTrailTransform == null)
+                {
+                    smokeTrailTransform = new GameObject("SmokeTrail").transform;
+                    smokeTrailTransform.SetParent(transform, false);
+                }
+
+                smokeTrailRoot = smokeTrailTransform;
+            }
+
+            smokeTrail = smokeTrail != null ? smokeTrail : smokeTrailRoot.GetComponent<ParticleSystem>();
+            if (smokeTrail == null)
+            {
+                smokeTrail = smokeTrailRoot.gameObject.AddComponent<ParticleSystem>();
+            }
+
+            smokeTrailRenderer = smokeTrailRenderer != null ? smokeTrailRenderer : smokeTrailRoot.GetComponent<ParticleSystemRenderer>();
 
             EnsureWarningLine();
             EnsureWarningCircle();
@@ -299,6 +356,16 @@ namespace LeiTing.Missiles
             gameObject.layer = layer;
             visualRoot.gameObject.layer = layer;
 
+            if (lightTrailRoot != null)
+            {
+                lightTrailRoot.gameObject.layer = layer;
+            }
+
+            if (smokeTrailRoot != null)
+            {
+                smokeTrailRoot.gameObject.layer = layer;
+            }
+
             if (warningLineRenderer != null)
             {
                 warningLineRenderer.gameObject.layer = layer;
@@ -335,15 +402,138 @@ namespace LeiTing.Missiles
 
         private void ConfigureTrail()
         {
+            var trailStyle = ResolveTrailStyle();
             var tailColor = ResolveTrailColor();
-            trailRenderer.time = CanBeDestroyed ? 0.32f : 0.22f;
-            trailRenderer.startWidth = Mathf.Max(0.04f, hitbox.radius * 0.78f);
+
+            ConfigureLightTrail(trailStyle == MissileTrailStyle.Light, tailColor);
+            ConfigureSmokeTrail(trailStyle == MissileTrailStyle.Smoke);
+        }
+
+        private void ConfigureLightTrail(bool enabled, Color tailColor)
+        {
+            if (trailRenderer == null)
+            {
+                return;
+            }
+
+            trailRenderer.enabled = enabled;
+            lightTrailRoot.localPosition = Vector3.down * Mathf.Max(0.05f, hitbox.radius * 0.85f);
+            lightTrailRoot.localRotation = Quaternion.identity;
+            lightTrailRoot.localScale = Vector3.one;
+            trailRenderer.time = CanBeDestroyed ? 0.42f : 0.28f;
+            trailRenderer.startWidth = Mathf.Max(0.04f, hitbox.radius * 0.82f);
             trailRenderer.endWidth = 0.01f;
-            trailRenderer.startColor = new Color(tailColor.r, tailColor.g, tailColor.b, 0.62f);
+            trailRenderer.startColor = new Color(tailColor.r, tailColor.g, tailColor.b, 0.7f);
             trailRenderer.endColor = new Color(tailColor.r, tailColor.g, tailColor.b, 0f);
             trailRenderer.material = GetDefaultMaterial();
             trailRenderer.sortingOrder = 21;
             trailRenderer.Clear();
+        }
+
+        private void ConfigureSmokeTrail(bool enabled)
+        {
+            if (smokeTrail == null)
+            {
+                return;
+            }
+
+            smokeTrail.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            smokeTrailRoot.localPosition = Vector3.down * Mathf.Max(0.05f, hitbox.radius * 0.8f);
+            smokeTrailRoot.localRotation = Quaternion.identity;
+            smokeTrailRoot.localScale = Vector3.one;
+
+            var main = smokeTrail.main;
+            main.loop = true;
+            main.playOnAwake = false;
+            main.prewarm = false;
+            main.duration = 1f;
+            main.startDelay = 0f;
+            main.startLifetime = new ParticleSystem.MinMaxCurve(CanBeDestroyed ? 0.78f : 0.58f, CanBeDestroyed ? 1.08f : 0.82f);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(0.02f, 0.16f);
+            main.startSize = new ParticleSystem.MinMaxCurve(hitbox.radius * 1.45f, hitbox.radius * (CanBeDestroyed ? 2.7f : 2.25f));
+            main.startRotation = new ParticleSystem.MinMaxCurve(0f, Mathf.PI * 2f);
+            main.startColor = new ParticleSystem.MinMaxGradient(new Color(1f, 1f, 1f, 0.72f), new Color(0.88f, 0.92f, 0.96f, 0.58f));
+            main.simulationSpace = ParticleSystemSimulationSpace.World;
+            main.scalingMode = ParticleSystemScalingMode.Hierarchy;
+            main.maxParticles = CanBeDestroyed ? 96 : 64;
+
+            var emission = smokeTrail.emission;
+            emission.enabled = enabled;
+            emission.rateOverTime = enabled ? new ParticleSystem.MinMaxCurve(CanBeDestroyed ? 28f : 20f) : new ParticleSystem.MinMaxCurve(0f);
+
+            var shape = smokeTrail.shape;
+            shape.enabled = true;
+            shape.shapeType = ParticleSystemShapeType.Circle;
+            shape.radius = Mathf.Max(0.015f, hitbox.radius * 0.45f);
+            shape.radiusThickness = 1f;
+
+            var velocity = smokeTrail.velocityOverLifetime;
+            velocity.enabled = true;
+            velocity.space = ParticleSystemSimulationSpace.Local;
+            velocity.x = new ParticleSystem.MinMaxCurve(-0.08f, 0.08f);
+            velocity.y = new ParticleSystem.MinMaxCurve(-0.28f, -0.08f);
+            velocity.z = new ParticleSystem.MinMaxCurve(0f);
+
+            var colorOverLifetime = smokeTrail.colorOverLifetime;
+            colorOverLifetime.enabled = true;
+            var colorGradient = new Gradient();
+            colorGradient.SetKeys(
+                new[]
+                {
+                    new GradientColorKey(new Color(1f, 1f, 1f), 0f),
+                    new GradientColorKey(new Color(0.88f, 0.92f, 0.96f), 0.65f),
+                    new GradientColorKey(new Color(0.76f, 0.8f, 0.84f), 1f)
+                },
+                new[]
+                {
+                    new GradientAlphaKey(0.76f, 0f),
+                    new GradientAlphaKey(0.4f, 0.48f),
+                    new GradientAlphaKey(0f, 1f)
+                });
+            colorOverLifetime.color = new ParticleSystem.MinMaxGradient(colorGradient);
+
+            var sizeOverLifetime = smokeTrail.sizeOverLifetime;
+            sizeOverLifetime.enabled = true;
+            sizeOverLifetime.size = new ParticleSystem.MinMaxCurve(1f, new AnimationCurve(
+                new Keyframe(0f, 1f),
+                new Keyframe(0.58f, 0.62f),
+                new Keyframe(1f, 0.08f)));
+
+            var noise = smokeTrail.noise;
+            noise.enabled = true;
+            noise.strength = new ParticleSystem.MinMaxCurve(hitbox.radius * 0.18f, hitbox.radius * 0.34f);
+            noise.frequency = 1.6f;
+            noise.scrollSpeed = 0.25f;
+
+            if (smokeTrailRenderer != null)
+            {
+                smokeTrailRenderer.enabled = enabled;
+                smokeTrailRenderer.renderMode = ParticleSystemRenderMode.Billboard;
+                smokeTrailRenderer.material = GetSmokeTrailMaterial();
+                smokeTrailRenderer.sortingOrder = 20;
+            }
+        }
+
+        private void PlayTrail()
+        {
+            if (trailRenderer != null)
+            {
+                trailRenderer.Clear();
+            }
+
+            if (smokeTrail == null)
+            {
+                return;
+            }
+
+            if (ResolveTrailStyle() == MissileTrailStyle.Smoke)
+            {
+                smokeTrail.Play(true);
+            }
+            else
+            {
+                smokeTrail.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            }
         }
 
         private MissileState ResolveInitialState(bool skipLockDelay = false)
@@ -960,6 +1150,23 @@ namespace LeiTing.Missiles
             return ResolveBodyColor();
         }
 
+        private MissileTrailStyle ResolveTrailStyle()
+        {
+            if (config == null || string.IsNullOrEmpty(config.tailType))
+            {
+                return MissileTrailStyle.Light;
+            }
+
+            if (string.Equals(config.tailType, "smoke", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(config.tailType, "exhaust", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(config.tailType, "fire_smoke", StringComparison.OrdinalIgnoreCase))
+            {
+                return MissileTrailStyle.Smoke;
+            }
+
+            return MissileTrailStyle.Light;
+        }
+
         private Sprite GetFallbackSprite()
         {
             if (CanBeDestroyed)
@@ -1002,11 +1209,16 @@ namespace LeiTing.Missiles
 #if UNITY_EDITOR
             if (spritePath.StartsWith("Assets/", StringComparison.OrdinalIgnoreCase))
             {
-                return AssetDatabase.LoadAssetAtPath<Sprite>(spritePath);
+                var editorSprite = AssetDatabase.LoadAssetAtPath<Sprite>(spritePath);
+                if (editorSprite != null)
+                {
+                    return editorSprite;
+                }
             }
 #endif
 
-            return Resources.Load<Sprite>(NormalizeResourcesPath(spritePath));
+            return RuntimeAssetCatalog.LoadSprite(spritePath)
+                ?? Resources.Load<Sprite>(NormalizeResourcesPath(spritePath));
         }
 
         private static string NormalizeResourcesPath(string spritePath)
@@ -1037,6 +1249,32 @@ namespace LeiTing.Missiles
             }
 
             return defaultMaterial;
+        }
+
+        private static Material GetSmokeTrailMaterial()
+        {
+            if (smokeTrailMaterial == null)
+            {
+                var shader = Shader.Find("Sprites/Default");
+                smokeTrailMaterial = new Material(shader);
+                smokeTrailMaterial.mainTexture = GetSmokeTrailTexture();
+                if (smokeTrailMaterial.HasProperty("_Color"))
+                {
+                    smokeTrailMaterial.SetColor("_Color", Color.white);
+                }
+            }
+
+            return smokeTrailMaterial;
+        }
+
+        private static Texture2D GetSmokeTrailTexture()
+        {
+            if (smokeTrailTexture == null)
+            {
+                smokeTrailTexture = CreateSmokeTrailTexture();
+            }
+
+            return smokeTrailTexture;
         }
 
         private static Sprite GetWarningCircleSprite()
@@ -1140,6 +1378,30 @@ namespace LeiTing.Missiles
             return Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), SpritePixelsPerUnit);
         }
 
+        private static Texture2D CreateSmokeTrailTexture()
+        {
+            const int size = 96;
+            const float radius = size * 0.5f;
+            var texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
+            texture.filterMode = FilterMode.Bilinear;
+            texture.wrapMode = TextureWrapMode.Clamp;
+
+            for (var y = 0; y < size; y++)
+            {
+                for (var x = 0; x < size; x++)
+                {
+                    var dx = x + 0.5f - radius;
+                    var dy = y + 0.5f - radius;
+                    var distance = Mathf.Sqrt(dx * dx + dy * dy) / radius;
+                    var alpha = Mathf.Pow(Mathf.Clamp01(1f - distance), 2.1f);
+                    texture.SetPixel(x, y, new Color(1f, 1f, 1f, alpha));
+                }
+            }
+
+            texture.Apply();
+            return texture;
+        }
+
         private static Vector2 RotateTowards(Vector2 current, Vector2 target, float maxDegreesDelta)
         {
             if (current.sqrMagnitude <= 0.0001f)
@@ -1174,6 +1436,12 @@ namespace LeiTing.Missiles
         private static float AngleFromDirection(Vector2 vector)
         {
             return Mathf.Atan2(vector.y, vector.x) * Mathf.Rad2Deg;
+        }
+
+        private enum MissileTrailStyle
+        {
+            Light,
+            Smoke
         }
     }
 }
