@@ -21,7 +21,7 @@ namespace LeiTing.Missiles
         private readonly Dictionary<MissileController, string> activePoolKeys = new Dictionary<MissileController, string>();
         private bool isPoolWarmed;
 
-        public MissileController Fire(MissileConfig missileConfig, Vector2 position, Vector2 direction)
+        public MissileController Fire(MissileConfig missileConfig, Vector2 position, Vector2 direction, bool skipLockDelay = false)
         {
             if (missileConfig == null)
             {
@@ -36,7 +36,7 @@ namespace LeiTing.Missiles
             missile.transform.SetParent(GetLayerRoot(), false);
             missile.transform.position = position;
             missile.transform.rotation = Quaternion.identity;
-            missile.Activate(missileConfig, direction, this);
+            missile.Activate(missileConfig, direction, this, skipLockDelay);
             return missile;
         }
 

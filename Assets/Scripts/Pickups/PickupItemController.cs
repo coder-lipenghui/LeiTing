@@ -15,12 +15,23 @@ namespace LeiTing.Pickups
     public class PickupItemController : MonoBehaviour
     {
         private const float DespawnViewportMargin = 0.08f;
+        private const float GlowSpriteSize = 1f;
+        private const float MagnetGlowRange = 0.34f;
+        private const float TreasureGlowRange = 0.3f;
+        private const float TreasureScaleVariance = 0.08f;
+
+        private static readonly Color MagnetGlowColor = new Color(0.12f, 0.58f, 1f, 0.54f);
+        private static readonly Color TreasureGlowColor = new Color(1f, 0.72f, 0.08f, 0.58f);
+        private static Sprite glowSprite;
+        private static Material defaultSpriteMaterial;
 
         [SerializeField] private PickupItemConfig config;
 
         private Rigidbody2D body;
         private CircleCollider2D pickupCollider;
         private SpriteRenderer spriteRenderer;
+        private Transform glowRoot;
+        private SpriteRenderer glowRenderer;
         private Camera gameplayCamera;
         private PlayerController forcedAttractTarget;
         private float spawnTime;
@@ -116,6 +127,26 @@ namespace LeiTing.Pickups
             if (spriteRenderer == null)
             {
                 spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
+            }
+
+            if (glowRoot == null)
+            {
+                var glow = transform.Find("Glow");
+                if (glow == null)
+                {
+                    glow = new GameObject("Glow").transform;
+                    glow.SetParent(transform, false);
+                    glow.localPosition = Vector3.zero;
+                    glow.localRotation = Quaternion.identity;
+                }
+
+                glowRoot = glow;
+            }
+
+            glowRenderer = glowRenderer != null ? glowRenderer : glowRoot.GetComponent<SpriteRenderer>();
+            if (glowRenderer == null)
+            {
+                glowRenderer = glowRoot.gameObject.AddComponent<SpriteRenderer>();
             }
         }
 
@@ -279,7 +310,60 @@ namespace LeiTing.Pickups
             spriteRenderer.color = Color.white;
 
             var scale = config != null && config.visualScale > 0f ? config.visualScale : 0.62f;
+            if (ShouldRandomizeTreasureScale())
+            {
+                scale *= Random.Range(1f - TreasureScaleVariance, 1f + TreasureScaleVariance);
+            }
+
             transform.localScale = new Vector3(scale, scale, 1f);
+            ApplyGlowVisual();
+        }
+
+        private bool ShouldRandomizeTreasureScale()
+        {
+            return IsStarPickup || IsItemType("Coin") || IsItemId("coin");
+        }
+
+        private void ApplyGlowVisual()
+        {
+            if (glowRenderer == null)
+            {
+                return;
+            }
+
+            if (IsItemType("Magnet") || IsItemId("magnet"))
+            {
+                ConfigureGlow(MagnetGlowColor, MagnetGlowRange);
+                return;
+            }
+
+            if (IsStarPickup || IsItemType("Coin") || IsItemId("coin"))
+            {
+                ConfigureGlow(TreasureGlowColor, TreasureGlowRange);
+                return;
+            }
+
+            glowRenderer.enabled = false;
+        }
+
+        private void ConfigureGlow(Color color, float glowRange)
+        {
+            if (spriteRenderer == null || glowRenderer == null)
+            {
+                return;
+            }
+
+            var spriteSize = spriteRenderer.sprite != null ? spriteRenderer.sprite.bounds.size : Vector3.one * 0.35f;
+            var glowSize = Mathf.Max(spriteSize.x, spriteSize.y) + glowRange;
+
+            glowRenderer.enabled = true;
+            glowRenderer.sprite = GetGlowSprite();
+            glowRenderer.color = color;
+            glowRenderer.sortingOrder = spriteRenderer.sortingOrder - 1;
+            glowRenderer.sharedMaterial = GetDefaultSpriteMaterial();
+            glowRoot.localPosition = Vector3.zero;
+            glowRoot.localRotation = Quaternion.identity;
+            glowRoot.localScale = new Vector3(glowSize / GlowSpriteSize, glowSize / GlowSpriteSize, 1f);
         }
 
         private Sprite LoadPickupSprite()
@@ -354,6 +438,50 @@ namespace LeiTing.Pickups
                     {
                         texture.SetPixel(x, y, y > center.y ? shine : fill);
                     }
+                }
+            }
+
+            texture.Apply();
+            return Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
+        }
+
+        private static Sprite GetGlowSprite()
+        {
+            if (glowSprite == null)
+            {
+                glowSprite = CreateGlowSprite();
+            }
+
+            return glowSprite;
+        }
+
+        private static Material GetDefaultSpriteMaterial()
+        {
+            if (defaultSpriteMaterial == null)
+            {
+                defaultSpriteMaterial = new Material(Shader.Find("Sprites/Default"));
+            }
+
+            return defaultSpriteMaterial;
+        }
+
+        private static Sprite CreateGlowSprite()
+        {
+            const int size = 96;
+            const float radius = size * 0.5f;
+            var texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
+            texture.filterMode = FilterMode.Bilinear;
+            texture.wrapMode = TextureWrapMode.Clamp;
+
+            for (var y = 0; y < size; y++)
+            {
+                for (var x = 0; x < size; x++)
+                {
+                    var dx = x + 0.5f - radius;
+                    var dy = y + 0.5f - radius;
+                    var distance = Mathf.Sqrt(dx * dx + dy * dy) / radius;
+                    var alpha = Mathf.Pow(Mathf.Clamp01(1f - distance), 2.35f);
+                    texture.SetPixel(x, y, new Color(1f, 1f, 1f, alpha));
                 }
             }
 

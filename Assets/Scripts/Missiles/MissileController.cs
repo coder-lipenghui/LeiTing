@@ -57,7 +57,7 @@ namespace LeiTing.Missiles
         public bool CanBeDestroyed => config != null && config.canBeDestroyed;
         public MissileState State => state;
 
-        public void Activate(MissileConfig missileConfig, Vector2 fireDirection, MissileManager owningManager)
+        public void Activate(MissileConfig missileConfig, Vector2 fireDirection, MissileManager owningManager, bool skipLockDelay = false)
         {
             if (missileConfig == null)
             {
@@ -73,6 +73,13 @@ namespace LeiTing.Missiles
             lockedDirection = ResolveDirectionToTarget(direction);
             returnDirection = direction;
             speed = Mathf.Max(0f, config.speed);
+            var shouldSkipLock = skipLockDelay && GetBehaviorType() == MissileBehaviorType.LockAndDash;
+            if (shouldSkipLock)
+            {
+                direction = lockedDirection.sqrMagnitude > 0.0001f ? lockedDirection.normalized : direction;
+                speed = ResolveDashSpeed();
+            }
+
             age = 0f;
             stateAge = 0f;
             lastWaveOffset = 0f;
@@ -88,7 +95,7 @@ namespace LeiTing.Missiles
             ApplyVisual();
             ConfigureTrail();
 
-            SetState(ResolveInitialState());
+            SetState(ResolveInitialState(shouldSkipLock));
             UpdateWarningVisuals();
 
             gameObject.SetActive(true);
@@ -339,7 +346,7 @@ namespace LeiTing.Missiles
             trailRenderer.Clear();
         }
 
-        private MissileState ResolveInitialState()
+        private MissileState ResolveInitialState(bool skipLockDelay = false)
         {
             var behaviorType = GetBehaviorType();
             if (behaviorType == MissileBehaviorType.WeakHoming || behaviorType == MissileBehaviorType.StrongHoming)
@@ -349,7 +356,7 @@ namespace LeiTing.Missiles
 
             if (behaviorType == MissileBehaviorType.LockAndDash)
             {
-                return MissileState.Locking;
+                return skipLockDelay ? MissileState.Dashing : MissileState.Locking;
             }
 
             return MissileState.Flying;
@@ -437,7 +444,7 @@ namespace LeiTing.Missiles
                 if (stateAge >= Mathf.Max(0.05f, config.lockDelay))
                 {
                     direction = lockedDirection.sqrMagnitude > 0.0001f ? lockedDirection.normalized : direction;
-                    speed = config.maxSpeed > 0f ? Mathf.Max(speed, config.maxSpeed) : Mathf.Max(speed, config.speed * 2.4f);
+                    speed = ResolveDashSpeed();
                     SetState(MissileState.Dashing);
                 }
 
@@ -570,6 +577,11 @@ namespace LeiTing.Missiles
 
             var maxSpeed = config.maxSpeed > 0f ? config.maxSpeed : speed + config.acceleration * delta;
             speed = Mathf.Min(maxSpeed, speed + config.acceleration * delta);
+        }
+
+        private float ResolveDashSpeed()
+        {
+            return config.maxSpeed > 0f ? Mathf.Max(speed, config.maxSpeed) : Mathf.Max(speed, config.speed * 2.4f);
         }
 
         private void SplitNow()

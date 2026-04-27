@@ -382,13 +382,13 @@ namespace LeiTing.Enemy
             {
                 foreach (var firePoint in firePoints)
                 {
-                    patternManager.FirePattern(pattern, firePoint.position);
+                    patternManager.FirePattern(pattern, firePoint);
                 }
 
                 return true;
             }
 
-            patternManager.FirePattern(pattern, transform.position);
+            patternManager.FirePattern(pattern, transform);
             return true;
         }
 
