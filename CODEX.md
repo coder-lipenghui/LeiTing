@@ -8,14 +8,16 @@ This project is a Unity 2021.3.6f1c1 2D vertical shooter demo inspired by LeiDia
 - Main scene: `Assets/Scenes/SampleScene.unity`
 - Runtime config: `Assets/Resources/Configs/GameConfig.json`
 - Demo scene setup menu: `LeiTing/Setup/Create Demo Scene Skeleton`
+- Editor level test menu: `LeiTing/Test/Level Selector`
 - Current content count:
   - 5 normal enemy config ids: `enemy_a` to `enemy_e`
   - 12 boss config ids: `boss_01` to `boss_12`
+  - 12 level config ids: `level_01` to `level_12`
   - 7 bullet configs
   - 14 bullet pattern configs
   - 14 stage waves
-  - 6 stage timeline events
-  - Boss enters at `180s`
+  - 7 stage timeline events
+  - Current level final Boss enters at `180s`
 
 ## Important Commands
 
@@ -37,7 +39,7 @@ Core flow:
 - `GameManager` owns game state and score.
 - `ConfigManager` loads `Resources/Configs/GameConfig.json`.
 - `EnemyManager` reads wave config and spawns enemies.
-- `StageManager` reads stage timeline events and shows notices/clears enemy bullets.
+- `StageManager` reads stage timeline events, expands level/Boss placeholders, and shows notices/clears enemy bullets.
 - `BulletManager` pools and fires projectiles.
 - `BulletPatternManager` expands pattern configs into bullet volleys.
 - `UIManager` builds runtime test UI, HUD, Boss HP bar, phase notices, score popups, and settlement text.
@@ -175,7 +177,9 @@ If hit feedback looks wrong again, inspect:
 - whether root collider is accidentally enabled along with child hitboxes
 - whether the bullet is piercing or laser-like
 
-## Stage Timeline
+## Level And Stage Timeline
+
+Levels are declared in `levels`; each level points to `boss_01` through `boss_12`. The final wave uses `useCurrentLevelBoss` so the same stage pacing can route to the current level's Boss resource.
 
 Current demo structure:
 
@@ -183,7 +187,7 @@ Current demo structure:
 - `0:30 - 1:30`: first combat wave
 - `1:30 - 2:30`: escalation
 - `2:30 - 3:00`: transition and Boss warning
-- `3:00+`: Boss battle
+- `3:00+`: current level final Boss battle
 
 `StageManager` events live in `stageEvents` and can:
 

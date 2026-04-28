@@ -69,7 +69,8 @@ namespace LeiTing.Enemy
         {
             var count = Mathf.Max(1, spawn.count);
             var interval = Mathf.Max(0.01f, spawn.interval);
-            var isBossGroup = IsBossId(spawn.enemyId);
+            var enemyId = ResolveSpawnEnemyId(spawn);
+            var isBossGroup = IsBossId(enemyId);
 
             for (var index = 0; index < count; index++)
             {
@@ -89,7 +90,7 @@ namespace LeiTing.Enemy
                     pendingBossSpawnCount = Mathf.Max(0, pendingBossSpawnCount - 1);
                 }
 
-                SpawnEnemy(spawn.enemyId, ResolveSpawnPosition(spawn, index, count), spawn);
+                SpawnEnemy(enemyId, ResolveSpawnPosition(spawn, index, count), spawn);
 
                 if (index < count - 1)
                 {
@@ -221,7 +222,7 @@ namespace LeiTing.Enemy
 
                 foreach (var spawn in wave.spawns)
                 {
-                    if (spawn != null && IsBossId(spawn.enemyId))
+                    if (spawn != null && IsBossId(ResolveSpawnEnemyId(spawn)))
                     {
                         return true;
                     }
@@ -229,6 +230,18 @@ namespace LeiTing.Enemy
             }
 
             return false;
+        }
+
+        private static string ResolveSpawnEnemyId(WaveSpawnConfig spawn)
+        {
+            if (spawn == null)
+            {
+                return string.Empty;
+            }
+
+            return spawn.useCurrentLevelBoss && GameManager.Instance != null
+                ? GameManager.Instance.CurrentLevelBossId
+                : spawn.enemyId;
         }
 
         private static bool IsBossId(string enemyId)

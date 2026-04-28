@@ -1042,6 +1042,68 @@
       "visualScale": 1
     }
   ],
+  "levels": [
+    {
+      "id": "level_01",
+      "displayName": "第 1 关",
+      "bossId": "boss_01"
+    },
+    {
+      "id": "level_02",
+      "displayName": "第 2 关",
+      "bossId": "boss_02"
+    },
+    {
+      "id": "level_03",
+      "displayName": "第 3 关",
+      "bossId": "boss_03"
+    },
+    {
+      "id": "level_04",
+      "displayName": "第 4 关",
+      "bossId": "boss_04"
+    },
+    {
+      "id": "level_05",
+      "displayName": "第 5 关",
+      "bossId": "boss_05"
+    },
+    {
+      "id": "level_06",
+      "displayName": "第 6 关",
+      "bossId": "boss_06"
+    },
+    {
+      "id": "level_07",
+      "displayName": "第 7 关",
+      "bossId": "boss_07"
+    },
+    {
+      "id": "level_08",
+      "displayName": "第 8 关",
+      "bossId": "boss_08"
+    },
+    {
+      "id": "level_09",
+      "displayName": "第 9 关",
+      "bossId": "boss_09"
+    },
+    {
+      "id": "level_10",
+      "displayName": "第 10 关",
+      "bossId": "boss_10"
+    },
+    {
+      "id": "level_11",
+      "displayName": "第 11 关",
+      "bossId": "boss_11"
+    },
+    {
+      "id": "level_12",
+      "displayName": "第 12 关",
+      "bossId": "boss_12"
+    }
+  ],
   "bulletPatterns": [
     {
       "id": "enemy_single_down",
@@ -2057,11 +2119,11 @@
       ]
     },
     {
-      "id": "wave_boss_001",
+      "id": "wave_boss_final",
       "startTime": 180,
       "spawns": [
         {
-          "enemyId": "boss_helicopter_01",
+          "enemyId": "boss_01",
           "count": 1,
           "interval": 0.1,
           "startPosition": {
@@ -2070,106 +2132,7 @@
           },
           "attackPatternId": "",
           "movementPath": "BossEntry",
-          "pathAmplitude": 0,
-          "pathSpeed": 0,
-          "holdDuration": 0
-        }
-      ]
-    },
-    {
-      "id": "wave_boss_002",
-      "startTime": 208,
-      "spawns": [
-        {
-          "enemyId": "boss_helicopter_02",
-          "count": 1,
-          "interval": 0.1,
-          "startPosition": {
-            "x": 0,
-            "y": 6.2
-          },
-          "attackPatternId": "",
-          "movementPath": "BossEntry",
-          "pathAmplitude": 0,
-          "pathSpeed": 0,
-          "holdDuration": 0
-        }
-      ]
-    },
-    {
-      "id": "wave_boss_003",
-      "startTime": 236,
-      "spawns": [
-        {
-          "enemyId": "boss_helicopter_03",
-          "count": 1,
-          "interval": 0.1,
-          "startPosition": {
-            "x": 0,
-            "y": 6.2
-          },
-          "attackPatternId": "",
-          "movementPath": "BossEntry",
-          "pathAmplitude": 0,
-          "pathSpeed": 0,
-          "holdDuration": 0
-        }
-      ]
-    },
-    {
-      "id": "wave_boss_004",
-      "startTime": 264,
-      "spawns": [
-        {
-          "enemyId": "boss_helicopter_04",
-          "count": 1,
-          "interval": 0.1,
-          "startPosition": {
-            "x": 0,
-            "y": 6.2
-          },
-          "attackPatternId": "",
-          "movementPath": "BossEntry",
-          "pathAmplitude": 0,
-          "pathSpeed": 0,
-          "holdDuration": 0
-        }
-      ]
-    },
-    {
-      "id": "wave_boss_005",
-      "startTime": 292,
-      "spawns": [
-        {
-          "enemyId": "boss_helicopter_05",
-          "count": 1,
-          "interval": 0.1,
-          "startPosition": {
-            "x": 0,
-            "y": 6.2
-          },
-          "attackPatternId": "",
-          "movementPath": "BossEntry",
-          "pathAmplitude": 0,
-          "pathSpeed": 0,
-          "holdDuration": 0
-        }
-      ]
-    },
-    {
-      "id": "wave_boss_006",
-      "startTime": 320,
-      "spawns": [
-        {
-          "enemyId": "boss_helicopter_06",
-          "count": 1,
-          "interval": 0.1,
-          "startPosition": {
-            "x": 0,
-            "y": 6.2
-          },
-          "attackPatternId": "",
-          "movementPath": "BossEntry",
+          "useCurrentLevelBoss": true,
           "pathAmplitude": 0,
           "pathSpeed": 0,
           "holdDuration": 0
@@ -2181,7 +2144,7 @@
     {
       "id": "stage_notice_tutorial",
       "startTime": 1,
-      "message": "TRAINING START",
+      "message": "LEVEL {LEVEL}/{MAX_LEVEL}\\nMISSION START",
       "clearEnemyBullets": false
     },
     {
@@ -2211,43 +2174,13 @@
     {
       "id": "stage_notice_boss_warning",
       "startTime": 176,
-      "message": "HELICOPTER UNIT\\nAPPROACHING",
+      "message": "LEVEL {LEVEL}/{MAX_LEVEL}\\nFINAL BOSS",
       "clearEnemyBullets": true
     },
     {
-      "id": "stage_notice_helicopter_01",
+      "id": "stage_notice_final_boss",
       "startTime": 178,
-      "message": "HELICOPTER-01\\nENGAGING",
-      "clearEnemyBullets": true
-    },
-    {
-      "id": "stage_notice_helicopter_02",
-      "startTime": 206,
-      "message": "HELICOPTER-02\\nENGAGING",
-      "clearEnemyBullets": true
-    },
-    {
-      "id": "stage_notice_helicopter_03",
-      "startTime": 234,
-      "message": "HELICOPTER-03\\nENGAGING",
-      "clearEnemyBullets": true
-    },
-    {
-      "id": "stage_notice_helicopter_04",
-      "startTime": 262,
-      "message": "HELICOPTER-04\\nENGAGING",
-      "clearEnemyBullets": true
-    },
-    {
-      "id": "stage_notice_helicopter_05",
-      "startTime": 290,
-      "message": "HELICOPTER-05\\nENGAGING",
-      "clearEnemyBullets": true
-    },
-    {
-      "id": "stage_notice_helicopter_06",
-      "startTime": 318,
-      "message": "HELICOPTER-06\\nENGAGING",
+      "message": "{BOSS}\\nENGAGING",
       "clearEnemyBullets": true
     }
   ],

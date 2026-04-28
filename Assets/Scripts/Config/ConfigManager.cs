@@ -57,6 +57,18 @@ namespace LeiTing.Config
             return config?.pickupItems.FirstOrDefault(item => item.id == id);
         }
 
+        public LevelConfig GetLevel(int levelNumber)
+        {
+            var levels = config?.levels;
+            if (levels == null || levels.Count == 0)
+            {
+                return null;
+            }
+
+            var index = Mathf.Clamp(levelNumber - 1, 0, levels.Count - 1);
+            return levels[index];
+        }
+
         public BulletPatternConfig GetBulletPattern(string id)
         {
             return config?.bulletPatterns.FirstOrDefault(item => item.id == id);

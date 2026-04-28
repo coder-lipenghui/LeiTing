@@ -62,10 +62,25 @@ namespace LeiTing.Stage
                 MissileManager.Instance.ClearEnemyMissiles();
             }
 
-            if (!string.IsNullOrEmpty(stageEvent.message) && UIManager.Instance != null)
+            var message = ResolveStageMessage(stageEvent.message);
+            if (!string.IsNullOrEmpty(message) && UIManager.Instance != null)
             {
-                UIManager.Instance.ShowBossPhaseNotice(stageEvent.message);
+                UIManager.Instance.ShowBossPhaseNotice(message);
             }
+        }
+
+        private static string ResolveStageMessage(string message)
+        {
+            if (string.IsNullOrEmpty(message) || GameManager.Instance == null)
+            {
+                return message;
+            }
+
+            return message
+                .Replace("{LEVEL}", GameManager.Instance.CurrentLevelNumber.ToString())
+                .Replace("{MAX_LEVEL}", GameManager.Instance.MaxLevelCount.ToString())
+                .Replace("{BOSS_ID}", GameManager.Instance.CurrentLevelBossId)
+                .Replace("{BOSS}", GameManager.Instance.CurrentLevelBossDisplayName);
         }
     }
 }

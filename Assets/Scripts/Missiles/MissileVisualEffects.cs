@@ -1,0 +1,662 @@
+using System;
+using UnityEngine;
+
+namespace LeiTing.Missiles
+{
+    public enum MissileVisualTrailMode
+    {
+        UseConfig = 0,
+        None = 1,
+        Light = 2,
+        Smoke = 3,
+        LightAndSmoke = 4
+    }
+
+    public struct MissileVisualEffectContext
+    {
+        public float Radius;
+        public bool CanBeDestroyed;
+        public Color TailColor;
+        public string TailType;
+        public float Time;
+    }
+
+    [DisallowMultipleComponent]
+    public class MissileVisualEffects : MonoBehaviour
+    {
+        private const float SpritePixelsPerUnit = 100f;
+        private const int GlowTextureSize = 64;
+
+        private static Material defaultSpriteMaterial;
+        private static Material smokeMaterial;
+        private static Texture2D smokeTexture;
+        private static Sprite glowSprite;
+
+        [Header("Source")]
+        [SerializeField] private MissileVisualTrailMode trailMode = MissileVisualTrailMode.UseConfig;
+        [SerializeField] private bool useConfigTailColor = true;
+        [SerializeField] private Color customTailColor = new Color(1f, 0.72f, 0.22f, 1f);
+
+        [Header("References")]
+        [SerializeField] private Transform lightTrailRoot;
+        [SerializeField] private TrailRenderer lightTrailRenderer;
+        [SerializeField] private Transform smokeTrailRoot;
+        [SerializeField] private ParticleSystem smokeTrail;
+        [SerializeField] private ParticleSystemRenderer smokeTrailRenderer;
+        [SerializeField] private Transform tailGlowRoot;
+        [SerializeField] private SpriteRenderer tailGlowRenderer;
+
+        [Header("Light Trail")]
+        [SerializeField] private LightTrailSettings lightTrail = new LightTrailSettings();
+
+        [Header("Smoke Trail")]
+        [SerializeField] private SmokeTrailSettings smoke = new SmokeTrailSettings();
+
+        [Header("Tail Glow")]
+        [SerializeField] private TailGlowSettings tailGlow = new TailGlowSettings();
+
+        private Color activeTailColor = Color.white;
+        private float activeRadius = 0.16f;
+
+#if UNITY_EDITOR
+        private bool validateQueued;
+#endif
+
+        public MissileVisualTrailMode TrailMode => trailMode;
+        public bool UsesConfigTailColor => useConfigTailColor;
+        public Color CustomTailColor => customTailColor;
+        public Transform LightTrailRoot => lightTrailRoot;
+        public TrailRenderer LightTrail => lightTrailRenderer;
+        public Transform SmokeTrailRoot => smokeTrailRoot;
+        public ParticleSystem SmokeTrail => smokeTrail;
+        public ParticleSystemRenderer SmokeTrailRenderer => smokeTrailRenderer;
+        public Transform TailGlowRoot => tailGlowRoot;
+        public SpriteRenderer TailGlow => tailGlowRenderer;
+
+        public void EnsureEffectObjects()
+        {
+            lightTrailRoot = EnsureChild(lightTrailRoot, "LightTrail");
+            lightTrailRenderer = EnsureComponent<TrailRenderer>(lightTrailRoot.gameObject);
+
+            smokeTrailRoot = EnsureChild(smokeTrailRoot, "SmokeTrail");
+            smokeTrail = EnsureComponent<ParticleSystem>(smokeTrailRoot.gameObject);
+            smokeTrailRenderer = smokeTrailRoot.GetComponent<ParticleSystemRenderer>();
+
+            tailGlowRoot = EnsureChild(tailGlowRoot, "TailGlow");
+            tailGlowRenderer = EnsureComponent<SpriteRenderer>(tailGlowRoot.gameObject);
+            tailGlowRenderer.sprite = GetGlowSprite();
+        }
+
+        public void Apply(MissileVisualEffectContext context)
+        {
+            EnsureEffectObjects();
+
+            activeRadius = Mathf.Max(0.04f, context.Radius);
+            activeTailColor = ResolveTailColor(context);
+
+            var resolvedMode = ResolveTrailMode(context.TailType);
+            ConfigureLightTrail(UsesLightTrail(resolvedMode), activeTailColor, activeRadius);
+            ConfigureSmokeTrail(UsesSmokeTrail(resolvedMode), activeTailColor, activeRadius, context.CanBeDestroyed);
+            ConfigureTailGlow(activeTailColor, activeRadius, context.Time);
+        }
+
+        public void Play()
+        {
+            if (lightTrailRenderer != null)
+            {
+                lightTrailRenderer.Clear();
+            }
+
+            if (smokeTrail == null)
+            {
+                return;
+            }
+
+            var emission = smokeTrail.emission;
+            if (smokeTrailRenderer != null && smokeTrailRenderer.enabled && emission.enabled)
+            {
+                smokeTrail.Play(true);
+            }
+            else
+            {
+                smokeTrail.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            }
+        }
+
+        public void StopAndClear()
+        {
+            if (lightTrailRenderer != null)
+            {
+                lightTrailRenderer.Clear();
+            }
+
+            if (smokeTrail != null)
+            {
+                smokeTrail.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            }
+        }
+
+        public void UpdateDynamic(float time)
+        {
+            ConfigureTailGlow(activeTailColor, activeRadius, time);
+        }
+
+        public void SetLayer(int layer)
+        {
+            gameObject.layer = layer;
+            SetLayerIfValid(lightTrailRoot, layer);
+            SetLayerIfValid(smokeTrailRoot, layer);
+            SetLayerIfValid(tailGlowRoot, layer);
+        }
+
+        public void ResetToDefaults(MissileVisualTrailMode defaultTrailMode, Color defaultTailColor, float missileRadius)
+        {
+            trailMode = defaultTrailMode;
+            useConfigTailColor = false;
+            customTailColor = defaultTailColor;
+
+            var radius = Mathf.Max(0.04f, missileRadius);
+            lightTrail.duration = Mathf.Lerp(0.22f, 0.46f, Mathf.InverseLerp(0.12f, 0.32f, radius));
+            lightTrail.startWidthRadiusScale = defaultTrailMode == MissileVisualTrailMode.LightAndSmoke ? 0.62f : 0.82f;
+            lightTrail.endWidth = 0.01f;
+            lightTrail.offsetRadiusScale = 0.9f;
+
+            smoke.emissionRate = defaultTrailMode == MissileVisualTrailMode.LightAndSmoke ? 16f : 24f;
+            smoke.sizeRadiusScaleMax = defaultTrailMode == MissileVisualTrailMode.LightAndSmoke ? 1.95f : 2.45f;
+            smoke.offsetRadiusScale = 0.78f;
+
+            tailGlow.enabled = true;
+            tailGlow.diameterRadiusScale = defaultTrailMode == MissileVisualTrailMode.Smoke ? 1.75f : 2.05f;
+            tailGlow.alpha = defaultTrailMode == MissileVisualTrailMode.Smoke ? 0.52f : 0.76f;
+
+            EnsureEffectObjects();
+            Apply(new MissileVisualEffectContext
+            {
+                Radius = radius,
+                CanBeDestroyed = false,
+                TailColor = defaultTailColor,
+                TailType = TrailModeToTailType(defaultTrailMode),
+                Time = 0f
+            });
+            StopAndClear();
+        }
+
+        private void Reset()
+        {
+            EnsureEffectObjects();
+            Apply(new MissileVisualEffectContext
+            {
+                Radius = ResolveRadiusFromCollider(),
+                TailColor = customTailColor,
+                TailType = "light",
+                Time = 0f
+            });
+            StopAndClear();
+        }
+
+        private void OnValidate()
+        {
+#if UNITY_EDITOR
+            if (Application.isPlaying)
+            {
+                return;
+            }
+
+            if (validateQueued)
+            {
+                return;
+            }
+
+            validateQueued = true;
+            UnityEditor.EditorApplication.delayCall += ApplyValidatedSettings;
+#endif
+        }
+
+#if UNITY_EDITOR
+        private void ApplyValidatedSettings()
+        {
+            validateQueued = false;
+            if (this == null || Application.isPlaying)
+            {
+                return;
+            }
+
+            EnsureEffectObjects();
+            Apply(new MissileVisualEffectContext
+            {
+                Radius = ResolveRadiusFromCollider(),
+                TailColor = customTailColor,
+                TailType = "light",
+                Time = 0f
+            });
+            StopAndClear();
+        }
+#endif
+
+        private void ConfigureLightTrail(bool enabled, Color tailColor, float radius)
+        {
+            if (lightTrailRenderer == null)
+            {
+                return;
+            }
+
+            lightTrailRoot.localPosition = Vector3.down * Mathf.Max(0.02f, radius * lightTrail.offsetRadiusScale);
+            lightTrailRoot.localRotation = Quaternion.identity;
+            lightTrailRoot.localScale = Vector3.one;
+
+            lightTrailRenderer.enabled = enabled;
+            lightTrailRenderer.emitting = enabled;
+            lightTrailRenderer.time = Mathf.Max(0f, lightTrail.duration);
+            lightTrailRenderer.startWidth = Mathf.Max(lightTrail.minStartWidth, radius * lightTrail.startWidthRadiusScale);
+            lightTrailRenderer.endWidth = Mathf.Max(0f, lightTrail.endWidth);
+            lightTrailRenderer.startColor = WithAlpha(tailColor, lightTrail.startAlpha);
+            lightTrailRenderer.endColor = WithAlpha(tailColor, lightTrail.endAlpha);
+            lightTrailRenderer.material = lightTrail.material != null ? lightTrail.material : GetDefaultSpriteMaterial();
+            lightTrailRenderer.sortingOrder = lightTrail.sortingOrder;
+            lightTrailRenderer.numCapVertices = Mathf.Max(0, lightTrail.capVertices);
+            lightTrailRenderer.alignment = LineAlignment.View;
+            lightTrailRenderer.textureMode = LineTextureMode.Stretch;
+
+            if (!enabled)
+            {
+                lightTrailRenderer.Clear();
+            }
+        }
+
+        private void ConfigureSmokeTrail(bool enabled, Color tailColor, float radius, bool canBeDestroyed)
+        {
+            if (smokeTrail == null)
+            {
+                return;
+            }
+
+            smokeTrailRoot.localPosition = Vector3.down * Mathf.Max(0.02f, radius * smoke.offsetRadiusScale);
+            smokeTrailRoot.localRotation = Quaternion.identity;
+            smokeTrailRoot.localScale = Vector3.one;
+
+            var main = smokeTrail.main;
+            main.loop = true;
+            main.playOnAwake = false;
+            main.prewarm = false;
+            main.duration = Mathf.Max(0.05f, smoke.duration);
+            main.startDelay = 0f;
+            main.startLifetime = new ParticleSystem.MinMaxCurve(smoke.lifetimeMin, smoke.lifetimeMax);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(smoke.startSpeedMin, smoke.startSpeedMax);
+            main.startSize = new ParticleSystem.MinMaxCurve(
+                Mathf.Max(0.01f, radius * smoke.sizeRadiusScaleMin),
+                Mathf.Max(0.01f, radius * smoke.sizeRadiusScaleMax));
+            main.startRotation = new ParticleSystem.MinMaxCurve(0f, Mathf.PI * 2f);
+            main.startColor = new ParticleSystem.MinMaxGradient(
+                WithAlpha(Color.Lerp(tailColor, Color.white, smoke.colorToWhite), smoke.startAlpha),
+                WithAlpha(Color.Lerp(tailColor, smoke.shadowColor, 0.45f), smoke.startAlpha * 0.78f));
+            main.simulationSpace = ParticleSystemSimulationSpace.World;
+            main.scalingMode = ParticleSystemScalingMode.Hierarchy;
+            main.maxParticles = Mathf.Max(1, canBeDestroyed ? Mathf.RoundToInt(smoke.maxParticles * 1.3f) : smoke.maxParticles);
+
+            var emission = smokeTrail.emission;
+            emission.enabled = enabled;
+            emission.rateOverTime = enabled
+                ? new ParticleSystem.MinMaxCurve(Mathf.Max(0f, smoke.emissionRate))
+                : new ParticleSystem.MinMaxCurve(0f);
+
+            var shape = smokeTrail.shape;
+            shape.enabled = true;
+            shape.shapeType = ParticleSystemShapeType.Circle;
+            shape.radius = Mathf.Max(0.005f, radius * smoke.shapeRadiusScale);
+            shape.radiusThickness = 1f;
+
+            var velocity = smokeTrail.velocityOverLifetime;
+            velocity.enabled = true;
+            velocity.space = ParticleSystemSimulationSpace.Local;
+            velocity.x = new ParticleSystem.MinMaxCurve(-smoke.sideDrift, smoke.sideDrift);
+            velocity.y = new ParticleSystem.MinMaxCurve(smoke.backwardSpeedMin, smoke.backwardSpeedMax);
+            velocity.z = new ParticleSystem.MinMaxCurve(0f);
+
+            var colorOverLifetime = smokeTrail.colorOverLifetime;
+            colorOverLifetime.enabled = true;
+            var gradient = new Gradient();
+            var startColor = Color.Lerp(tailColor, Color.white, smoke.colorToWhite);
+            gradient.SetKeys(
+                new[]
+                {
+                    new GradientColorKey(startColor, 0f),
+                    new GradientColorKey(Color.Lerp(startColor, smoke.shadowColor, 0.35f), 0.62f),
+                    new GradientColorKey(smoke.shadowColor, 1f)
+                },
+                new[]
+                {
+                    new GradientAlphaKey(smoke.startAlpha, 0f),
+                    new GradientAlphaKey(smoke.midAlpha, 0.48f),
+                    new GradientAlphaKey(0f, 1f)
+                });
+            colorOverLifetime.color = new ParticleSystem.MinMaxGradient(gradient);
+
+            var sizeOverLifetime = smokeTrail.sizeOverLifetime;
+            sizeOverLifetime.enabled = true;
+            sizeOverLifetime.size = new ParticleSystem.MinMaxCurve(1f, new AnimationCurve(
+                new Keyframe(0f, 1f),
+                new Keyframe(0.6f, smoke.midSizeMultiplier),
+                new Keyframe(1f, smoke.endSizeMultiplier)));
+
+            var noise = smokeTrail.noise;
+            noise.enabled = smoke.noiseStrengthRadiusScale > 0f;
+            noise.strength = new ParticleSystem.MinMaxCurve(radius * smoke.noiseStrengthRadiusScale);
+            noise.frequency = smoke.noiseFrequency;
+            noise.scrollSpeed = smoke.noiseScrollSpeed;
+
+            if (smokeTrailRenderer != null)
+            {
+                smokeTrailRenderer.enabled = enabled;
+                smokeTrailRenderer.renderMode = ParticleSystemRenderMode.Billboard;
+                smokeTrailRenderer.material = smoke.material != null ? smoke.material : GetSmokeMaterial();
+                smokeTrailRenderer.sortingOrder = smoke.sortingOrder;
+            }
+
+            if (!enabled)
+            {
+                smokeTrail.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            }
+        }
+
+        private void ConfigureTailGlow(Color tailColor, float radius, float time)
+        {
+            if (tailGlowRenderer == null)
+            {
+                return;
+            }
+
+            tailGlowRenderer.enabled = tailGlow.enabled;
+            if (!tailGlow.enabled)
+            {
+                return;
+            }
+
+            tailGlowRoot.localPosition = Vector3.down * Mathf.Max(0.01f, radius * tailGlow.offsetRadiusScale);
+            tailGlowRoot.localRotation = Quaternion.identity;
+
+            var pulse = tailGlow.pulseAmount > 0f
+                ? 1f + Mathf.Sin(time * tailGlow.pulseSpeed) * tailGlow.pulseAmount
+                : 1f;
+            var spriteWorldDiameter = GlowTextureSize / SpritePixelsPerUnit;
+            var desiredDiameter = Mathf.Max(0.01f, radius * tailGlow.diameterRadiusScale * pulse);
+            tailGlowRoot.localScale = Vector3.one * Mathf.Max(0.01f, desiredDiameter / spriteWorldDiameter);
+
+            tailGlowRenderer.sprite = GetGlowSprite();
+            tailGlowRenderer.color = WithAlpha(tailColor, tailGlow.alpha);
+            tailGlowRenderer.sharedMaterial = tailGlow.material != null ? tailGlow.material : GetDefaultSpriteMaterial();
+            tailGlowRenderer.sortingOrder = tailGlow.sortingOrder;
+        }
+
+        private Color ResolveTailColor(MissileVisualEffectContext context)
+        {
+            if (useConfigTailColor && context.TailColor.a > 0f)
+            {
+                return context.TailColor;
+            }
+
+            return customTailColor.a > 0f ? customTailColor : Color.white;
+        }
+
+        private MissileVisualTrailMode ResolveTrailMode(string configTailType)
+        {
+            if (trailMode != MissileVisualTrailMode.UseConfig)
+            {
+                return trailMode;
+            }
+
+            if (string.IsNullOrEmpty(configTailType))
+            {
+                return MissileVisualTrailMode.Light;
+            }
+
+            switch (configTailType.Trim().ToLowerInvariant())
+            {
+                case "none":
+                case "off":
+                case "disabled":
+                    return MissileVisualTrailMode.None;
+                case "smoke":
+                case "exhaust":
+                    return MissileVisualTrailMode.Smoke;
+                case "fire_smoke":
+                case "smoke_light":
+                case "light_smoke":
+                    return MissileVisualTrailMode.LightAndSmoke;
+                default:
+                    return MissileVisualTrailMode.Light;
+            }
+        }
+
+        private float ResolveRadiusFromCollider()
+        {
+            var circle = GetComponent<CircleCollider2D>();
+            return circle != null ? Mathf.Max(0.04f, circle.radius) : 0.16f;
+        }
+
+        private Transform EnsureChild(Transform cached, string childName)
+        {
+            if (cached != null)
+            {
+                cached.SetParent(transform, false);
+                cached.gameObject.layer = gameObject.layer;
+                return cached;
+            }
+
+            var child = transform.Find(childName);
+            if (child == null)
+            {
+                child = new GameObject(childName).transform;
+                child.SetParent(transform, false);
+            }
+
+            child.localPosition = Vector3.zero;
+            child.localRotation = Quaternion.identity;
+            child.localScale = Vector3.one;
+            child.gameObject.layer = gameObject.layer;
+            return child;
+        }
+
+        private static T EnsureComponent<T>(GameObject target) where T : Component
+        {
+            var component = target.GetComponent<T>();
+            return component != null ? component : target.AddComponent<T>();
+        }
+
+        private static bool UsesLightTrail(MissileVisualTrailMode mode)
+        {
+            return mode == MissileVisualTrailMode.Light || mode == MissileVisualTrailMode.LightAndSmoke;
+        }
+
+        private static bool UsesSmokeTrail(MissileVisualTrailMode mode)
+        {
+            return mode == MissileVisualTrailMode.Smoke || mode == MissileVisualTrailMode.LightAndSmoke;
+        }
+
+        private static string TrailModeToTailType(MissileVisualTrailMode mode)
+        {
+            switch (mode)
+            {
+                case MissileVisualTrailMode.None:
+                    return "none";
+                case MissileVisualTrailMode.Smoke:
+                    return "smoke";
+                case MissileVisualTrailMode.LightAndSmoke:
+                    return "fire_smoke";
+                default:
+                    return "light";
+            }
+        }
+
+        private static Color WithAlpha(Color color, float alpha)
+        {
+            color.a = Mathf.Clamp01(alpha);
+            return color;
+        }
+
+        private static void SetLayerIfValid(Transform target, int layer)
+        {
+            if (target != null)
+            {
+                target.gameObject.layer = layer;
+            }
+        }
+
+        private static Material GetDefaultSpriteMaterial()
+        {
+            if (defaultSpriteMaterial == null)
+            {
+                var shader = Shader.Find("Sprites/Default");
+                if (shader != null)
+                {
+                    defaultSpriteMaterial = new Material(shader);
+                }
+            }
+
+            return defaultSpriteMaterial;
+        }
+
+        private static Material GetSmokeMaterial()
+        {
+            if (smokeMaterial == null)
+            {
+                var shader = Shader.Find("Sprites/Default");
+                if (shader != null)
+                {
+                    smokeMaterial = new Material(shader)
+                    {
+                        mainTexture = GetSmokeTexture()
+                    };
+
+                    if (smokeMaterial.HasProperty("_Color"))
+                    {
+                        smokeMaterial.SetColor("_Color", Color.white);
+                    }
+                }
+            }
+
+            return smokeMaterial;
+        }
+
+        private static Texture2D GetSmokeTexture()
+        {
+            if (smokeTexture == null)
+            {
+                const int size = 96;
+                const float radius = size * 0.5f;
+                smokeTexture = new Texture2D(size, size, TextureFormat.RGBA32, false)
+                {
+                    filterMode = FilterMode.Bilinear,
+                    wrapMode = TextureWrapMode.Clamp
+                };
+
+                for (var y = 0; y < size; y++)
+                {
+                    for (var x = 0; x < size; x++)
+                    {
+                        var dx = x + 0.5f - radius;
+                        var dy = y + 0.5f - radius;
+                        var distance = Mathf.Sqrt(dx * dx + dy * dy) / radius;
+                        var alpha = Mathf.Pow(Mathf.Clamp01(1f - distance), 2.1f);
+                        smokeTexture.SetPixel(x, y, new Color(1f, 1f, 1f, alpha));
+                    }
+                }
+
+                smokeTexture.Apply();
+            }
+
+            return smokeTexture;
+        }
+
+        private static Sprite GetGlowSprite()
+        {
+            if (glowSprite == null)
+            {
+                var texture = new Texture2D(GlowTextureSize, GlowTextureSize, TextureFormat.RGBA32, false)
+                {
+                    filterMode = FilterMode.Bilinear,
+                    wrapMode = TextureWrapMode.Clamp
+                };
+                var radius = GlowTextureSize * 0.5f;
+
+                for (var y = 0; y < GlowTextureSize; y++)
+                {
+                    for (var x = 0; x < GlowTextureSize; x++)
+                    {
+                        var dx = x + 0.5f - radius;
+                        var dy = y + 0.5f - radius;
+                        var distance = Mathf.Sqrt(dx * dx + dy * dy) / radius;
+                        var alpha = Mathf.Pow(Mathf.Clamp01(1f - distance), 1.8f);
+                        texture.SetPixel(x, y, new Color(1f, 1f, 1f, alpha));
+                    }
+                }
+
+                texture.Apply();
+                glowSprite = Sprite.Create(
+                    texture,
+                    new Rect(0, 0, GlowTextureSize, GlowTextureSize),
+                    new Vector2(0.5f, 0.5f),
+                    SpritePixelsPerUnit);
+            }
+
+            return glowSprite;
+        }
+
+        [Serializable]
+        private class LightTrailSettings
+        {
+            [Min(0f)] public float duration = 0.32f;
+            [Min(0f)] public float startWidthRadiusScale = 0.82f;
+            [Min(0f)] public float minStartWidth = 0.04f;
+            [Min(0f)] public float endWidth = 0.01f;
+            [Range(0f, 1f)] public float startAlpha = 0.72f;
+            [Range(0f, 1f)] public float endAlpha = 0f;
+            [Min(0f)] public float offsetRadiusScale = 0.85f;
+            [Min(0f)] public int capVertices = 4;
+            public int sortingOrder = 21;
+            public Material material;
+        }
+
+        [Serializable]
+        private class SmokeTrailSettings
+        {
+            [Min(0.05f)] public float duration = 1f;
+            [Min(0f)] public float lifetimeMin = 0.58f;
+            [Min(0f)] public float lifetimeMax = 0.92f;
+            [Min(0f)] public float startSpeedMin = 0.02f;
+            [Min(0f)] public float startSpeedMax = 0.16f;
+            [Min(0f)] public float sizeRadiusScaleMin = 1.2f;
+            [Min(0f)] public float sizeRadiusScaleMax = 2.35f;
+            [Min(0f)] public float emissionRate = 22f;
+            [Min(0f)] public float shapeRadiusScale = 0.45f;
+            [Min(0f)] public float offsetRadiusScale = 0.8f;
+            [Min(0f)] public float sideDrift = 0.08f;
+            public float backwardSpeedMin = -0.28f;
+            public float backwardSpeedMax = -0.08f;
+            [Range(0f, 1f)] public float startAlpha = 0.68f;
+            [Range(0f, 1f)] public float midAlpha = 0.36f;
+            [Range(0f, 1f)] public float colorToWhite = 0.45f;
+            [Range(0f, 1f)] public float midSizeMultiplier = 0.62f;
+            [Range(0f, 1f)] public float endSizeMultiplier = 0.08f;
+            [Min(0f)] public float noiseStrengthRadiusScale = 0.28f;
+            [Min(0f)] public float noiseFrequency = 1.6f;
+            public float noiseScrollSpeed = 0.25f;
+            [Min(1f)] public int maxParticles = 72;
+            public int sortingOrder = 20;
+            public Color shadowColor = new Color(0.72f, 0.76f, 0.8f, 1f);
+            public Material material;
+        }
+
+        [Serializable]
+        private class TailGlowSettings
+        {
+            public bool enabled = true;
+            [Min(0f)] public float offsetRadiusScale = 0.88f;
+            [Min(0f)] public float diameterRadiusScale = 2.05f;
+            [Range(0f, 1f)] public float alpha = 0.72f;
+            [Range(0f, 1f)] public float pulseAmount = 0.18f;
+            [Min(0f)] public float pulseSpeed = 8f;
+            public int sortingOrder = 21;
+            public Material material;
+        }
+    }
+}

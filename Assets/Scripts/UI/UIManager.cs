@@ -27,9 +27,12 @@ namespace LeiTing.UI
         private Button[] buttons;
         private RectTransform canvasRoot;
         private Text hudText;
+        private GameObject settlementRoot;
         private Text settlementText;
         private GameObject restartChallengeRoot;
         private Button restartChallengeButton;
+        private GameObject nextLevelRoot;
+        private Button nextLevelButton;
         private GameObject bossHudRoot;
         private Image bossHealthFill;
         private Text bossNameText;
@@ -102,6 +105,7 @@ namespace LeiTing.UI
             CreateBossNotice(canvasObject.transform);
             CreateSettlementText(canvasObject.transform);
             CreateRestartChallengeButton(canvasObject.transform);
+            CreateNextLevelButton(canvasObject.transform);
         }
 
         private Button CreateWeaponButton(Transform parent, WeaponButton weaponButton)
@@ -153,7 +157,7 @@ namespace LeiTing.UI
             rect.anchorMax = new Vector2(0f, 1f);
             rect.pivot = new Vector2(0f, 1f);
             rect.anchoredPosition = new Vector2(36f, -148f);
-            rect.sizeDelta = new Vector2(520f, 96f);
+            rect.sizeDelta = new Vector2(560f, 132f);
 
             hudText = hudObject.AddComponent<Text>();
             hudText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
@@ -166,24 +170,38 @@ namespace LeiTing.UI
 
         private void CreateSettlementText(Transform parent)
         {
+            settlementRoot = new GameObject("SettlementPanel", typeof(RectTransform));
+            settlementRoot.transform.SetParent(parent, false);
+
+            var panelRect = settlementRoot.GetComponent<RectTransform>();
+            panelRect.anchorMin = new Vector2(0.5f, 0.5f);
+            panelRect.anchorMax = new Vector2(0.5f, 0.5f);
+            panelRect.pivot = new Vector2(0.5f, 0.5f);
+            panelRect.anchoredPosition = Vector2.zero;
+            panelRect.sizeDelta = new Vector2(860f, 460f);
+
+            var panelImage = settlementRoot.AddComponent<Image>();
+            panelImage.color = new Color(0.03f, 0.05f, 0.09f, 0.9f);
+
             var settlementObject = new GameObject("SettlementText", typeof(RectTransform));
-            settlementObject.transform.SetParent(parent, false);
+            settlementObject.transform.SetParent(settlementRoot.transform, false);
 
             var rect = settlementObject.GetComponent<RectTransform>();
-            rect.anchorMin = new Vector2(0.5f, 0.5f);
-            rect.anchorMax = new Vector2(0.5f, 0.5f);
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
             rect.pivot = new Vector2(0.5f, 0.5f);
-            rect.anchoredPosition = Vector2.zero;
-            rect.sizeDelta = new Vector2(760f, 260f);
+            rect.offsetMin = new Vector2(48f, 120f);
+            rect.offsetMax = new Vector2(-48f, -48f);
 
             settlementText = settlementObject.AddComponent<Text>();
             settlementText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
-            settlementText.fontSize = 64;
+            settlementText.fontSize = 50;
             settlementText.fontStyle = FontStyle.Bold;
             settlementText.alignment = TextAnchor.MiddleCenter;
             settlementText.color = new Color(1f, 0.95f, 0.75f, 1f);
             settlementText.raycastTarget = false;
             settlementText.enabled = false;
+            settlementRoot.SetActive(false);
         }
 
         private void CreateRestartChallengeButton(Transform parent)
@@ -195,7 +213,7 @@ namespace LeiTing.UI
             rect.anchorMin = new Vector2(0.5f, 0.5f);
             rect.anchorMax = new Vector2(0.5f, 0.5f);
             rect.pivot = new Vector2(0.5f, 0.5f);
-            rect.anchoredPosition = new Vector2(0f, -178f);
+            rect.anchoredPosition = new Vector2(0f, -152f);
             rect.sizeDelta = new Vector2(340f, 82f);
 
             var image = restartChallengeRoot.AddComponent<Image>();
@@ -226,6 +244,48 @@ namespace LeiTing.UI
             text.raycastTarget = false;
 
             restartChallengeRoot.SetActive(false);
+        }
+
+        private void CreateNextLevelButton(Transform parent)
+        {
+            nextLevelRoot = new GameObject("NextLevelButton", typeof(RectTransform));
+            nextLevelRoot.transform.SetParent(parent, false);
+
+            var rect = nextLevelRoot.GetComponent<RectTransform>();
+            rect.anchorMin = new Vector2(0.5f, 0.5f);
+            rect.anchorMax = new Vector2(0.5f, 0.5f);
+            rect.pivot = new Vector2(0.5f, 0.5f);
+            rect.anchoredPosition = new Vector2(190f, -152f);
+            rect.sizeDelta = new Vector2(340f, 82f);
+
+            var image = nextLevelRoot.AddComponent<Image>();
+            image.color = new Color(1f, 0.58f, 0.12f, 0.96f);
+
+            nextLevelButton = nextLevelRoot.AddComponent<Button>();
+            nextLevelButton.targetGraphic = image;
+            nextLevelButton.transition = Selectable.Transition.ColorTint;
+            nextLevelButton.colors = CreateButtonColors();
+            nextLevelButton.onClick.AddListener(LoadNextLevel);
+
+            var labelObject = new GameObject("Label", typeof(RectTransform));
+            labelObject.transform.SetParent(nextLevelRoot.transform, false);
+
+            var labelRect = labelObject.GetComponent<RectTransform>();
+            labelRect.anchorMin = Vector2.zero;
+            labelRect.anchorMax = Vector2.one;
+            labelRect.offsetMin = Vector2.zero;
+            labelRect.offsetMax = Vector2.zero;
+
+            var text = labelObject.AddComponent<Text>();
+            text.text = "下一关";
+            text.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            text.fontSize = 34;
+            text.fontStyle = FontStyle.Bold;
+            text.alignment = TextAnchor.MiddleCenter;
+            text.color = Color.white;
+            text.raycastTarget = false;
+
+            nextLevelRoot.SetActive(false);
         }
 
         private void CreateBossHud(Transform parent)
@@ -486,7 +546,10 @@ namespace LeiTing.UI
             var stars = player != null ? player.CurrentStars : 0;
             var coins = player != null ? player.CurrentCoins : 0;
             var score = GameManager.Instance != null ? GameManager.Instance.Score : 0;
-            hudText.text = $"HP {hp}  SH {shield}  STAR {stars}  COIN {coins}\nSCORE {score}";
+            var levelText = GameManager.Instance != null
+                ? $"LEVEL {GameManager.Instance.CurrentLevelNumber}/{GameManager.Instance.MaxLevelCount}"
+                : "LEVEL -";
+            hudText.text = $"{levelText}\nHP {hp}  SH {shield}  STAR {stars}  COIN {coins}\nSCORE {score}";
         }
 
         private void UpdateSettlement()
@@ -498,28 +561,72 @@ namespace LeiTing.UI
 
             var state = GameManager.Instance.CurrentState;
             var finished = state == GameState.Defeat || state == GameState.Victory;
+            var isVictory = state == GameState.Victory;
+            var showNextLevel = isVictory && GameManager.Instance.HasNextLevel;
+            if (settlementRoot != null && settlementRoot.activeSelf != finished)
+            {
+                settlementRoot.SetActive(finished);
+            }
+
             settlementText.enabled = finished;
-            SetRestartChallengeVisible(finished);
+            SetSettlementButtonsVisible(finished, showNextLevel);
 
             if (!finished)
             {
                 return;
             }
 
-            var title = state == GameState.Victory ? "CLEAR" : "GAME OVER";
-            settlementText.text = $"{title}\nSCORE {GameManager.Instance.Score}";
+            var title = isVictory
+                ? GameManager.Instance.HasNextLevel ? "CLEAR" : "ALL CLEAR"
+                : "GAME OVER";
+            var level = $"{GameManager.Instance.CurrentLevelDisplayName}  {GameManager.Instance.CurrentLevelNumber}/{GameManager.Instance.MaxLevelCount}";
+            var boss = isVictory ? $"\n击破 {GameManager.Instance.CurrentLevelBossDisplayName}" : string.Empty;
+            settlementText.text = $"{level}\n{title}{boss}\nSCORE {GameManager.Instance.Score}";
         }
 
-        private void SetRestartChallengeVisible(bool visible)
+        private void SetSettlementButtonsVisible(bool showRestart, bool showNextLevel)
         {
-            if (restartChallengeRoot != null && restartChallengeRoot.activeSelf != visible)
+            if (restartChallengeRoot != null && restartChallengeRoot.activeSelf != showRestart)
             {
-                restartChallengeRoot.SetActive(visible);
+                restartChallengeRoot.SetActive(showRestart);
             }
 
             if (restartChallengeButton != null)
             {
-                restartChallengeButton.interactable = visible;
+                restartChallengeButton.interactable = showRestart;
+            }
+
+            if (nextLevelRoot != null && nextLevelRoot.activeSelf != showNextLevel)
+            {
+                nextLevelRoot.SetActive(showNextLevel);
+            }
+
+            if (nextLevelButton != null)
+            {
+                nextLevelButton.interactable = showNextLevel;
+            }
+
+            UpdateSettlementButtonLayout(showNextLevel);
+        }
+
+        private void UpdateSettlementButtonLayout(bool showNextLevel)
+        {
+            if (restartChallengeRoot != null)
+            {
+                var rect = restartChallengeRoot.GetComponent<RectTransform>();
+                if (rect != null)
+                {
+                    rect.anchoredPosition = showNextLevel ? new Vector2(-190f, -152f) : new Vector2(0f, -152f);
+                }
+            }
+
+            if (nextLevelRoot != null)
+            {
+                var rect = nextLevelRoot.GetComponent<RectTransform>();
+                if (rect != null)
+                {
+                    rect.anchoredPosition = new Vector2(190f, -152f);
+                }
             }
         }
 
@@ -528,6 +635,14 @@ namespace LeiTing.UI
             if (GameManager.Instance != null)
             {
                 GameManager.Instance.RestartCurrentScene();
+            }
+        }
+
+        private static void LoadNextLevel()
+        {
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.LoadNextLevel();
             }
         }
 

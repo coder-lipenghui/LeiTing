@@ -19,22 +19,26 @@ namespace LeiTing.EditorTools
                 "missile_01_straight",
                 "Assets/Art/Sprites/Bullets/missile_01.png",
                 0.16f,
-                new Color(1f, 0.76f, 0.23f, 1f));
+                new Color(1f, 0.76f, 0.23f, 1f),
+                MissileVisualTrailMode.LightAndSmoke);
             CreateMissilePrefab(
                 "missile_03_weak_homing",
                 "Assets/Art/Sprites/Bullets/missile_03.png",
                 0.17f,
-                new Color(1f, 0.25f, 0.45f, 1f));
+                new Color(1f, 0.25f, 0.45f, 1f),
+                MissileVisualTrailMode.Light);
             CreateMissilePrefab(
                 "missile_09_lock_dash",
                 "Assets/Art/Sprites/Bullets/missile_09.png",
                 0.19f,
-                new Color(0.82f, 0.92f, 1f, 1f));
+                new Color(0.82f, 0.92f, 1f, 1f),
+                MissileVisualTrailMode.Light);
             CreateMissilePrefab(
                 "missile_11_explode",
                 "Assets/Art/Sprites/Bullets/missile_11.png",
                 0.18f,
-                new Color(1f, 0.22f, 0.12f, 1f));
+                new Color(1f, 0.22f, 0.12f, 1f),
+                MissileVisualTrailMode.Smoke);
 
             for (var index = 1; index <= 6; index++)
             {
@@ -46,7 +50,38 @@ namespace LeiTing.EditorTools
             Debug.Log("Missile and helicopter prefabs generated.");
         }
 
-        private static void CreateMissilePrefab(string prefabName, string spritePath, float radius, Color trailColor)
+        [MenuItem("LeiTing/Setup/Upgrade Missile Visual Prefabs")]
+        public static void UpgradeMissileVisualPrefabs()
+        {
+            EnsureFolder("Assets/Prefabs", "Missiles");
+
+            var prefabGuids = AssetDatabase.FindAssets("t:Prefab", new[] { MissilePrefabRoot });
+            var upgradedCount = 0;
+
+            foreach (var guid in prefabGuids)
+            {
+                var path = AssetDatabase.GUIDToAssetPath(guid);
+                var prefabRoot = PrefabUtility.LoadPrefabContents(path);
+                try
+                {
+                    var radius = ResolveMissileRadius(prefabRoot);
+                    var preset = ResolveMissileVisualPreset(prefabRoot.name);
+                    ConfigureMissileVisualEffects(prefabRoot, radius, preset.Color, preset.Mode);
+                    PrefabUtility.SaveAsPrefabAsset(prefabRoot, path);
+                    upgradedCount++;
+                }
+                finally
+                {
+                    PrefabUtility.UnloadPrefabContents(prefabRoot);
+                }
+            }
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            Debug.Log($"Upgraded {upgradedCount} missile visual prefab(s).");
+        }
+
+        private static void CreateMissilePrefab(string prefabName, string spritePath, float radius, Color trailColor, MissileVisualTrailMode trailMode)
         {
             var root = new GameObject(prefabName);
             SetLayerRecursively(root, "EnemyMissile");
@@ -62,14 +97,7 @@ namespace LeiTing.EditorTools
             collider.radius = radius;
 
             root.AddComponent<MissileController>();
-
-            var trail = root.AddComponent<TrailRenderer>();
-            trail.time = 0.24f;
-            trail.startWidth = radius * 0.78f;
-            trail.endWidth = 0.01f;
-            trail.startColor = new Color(trailColor.r, trailColor.g, trailColor.b, 0.62f);
-            trail.endColor = new Color(trailColor.r, trailColor.g, trailColor.b, 0f);
-            trail.sortingOrder = 21;
+            ConfigureMissileVisualEffects(root, radius, trailColor, trailMode);
 
             var visual = CreateChild(root.transform, "Visual", Vector3.zero);
             var renderer = visual.gameObject.AddComponent<SpriteRenderer>();
@@ -78,6 +106,18 @@ namespace LeiTing.EditorTools
 
             PrefabUtility.SaveAsPrefabAsset(root, $"{MissilePrefabRoot}/{prefabName}.prefab");
             UnityEngine.Object.DestroyImmediate(root);
+        }
+
+        private static void ConfigureMissileVisualEffects(GameObject root, float radius, Color trailColor, MissileVisualTrailMode trailMode)
+        {
+            var visualEffects = root.GetComponent<MissileVisualEffects>();
+            if (visualEffects == null)
+            {
+                visualEffects = root.AddComponent<MissileVisualEffects>();
+            }
+
+            visualEffects.ResetToDefaults(trailMode, trailColor, radius);
+            SetLayerRecursively(root, root.layer);
         }
 
         private static void CreateHelicopterBossPrefab(int index)
@@ -152,6 +192,27 @@ namespace LeiTing.EditorTools
             }
         }
 
+        private static float ResolveMissileRadius(GameObject root)
+        {
+            var collider = root.GetComponent<CircleCollider2D>();
+            return collider != null ? Mathf.Max(0.04f, collider.radius) : 0.16f;
+        }
+
+        private static MissileVisualPreset ResolveMissileVisualPreset(string prefabName)
+        {
+            switch (prefabName)
+            {
+                case "missile_03_weak_homing":
+                    return new MissileVisualPreset(MissileVisualTrailMode.Light, new Color(1f, 0.25f, 0.45f, 1f));
+                case "missile_09_lock_dash":
+                    return new MissileVisualPreset(MissileVisualTrailMode.Light, new Color(0.82f, 0.92f, 1f, 1f));
+                case "missile_11_explode":
+                    return new MissileVisualPreset(MissileVisualTrailMode.Smoke, new Color(1f, 0.22f, 0.12f, 1f));
+                default:
+                    return new MissileVisualPreset(MissileVisualTrailMode.LightAndSmoke, new Color(1f, 0.76f, 0.23f, 1f));
+            }
+        }
+
         private static void EnsureFolder(string parent, string folderName)
         {
             var path = $"{parent}/{folderName}";
@@ -179,6 +240,18 @@ namespace LeiTing.EditorTools
             {
                 SetLayerRecursively(child.gameObject, layer);
             }
+        }
+
+        private readonly struct MissileVisualPreset
+        {
+            public MissileVisualPreset(MissileVisualTrailMode mode, Color color)
+            {
+                Mode = mode;
+                Color = color;
+            }
+
+            public MissileVisualTrailMode Mode { get; }
+            public Color Color { get; }
         }
     }
 }

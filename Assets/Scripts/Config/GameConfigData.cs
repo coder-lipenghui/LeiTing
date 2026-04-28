@@ -13,6 +13,7 @@ namespace LeiTing.Config
         public List<BulletConfig> bullets = new List<BulletConfig>();
         public List<MissileConfig> missiles = new List<MissileConfig>();
         public List<PickupItemConfig> pickupItems = new List<PickupItemConfig>();
+        public List<LevelConfig> levels = new List<LevelConfig>();
         public List<BulletPatternConfig> bulletPatterns = new List<BulletPatternConfig>();
         public List<MissilePatternConfig> missilePatterns = new List<MissilePatternConfig>();
         public List<WaveConfig> waves = new List<WaveConfig>();
@@ -48,6 +49,14 @@ namespace LeiTing.Config
         public string id;
         public string spritePath;
         public float scrollSpeed;
+    }
+
+    [Serializable]
+    public class LevelConfig
+    {
+        public string id;
+        public string displayName;
+        public string bossId;
     }
 
     [Serializable]
@@ -177,6 +186,7 @@ namespace LeiTing.Config
         public Vector2 startPosition;
         public string attackPatternId;
         public string movementPath;
+        public bool useCurrentLevelBoss;
         public float pathAmplitude;
         public float pathSpeed;
         public float holdDuration;

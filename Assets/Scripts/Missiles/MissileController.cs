@@ -34,6 +34,7 @@ namespace LeiTing.Missiles
         private Rigidbody2D body;
         private CircleCollider2D hitbox;
         private Transform visualRoot;
+        private MissileVisualEffects visualEffects;
         private Transform lightTrailRoot;
         private Transform smokeTrailRoot;
         private SpriteRenderer bodyRenderer;
@@ -114,6 +115,11 @@ namespace LeiTing.Missiles
             isActiveMissile = false;
             state = MissileState.Dead;
             HideWarnings();
+
+            if (visualEffects != null)
+            {
+                visualEffects.StopAndClear();
+            }
 
             if (trailRenderer != null)
             {
@@ -235,43 +241,18 @@ namespace LeiTing.Missiles
                 rootTrailRenderer.Clear();
             }
 
-            if (lightTrailRoot == null)
+            visualEffects = visualEffects != null ? visualEffects : GetComponent<MissileVisualEffects>();
+            if (visualEffects == null)
             {
-                var lightTrailTransform = transform.Find("LightTrail");
-                if (lightTrailTransform == null)
-                {
-                    lightTrailTransform = new GameObject("LightTrail").transform;
-                    lightTrailTransform.SetParent(transform, false);
-                }
-
-                lightTrailRoot = lightTrailTransform;
+                visualEffects = gameObject.AddComponent<MissileVisualEffects>();
             }
 
-            trailRenderer = trailRenderer != null ? trailRenderer : lightTrailRoot.GetComponent<TrailRenderer>();
-            if (trailRenderer == null)
-            {
-                trailRenderer = lightTrailRoot.gameObject.AddComponent<TrailRenderer>();
-            }
-
-            if (smokeTrailRoot == null)
-            {
-                var smokeTrailTransform = transform.Find("SmokeTrail");
-                if (smokeTrailTransform == null)
-                {
-                    smokeTrailTransform = new GameObject("SmokeTrail").transform;
-                    smokeTrailTransform.SetParent(transform, false);
-                }
-
-                smokeTrailRoot = smokeTrailTransform;
-            }
-
-            smokeTrail = smokeTrail != null ? smokeTrail : smokeTrailRoot.GetComponent<ParticleSystem>();
-            if (smokeTrail == null)
-            {
-                smokeTrail = smokeTrailRoot.gameObject.AddComponent<ParticleSystem>();
-            }
-
-            smokeTrailRenderer = smokeTrailRenderer != null ? smokeTrailRenderer : smokeTrailRoot.GetComponent<ParticleSystemRenderer>();
+            visualEffects.EnsureEffectObjects();
+            lightTrailRoot = visualEffects.LightTrailRoot;
+            trailRenderer = visualEffects.LightTrail;
+            smokeTrailRoot = visualEffects.SmokeTrailRoot;
+            smokeTrail = visualEffects.SmokeTrail;
+            smokeTrailRenderer = visualEffects.SmokeTrailRenderer;
 
             EnsureWarningLine();
             EnsureWarningCircle();
@@ -356,6 +337,11 @@ namespace LeiTing.Missiles
             gameObject.layer = layer;
             visualRoot.gameObject.layer = layer;
 
+            if (visualEffects != null)
+            {
+                visualEffects.SetLayer(layer);
+            }
+
             if (lightTrailRoot != null)
             {
                 lightTrailRoot.gameObject.layer = layer;
@@ -402,6 +388,25 @@ namespace LeiTing.Missiles
 
         private void ConfigureTrail()
         {
+            if (visualEffects != null)
+            {
+                visualEffects.Apply(new MissileVisualEffectContext
+                {
+                    Radius = hitbox != null ? hitbox.radius : 0.16f,
+                    CanBeDestroyed = CanBeDestroyed,
+                    TailColor = ResolveTrailColor(),
+                    TailType = config != null ? config.tailType : string.Empty,
+                    Time = Time.time
+                });
+
+                lightTrailRoot = visualEffects.LightTrailRoot;
+                trailRenderer = visualEffects.LightTrail;
+                smokeTrailRoot = visualEffects.SmokeTrailRoot;
+                smokeTrail = visualEffects.SmokeTrail;
+                smokeTrailRenderer = visualEffects.SmokeTrailRenderer;
+                return;
+            }
+
             var trailStyle = ResolveTrailStyle();
             var tailColor = ResolveTrailColor();
 
@@ -516,6 +521,12 @@ namespace LeiTing.Missiles
 
         private void PlayTrail()
         {
+            if (visualEffects != null)
+            {
+                visualEffects.Play();
+                return;
+            }
+
             if (trailRenderer != null)
             {
                 trailRenderer.Clear();
@@ -988,6 +999,11 @@ namespace LeiTing.Missiles
             }
 
             bodyRenderer.color = color;
+
+            if (visualEffects != null)
+            {
+                visualEffects.UpdateDynamic(Time.time);
+            }
         }
 
         private bool ShouldShowExplosionWarning()
