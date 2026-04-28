@@ -1,0 +1,506 @@
+[
+  {
+    "index": 1,
+    "id": "enemy_drop_enemy_a_01",
+    "enemyId": "enemy_a",
+    "sort": 1,
+    "itemId": "star",
+    "count": 1,
+    "dropOnce": false
+  },
+  {
+    "index": 2,
+    "id": "enemy_drop_enemy_a_02",
+    "enemyId": "enemy_a",
+    "sort": 2,
+    "itemId": "coin",
+    "count": 1,
+    "dropOnce": false
+  },
+  {
+    "index": 3,
+    "id": "enemy_drop_enemy_a_03",
+    "enemyId": "enemy_a",
+    "sort": 3,
+    "itemId": "magnet",
+    "count": 1,
+    "dropOnce": true
+  },
+  {
+    "index": 4,
+    "id": "enemy_drop_enemy_b_01",
+    "enemyId": "enemy_b",
+    "sort": 1,
+    "itemId": "star",
+    "count": 2,
+    "dropOnce": false
+  },
+  {
+    "index": 5,
+    "id": "enemy_drop_enemy_b_02",
+    "enemyId": "enemy_b",
+    "sort": 2,
+    "itemId": "coin",
+    "count": 2,
+    "dropOnce": false
+  },
+  {
+    "index": 6,
+    "id": "enemy_drop_enemy_b_03",
+    "enemyId": "enemy_b",
+    "sort": 3,
+    "itemId": "boom",
+    "count": 1,
+    "dropOnce": true
+  },
+  {
+    "index": 7,
+    "id": "enemy_drop_enemy_c_01",
+    "enemyId": "enemy_c",
+    "sort": 1,
+    "itemId": "star",
+    "count": 1,
+    "dropOnce": false
+  },
+  {
+    "index": 8,
+    "id": "enemy_drop_enemy_c_02",
+    "enemyId": "enemy_c",
+    "sort": 2,
+    "itemId": "coin",
+    "count": 2,
+    "dropOnce": false
+  },
+  {
+    "index": 9,
+    "id": "enemy_drop_enemy_c_03",
+    "enemyId": "enemy_c",
+    "sort": 3,
+    "itemId": "shield",
+    "count": 1,
+    "dropOnce": true
+  },
+  {
+    "index": 10,
+    "id": "enemy_drop_enemy_d_01",
+    "enemyId": "enemy_d",
+    "sort": 1,
+    "itemId": "star",
+    "count": 1,
+    "dropOnce": false
+  },
+  {
+    "index": 11,
+    "id": "enemy_drop_enemy_d_02",
+    "enemyId": "enemy_d",
+    "sort": 2,
+    "itemId": "coin",
+    "count": 1,
+    "dropOnce": false
+  },
+  {
+    "index": 12,
+    "id": "enemy_drop_enemy_d_03",
+    "enemyId": "enemy_d",
+    "sort": 3,
+    "itemId": "hp",
+    "count": 1,
+    "dropOnce": true
+  },
+  {
+    "index": 13,
+    "id": "enemy_drop_enemy_e_01",
+    "enemyId": "enemy_e",
+    "sort": 1,
+    "itemId": "star",
+    "count": 3,
+    "dropOnce": false
+  },
+  {
+    "index": 14,
+    "id": "enemy_drop_enemy_e_02",
+    "enemyId": "enemy_e",
+    "sort": 2,
+    "itemId": "coin",
+    "count": 3,
+    "dropOnce": false
+  },
+  {
+    "index": 15,
+    "id": "enemy_drop_boss_01_01",
+    "enemyId": "boss_01",
+    "sort": 1,
+    "itemId": "star",
+    "count": 20,
+    "dropOnce": false
+  },
+  {
+    "index": 16,
+    "id": "enemy_drop_boss_01_02",
+    "enemyId": "boss_01",
+    "sort": 2,
+    "itemId": "coin",
+    "count": 20,
+    "dropOnce": false
+  },
+  {
+    "index": 17,
+    "id": "enemy_drop_boss_02_01",
+    "enemyId": "boss_02",
+    "sort": 1,
+    "itemId": "star",
+    "count": 20,
+    "dropOnce": false
+  },
+  {
+    "index": 18,
+    "id": "enemy_drop_boss_02_02",
+    "enemyId": "boss_02",
+    "sort": 2,
+    "itemId": "coin",
+    "count": 20,
+    "dropOnce": false
+  },
+  {
+    "index": 19,
+    "id": "enemy_drop_boss_03_01",
+    "enemyId": "boss_03",
+    "sort": 1,
+    "itemId": "star",
+    "count": 20,
+    "dropOnce": false
+  },
+  {
+    "index": 20,
+    "id": "enemy_drop_boss_03_02",
+    "enemyId": "boss_03",
+    "sort": 2,
+    "itemId": "coin",
+    "count": 20,
+    "dropOnce": false
+  },
+  {
+    "index": 21,
+    "id": "enemy_drop_boss_04_01",
+    "enemyId": "boss_04",
+    "sort": 1,
+    "itemId": "star",
+    "count": 20,
+    "dropOnce": false
+  },
+  {
+    "index": 22,
+    "id": "enemy_drop_boss_04_02",
+    "enemyId": "boss_04",
+    "sort": 2,
+    "itemId": "coin",
+    "count": 20,
+    "dropOnce": false
+  },
+  {
+    "index": 23,
+    "id": "enemy_drop_boss_05_01",
+    "enemyId": "boss_05",
+    "sort": 1,
+    "itemId": "star",
+    "count": 20,
+    "dropOnce": false
+  },
+  {
+    "index": 24,
+    "id": "enemy_drop_boss_05_02",
+    "enemyId": "boss_05",
+    "sort": 2,
+    "itemId": "coin",
+    "count": 20,
+    "dropOnce": false
+  },
+  {
+    "index": 25,
+    "id": "enemy_drop_boss_06_01",
+    "enemyId": "boss_06",
+    "sort": 1,
+    "itemId": "star",
+    "count": 20,
+    "dropOnce": false
+  },
+  {
+    "index": 26,
+    "id": "enemy_drop_boss_06_02",
+    "enemyId": "boss_06",
+    "sort": 2,
+    "itemId": "coin",
+    "count": 20,
+    "dropOnce": false
+  },
+  {
+    "index": 27,
+    "id": "enemy_drop_boss_07_01",
+    "enemyId": "boss_07",
+    "sort": 1,
+    "itemId": "star",
+    "count": 20,
+    "dropOnce": false
+  },
+  {
+    "index": 28,
+    "id": "enemy_drop_boss_07_02",
+    "enemyId": "boss_07",
+    "sort": 2,
+    "itemId": "coin",
+    "count": 20,
+    "dropOnce": false
+  },
+  {
+    "index": 29,
+    "id": "enemy_drop_boss_08_01",
+    "enemyId": "boss_08",
+    "sort": 1,
+    "itemId": "star",
+    "count": 20,
+    "dropOnce": false
+  },
+  {
+    "index": 30,
+    "id": "enemy_drop_boss_08_02",
+    "enemyId": "boss_08",
+    "sort": 2,
+    "itemId": "coin",
+    "count": 20,
+    "dropOnce": false
+  },
+  {
+    "index": 31,
+    "id": "enemy_drop_boss_09_01",
+    "enemyId": "boss_09",
+    "sort": 1,
+    "itemId": "star",
+    "count": 20,
+    "dropOnce": false
+  },
+  {
+    "index": 32,
+    "id": "enemy_drop_boss_09_02",
+    "enemyId": "boss_09",
+    "sort": 2,
+    "itemId": "coin",
+    "count": 20,
+    "dropOnce": false
+  },
+  {
+    "index": 33,
+    "id": "enemy_drop_boss_10_01",
+    "enemyId": "boss_10",
+    "sort": 1,
+    "itemId": "star",
+    "count": 20,
+    "dropOnce": false
+  },
+  {
+    "index": 34,
+    "id": "enemy_drop_boss_10_02",
+    "enemyId": "boss_10",
+    "sort": 2,
+    "itemId": "coin",
+    "count": 20,
+    "dropOnce": false
+  },
+  {
+    "index": 35,
+    "id": "enemy_drop_boss_11_01",
+    "enemyId": "boss_11",
+    "sort": 1,
+    "itemId": "star",
+    "count": 20,
+    "dropOnce": false
+  },
+  {
+    "index": 36,
+    "id": "enemy_drop_boss_11_02",
+    "enemyId": "boss_11",
+    "sort": 2,
+    "itemId": "coin",
+    "count": 20,
+    "dropOnce": false
+  },
+  {
+    "index": 37,
+    "id": "enemy_drop_boss_12_01",
+    "enemyId": "boss_12",
+    "sort": 1,
+    "itemId": "star",
+    "count": 20,
+    "dropOnce": false
+  },
+  {
+    "index": 38,
+    "id": "enemy_drop_boss_12_02",
+    "enemyId": "boss_12",
+    "sort": 2,
+    "itemId": "coin",
+    "count": 20,
+    "dropOnce": false
+  },
+  {
+    "index": 39,
+    "id": "enemy_drop_boss_helicopter_01_01",
+    "enemyId": "boss_helicopter_01",
+    "sort": 1,
+    "itemId": "star",
+    "count": 10,
+    "dropOnce": false
+  },
+  {
+    "index": 40,
+    "id": "enemy_drop_boss_helicopter_01_02",
+    "enemyId": "boss_helicopter_01",
+    "sort": 2,
+    "itemId": "coin",
+    "count": 10,
+    "dropOnce": false
+  },
+  {
+    "index": 41,
+    "id": "enemy_drop_boss_helicopter_01_03",
+    "enemyId": "boss_helicopter_01",
+    "sort": 3,
+    "itemId": "shield",
+    "count": 1,
+    "dropOnce": true
+  },
+  {
+    "index": 42,
+    "id": "enemy_drop_boss_helicopter_02_01",
+    "enemyId": "boss_helicopter_02",
+    "sort": 1,
+    "itemId": "star",
+    "count": 12,
+    "dropOnce": false
+  },
+  {
+    "index": 43,
+    "id": "enemy_drop_boss_helicopter_02_02",
+    "enemyId": "boss_helicopter_02",
+    "sort": 2,
+    "itemId": "coin",
+    "count": 12,
+    "dropOnce": false
+  },
+  {
+    "index": 44,
+    "id": "enemy_drop_boss_helicopter_02_03",
+    "enemyId": "boss_helicopter_02",
+    "sort": 3,
+    "itemId": "shield",
+    "count": 1,
+    "dropOnce": true
+  },
+  {
+    "index": 45,
+    "id": "enemy_drop_boss_helicopter_03_01",
+    "enemyId": "boss_helicopter_03",
+    "sort": 1,
+    "itemId": "star",
+    "count": 14,
+    "dropOnce": false
+  },
+  {
+    "index": 46,
+    "id": "enemy_drop_boss_helicopter_03_02",
+    "enemyId": "boss_helicopter_03",
+    "sort": 2,
+    "itemId": "coin",
+    "count": 14,
+    "dropOnce": false
+  },
+  {
+    "index": 47,
+    "id": "enemy_drop_boss_helicopter_03_03",
+    "enemyId": "boss_helicopter_03",
+    "sort": 3,
+    "itemId": "shield",
+    "count": 1,
+    "dropOnce": true
+  },
+  {
+    "index": 48,
+    "id": "enemy_drop_boss_helicopter_04_01",
+    "enemyId": "boss_helicopter_04",
+    "sort": 1,
+    "itemId": "star",
+    "count": 16,
+    "dropOnce": false
+  },
+  {
+    "index": 49,
+    "id": "enemy_drop_boss_helicopter_04_02",
+    "enemyId": "boss_helicopter_04",
+    "sort": 2,
+    "itemId": "coin",
+    "count": 16,
+    "dropOnce": false
+  },
+  {
+    "index": 50,
+    "id": "enemy_drop_boss_helicopter_04_03",
+    "enemyId": "boss_helicopter_04",
+    "sort": 3,
+    "itemId": "boom",
+    "count": 1,
+    "dropOnce": true
+  },
+  {
+    "index": 51,
+    "id": "enemy_drop_boss_helicopter_05_01",
+    "enemyId": "boss_helicopter_05",
+    "sort": 1,
+    "itemId": "star",
+    "count": 18,
+    "dropOnce": false
+  },
+  {
+    "index": 52,
+    "id": "enemy_drop_boss_helicopter_05_02",
+    "enemyId": "boss_helicopter_05",
+    "sort": 2,
+    "itemId": "coin",
+    "count": 18,
+    "dropOnce": false
+  },
+  {
+    "index": 53,
+    "id": "enemy_drop_boss_helicopter_05_03",
+    "enemyId": "boss_helicopter_05",
+    "sort": 3,
+    "itemId": "boom",
+    "count": 1,
+    "dropOnce": true
+  },
+  {
+    "index": 54,
+    "id": "enemy_drop_boss_helicopter_06_01",
+    "enemyId": "boss_helicopter_06",
+    "sort": 1,
+    "itemId": "star",
+    "count": 20,
+    "dropOnce": false
+  },
+  {
+    "index": 55,
+    "id": "enemy_drop_boss_helicopter_06_02",
+    "enemyId": "boss_helicopter_06",
+    "sort": 2,
+    "itemId": "coin",
+    "count": 20,
+    "dropOnce": false
+  },
+  {
+    "index": 56,
+    "id": "enemy_drop_boss_helicopter_06_03",
+    "enemyId": "boss_helicopter_06",
+    "sort": 3,
+    "itemId": "boom",
+    "count": 1,
+    "dropOnce": true
+  }
+]

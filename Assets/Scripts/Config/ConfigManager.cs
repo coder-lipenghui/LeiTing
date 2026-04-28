@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using LeiTing.Core;
 using UnityEngine;
@@ -16,6 +18,12 @@ namespace LeiTing.Config
 
         public void LoadDefaultConfig()
         {
+            if (LubanConfigLoader.TryLoad(out var lubanConfig))
+            {
+                config = lubanConfig;
+                return;
+            }
+
             var source = configJson != null ? configJson : Resources.Load<TextAsset>(DefaultConfigPath);
 
             if (source == null)
@@ -92,6 +100,52 @@ namespace LeiTing.Config
         public BossSkillConfig GetBossSkill(string id)
         {
             return config?.bossSkills.FirstOrDefault(item => item.id == id);
+        }
+
+        public IEnumerable<WaveConfig> GetWavesForLevel(int levelNumber)
+        {
+            if (config?.waves == null)
+            {
+                yield break;
+            }
+
+            foreach (var wave in config.waves)
+            {
+                if (wave != null && IsConfigForLevel(wave.levelId, levelNumber))
+                {
+                    yield return wave;
+                }
+            }
+        }
+
+        public IEnumerable<StageEventConfig> GetStageEventsForLevel(int levelNumber)
+        {
+            if (config?.stageEvents == null)
+            {
+                yield break;
+            }
+
+            foreach (var stageEvent in config.stageEvents)
+            {
+                if (stageEvent != null && IsConfigForLevel(stageEvent.levelId, levelNumber))
+                {
+                    yield return stageEvent;
+                }
+            }
+        }
+
+        private bool IsConfigForLevel(string levelId, int levelNumber)
+        {
+            if (string.IsNullOrEmpty(levelId))
+            {
+                return true;
+            }
+
+            var currentLevel = GetLevel(levelNumber);
+            return string.Equals(levelId, currentLevel?.id, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(levelId, levelNumber.ToString(), StringComparison.OrdinalIgnoreCase)
+                || string.Equals(levelId, $"level_{levelNumber}", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(levelId, $"level_{levelNumber:00}", StringComparison.OrdinalIgnoreCase);
         }
     }
 }

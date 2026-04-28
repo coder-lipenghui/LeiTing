@@ -1,0 +1,261 @@
+[
+  {
+    "index": 1,
+    "id": "boss_phase_pattern_boss_phase_01_01",
+    "bossPhaseId": "boss_phase_01",
+    "sort": 1,
+    "patternId": "boss_p1_fan_09"
+  },
+  {
+    "index": 2,
+    "id": "boss_phase_pattern_boss_phase_01_02",
+    "bossPhaseId": "boss_phase_01",
+    "sort": 2,
+    "patternId": "boss_p1_sweep_single"
+  },
+  {
+    "index": 3,
+    "id": "boss_phase_pattern_boss_phase_02_01",
+    "bossPhaseId": "boss_phase_02",
+    "sort": 1,
+    "patternId": "boss_p2_ring_20"
+  },
+  {
+    "index": 4,
+    "id": "boss_phase_pattern_boss_phase_02_02",
+    "bossPhaseId": "boss_phase_02",
+    "sort": 2,
+    "patternId": "boss_p2_aim_03"
+  },
+  {
+    "index": 5,
+    "id": "boss_phase_pattern_boss_phase_02_03",
+    "bossPhaseId": "boss_phase_02",
+    "sort": 3,
+    "patternId": "boss_p2_block_left"
+  },
+  {
+    "index": 6,
+    "id": "boss_phase_pattern_boss_phase_02_04",
+    "bossPhaseId": "boss_phase_02",
+    "sort": 4,
+    "patternId": "boss_p2_block_right"
+  },
+  {
+    "index": 7,
+    "id": "boss_phase_pattern_boss_phase_02_05",
+    "bossPhaseId": "boss_phase_02",
+    "sort": 5,
+    "patternId": "boss_missile_lock_dash"
+  },
+  {
+    "index": 8,
+    "id": "boss_phase_pattern_boss_phase_03_01",
+    "bossPhaseId": "boss_phase_03",
+    "sort": 1,
+    "patternId": "boss_p3_rotating_11"
+  },
+  {
+    "index": 9,
+    "id": "boss_phase_pattern_boss_phase_03_02",
+    "bossPhaseId": "boss_phase_03",
+    "sort": 2,
+    "patternId": "boss_p3_aim_05"
+  },
+  {
+    "index": 10,
+    "id": "boss_phase_pattern_boss_phase_03_03",
+    "bossPhaseId": "boss_phase_03",
+    "sort": 3,
+    "patternId": "boss_p3_ring_28"
+  },
+  {
+    "index": 11,
+    "id": "boss_phase_pattern_boss_phase_03_04",
+    "bossPhaseId": "boss_phase_03",
+    "sort": 4,
+    "patternId": "boss_missile_explode_03"
+  },
+  {
+    "index": 12,
+    "id": "boss_phase_pattern_boss_phase_03_05",
+    "bossPhaseId": "boss_phase_03",
+    "sort": 5,
+    "patternId": "boss_missile_heavy_destroyable"
+  },
+  {
+    "index": 13,
+    "id": "boss_phase_pattern_boss_helicopter_01_phase_01_01",
+    "bossPhaseId": "boss_helicopter_01_phase_01",
+    "sort": 1,
+    "patternId": "heli_bullet_single"
+  },
+  {
+    "index": 14,
+    "id": "boss_phase_pattern_boss_helicopter_01_phase_01_02",
+    "bossPhaseId": "boss_helicopter_01_phase_01",
+    "sort": 2,
+    "patternId": "heli_bullet_spread_2"
+  },
+  {
+    "index": 15,
+    "id": "boss_phase_pattern_boss_helicopter_01_phase_01_03",
+    "bossPhaseId": "boss_helicopter_01_phase_01",
+    "sort": 3,
+    "patternId": "heli_missile_straight_2"
+  },
+  {
+    "index": 16,
+    "id": "boss_phase_pattern_boss_helicopter_02_phase_01_01",
+    "bossPhaseId": "boss_helicopter_02_phase_01",
+    "sort": 1,
+    "patternId": "heli_bullet_single"
+  },
+  {
+    "index": 17,
+    "id": "boss_phase_pattern_boss_helicopter_02_phase_01_02",
+    "bossPhaseId": "boss_helicopter_02_phase_01",
+    "sort": 2,
+    "patternId": "heli_bullet_spread_2"
+  },
+  {
+    "index": 18,
+    "id": "boss_phase_pattern_boss_helicopter_02_phase_01_03",
+    "bossPhaseId": "boss_helicopter_02_phase_01",
+    "sort": 3,
+    "patternId": "heli_missile_straight_2"
+  },
+  {
+    "index": 19,
+    "id": "boss_phase_pattern_boss_helicopter_02_phase_01_04",
+    "bossPhaseId": "boss_helicopter_02_phase_01",
+    "sort": 4,
+    "patternId": "heli_missile_weak_homing_2"
+  },
+  {
+    "index": 20,
+    "id": "boss_phase_pattern_boss_helicopter_03_phase_01_01",
+    "bossPhaseId": "boss_helicopter_03_phase_01",
+    "sort": 1,
+    "patternId": "heli_bullet_single"
+  },
+  {
+    "index": 21,
+    "id": "boss_phase_pattern_boss_helicopter_03_phase_01_02",
+    "bossPhaseId": "boss_helicopter_03_phase_01",
+    "sort": 2,
+    "patternId": "heli_bullet_spread_2"
+  },
+  {
+    "index": 22,
+    "id": "boss_phase_pattern_boss_helicopter_03_phase_01_03",
+    "bossPhaseId": "boss_helicopter_03_phase_01",
+    "sort": 3,
+    "patternId": "heli_missile_straight_2"
+  },
+  {
+    "index": 23,
+    "id": "boss_phase_pattern_boss_helicopter_03_phase_01_04",
+    "bossPhaseId": "boss_helicopter_03_phase_01",
+    "sort": 4,
+    "patternId": "heli_missile_lock_dash_2"
+  },
+  {
+    "index": 24,
+    "id": "boss_phase_pattern_boss_helicopter_04_phase_01_01",
+    "bossPhaseId": "boss_helicopter_04_phase_01",
+    "sort": 1,
+    "patternId": "heli_bullet_single"
+  },
+  {
+    "index": 25,
+    "id": "boss_phase_pattern_boss_helicopter_04_phase_01_02",
+    "bossPhaseId": "boss_helicopter_04_phase_01",
+    "sort": 2,
+    "patternId": "heli_bullet_spread_2"
+  },
+  {
+    "index": 26,
+    "id": "boss_phase_pattern_boss_helicopter_04_phase_01_03",
+    "bossPhaseId": "boss_helicopter_04_phase_01",
+    "sort": 3,
+    "patternId": "heli_missile_straight_2"
+  },
+  {
+    "index": 27,
+    "id": "boss_phase_pattern_boss_helicopter_04_phase_01_04",
+    "bossPhaseId": "boss_helicopter_04_phase_01",
+    "sort": 4,
+    "patternId": "heli_missile_explode_2"
+  },
+  {
+    "index": 28,
+    "id": "boss_phase_pattern_boss_helicopter_05_phase_01_01",
+    "bossPhaseId": "boss_helicopter_05_phase_01",
+    "sort": 1,
+    "patternId": "heli_bullet_single"
+  },
+  {
+    "index": 29,
+    "id": "boss_phase_pattern_boss_helicopter_05_phase_01_02",
+    "bossPhaseId": "boss_helicopter_05_phase_01",
+    "sort": 2,
+    "patternId": "heli_missile_straight_2"
+  },
+  {
+    "index": 30,
+    "id": "boss_phase_pattern_boss_helicopter_05_phase_01_03",
+    "bossPhaseId": "boss_helicopter_05_phase_01",
+    "sort": 3,
+    "patternId": "heli_missile_weak_homing_2"
+  },
+  {
+    "index": 31,
+    "id": "boss_phase_pattern_boss_helicopter_05_phase_01_04",
+    "bossPhaseId": "boss_helicopter_05_phase_01",
+    "sort": 4,
+    "patternId": "heli_missile_lock_dash_2"
+  },
+  {
+    "index": 32,
+    "id": "boss_phase_pattern_boss_helicopter_05_phase_01_05",
+    "bossPhaseId": "boss_helicopter_05_phase_01",
+    "sort": 5,
+    "patternId": "heli_missile_explode_2"
+  },
+  {
+    "index": 33,
+    "id": "boss_phase_pattern_boss_helicopter_06_phase_01_01",
+    "bossPhaseId": "boss_helicopter_06_phase_01",
+    "sort": 1,
+    "patternId": "heli_bullet_single"
+  },
+  {
+    "index": 34,
+    "id": "boss_phase_pattern_boss_helicopter_06_phase_01_02",
+    "bossPhaseId": "boss_helicopter_06_phase_01",
+    "sort": 2,
+    "patternId": "heli_missile_straight_3"
+  },
+  {
+    "index": 35,
+    "id": "boss_phase_pattern_boss_helicopter_06_phase_01_03",
+    "bossPhaseId": "boss_helicopter_06_phase_01",
+    "sort": 3,
+    "patternId": "heli_missile_weak_homing_3"
+  },
+  {
+    "index": 36,
+    "id": "boss_phase_pattern_boss_helicopter_06_phase_01_04",
+    "bossPhaseId": "boss_helicopter_06_phase_01",
+    "sort": 4,
+    "patternId": "heli_missile_lock_dash_3"
+  },
+  {
+    "index": 37,
+    "id": "boss_phase_pattern_boss_helicopter_06_phase_01_05",
+    "bossPhaseId": "boss_helicopter_06_phase_01",
+    "sort": 5,
+    "patternId": "heli_missile_explode_3"
+  }
+]

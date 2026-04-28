@@ -173,6 +173,7 @@ namespace LeiTing.Config
     public class WaveConfig
     {
         public string id;
+        public string levelId;
         public float startTime;
         public List<WaveSpawnConfig> spawns = new List<WaveSpawnConfig>();
     }
@@ -196,6 +197,7 @@ namespace LeiTing.Config
     public class StageEventConfig
     {
         public string id;
+        public string levelId;
         public float startTime;
         public string message;
         public bool clearEnemyBullets;

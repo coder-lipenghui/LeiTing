@@ -1,0 +1,58 @@
+[
+  {
+    "index": 1,
+    "id": "stage_notice_tutorial",
+    "levelId": "",
+    "startTime": 1,
+    "message": "LEVEL {LEVEL}/{MAX_LEVEL}\\nMISSION START",
+    "clearEnemyBullets": false
+  },
+  {
+    "index": 2,
+    "id": "stage_notice_first_battle",
+    "levelId": "",
+    "startTime": 30,
+    "message": "ENEMY WAVE",
+    "clearEnemyBullets": false
+  },
+  {
+    "index": 3,
+    "id": "stage_notice_power",
+    "levelId": "",
+    "startTime": 90,
+    "message": "BULLET PATTERN ESCALATION",
+    "clearEnemyBullets": false
+  },
+  {
+    "index": 4,
+    "id": "stage_notice_transition",
+    "levelId": "",
+    "startTime": 150,
+    "message": "CLEAR THE FIELD",
+    "clearEnemyBullets": true
+  },
+  {
+    "index": 5,
+    "id": "stage_notice_boss_signal",
+    "levelId": "",
+    "startTime": 165,
+    "message": "BOSS SIGNAL DETECTED",
+    "clearEnemyBullets": true
+  },
+  {
+    "index": 6,
+    "id": "stage_notice_boss_warning",
+    "levelId": "",
+    "startTime": 176,
+    "message": "LEVEL {LEVEL}/{MAX_LEVEL}\\nFINAL BOSS",
+    "clearEnemyBullets": true
+  },
+  {
+    "index": 7,
+    "id": "stage_notice_final_boss",
+    "levelId": "",
+    "startTime": 178,
+    "message": "{BOSS}\\nENGAGING",
+    "clearEnemyBullets": true
+  }
+]

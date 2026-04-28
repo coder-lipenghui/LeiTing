@@ -1,0 +1,22 @@
+[
+  {
+    "index": 1,
+    "id": "warplane_01",
+    "displayName": "Warplane 01",
+    "prefabPath": "Assets/Prefabs/Player/warplane-01.prefab",
+    "hp": 3,
+    "shield": 1,
+    "stars": 0,
+    "coins": 0,
+    "moveSpeed": 18,
+    "invincibleTime": 1.5,
+    "pickupAttractRange": 2.2,
+    "pickupAttractSpeed": 8,
+    "visualScale": 0.55,
+    "hitboxRadius": 0.18,
+    "hitboxOffsetX": 0,
+    "hitboxOffsetY": -0.08,
+    "defaultBulletId": "player_laser_01",
+    "fireInterval": 0.16
+  }
+]

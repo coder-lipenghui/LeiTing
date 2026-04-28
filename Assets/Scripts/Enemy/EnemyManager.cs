@@ -30,7 +30,7 @@ namespace LeiTing.Enemy
             }
 
             stageTime += Time.deltaTime;
-            UpdateWaves(ConfigManager.Instance.Config);
+            UpdateWaves(ConfigManager.Instance);
         }
 
         public EnemyController SpawnEnemy(string enemyId, Vector2 position)
@@ -38,9 +38,9 @@ namespace LeiTing.Enemy
             return SpawnEnemy(enemyId, position, null);
         }
 
-        private void UpdateWaves(GameConfig gameConfig)
+        private void UpdateWaves(ConfigManager configManager)
         {
-            foreach (var wave in gameConfig.waves)
+            foreach (var wave in configManager.GetWavesForLevel(GameManager.Instance.CurrentLevelNumber))
             {
                 if (wave == null || startedWaves.Contains(wave.id) || stageTime < wave.startTime)
                 {
@@ -213,7 +213,7 @@ namespace LeiTing.Enemy
                 return false;
             }
 
-            foreach (var wave in ConfigManager.Instance.Config.waves)
+            foreach (var wave in ConfigManager.Instance.GetWavesForLevel(GameManager.Instance.CurrentLevelNumber))
             {
                 if (wave == null || startedWaves.Contains(wave.id) || wave.spawns == null)
                 {

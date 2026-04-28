@@ -1,6 +1,6 @@
 # GameConfig 配置说明
 
-本文档说明当前项目的主配置表 `Assets/Resources/Configs/GameConfig.json`。运行时由 `ConfigManager` 从 `Resources/Configs/GameConfig.json` 加载，并反序列化为 `GameConfigData.cs` 中的配置类。
+本文档说明旧版主配置 `Assets/Resources/Configs/GameConfig.json` 的字段含义。当前项目已经接入 Luban 配置流，源表在 `Luban/Datas/GameConfig.xlsx`，生成后的运行时数据在 `Assets/Resources/Luban`。运行时由 `ConfigManager` 优先加载 Luban 数据，缺失时才回退到本 JSON。新人改表流程请先看 `docs/luban-config-newcomer-guide.md`。
 
 ## 配置总览
 

@@ -477,7 +477,7 @@ namespace LeiTing.Missiles
             velocity.space = ParticleSystemSimulationSpace.Local;
             velocity.x = new ParticleSystem.MinMaxCurve(-0.08f, 0.08f);
             velocity.y = new ParticleSystem.MinMaxCurve(-0.28f, -0.08f);
-            velocity.z = new ParticleSystem.MinMaxCurve(0f);
+            velocity.z = new ParticleSystem.MinMaxCurve(0f, 0f);
 
             var colorOverLifetime = smokeTrail.colorOverLifetime;
             colorOverLifetime.enabled = true;

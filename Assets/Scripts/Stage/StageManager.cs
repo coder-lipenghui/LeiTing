@@ -28,17 +28,17 @@ namespace LeiTing.Stage
             }
 
             stageTime += Time.deltaTime;
-            UpdateStageEvents(ConfigManager.Instance.Config);
+            UpdateStageEvents(ConfigManager.Instance);
         }
 
-        private void UpdateStageEvents(GameConfig gameConfig)
+        private void UpdateStageEvents(ConfigManager configManager)
         {
-            if (gameConfig.stageEvents == null)
+            if (configManager == null || GameManager.Instance == null)
             {
                 return;
             }
 
-            foreach (var stageEvent in gameConfig.stageEvents)
+            foreach (var stageEvent in configManager.GetStageEventsForLevel(GameManager.Instance.CurrentLevelNumber))
             {
                 if (stageEvent == null || triggeredEvents.Contains(stageEvent.id) || stageTime < stageEvent.startTime)
                 {

@@ -1,0 +1,22 @@
+[
+  {
+    "index": 1,
+    "id": "boss_skill_fan_01",
+    "bossId": "boss_01",
+    "bulletId": "enemy_bullet_01",
+    "triggerHpPercent": 1,
+    "cooldown": 2.4,
+    "bulletCount": 7,
+    "spreadAngle": 80
+  },
+  {
+    "index": 2,
+    "id": "boss_skill_ring_01",
+    "bossId": "boss_01",
+    "bulletId": "enemy_bullet_02",
+    "triggerHpPercent": 0.55,
+    "cooldown": 3,
+    "bulletCount": 18,
+    "spreadAngle": 360
+  }
+]
