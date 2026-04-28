@@ -828,7 +828,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1fbefb7a90898407190b786a4a5e792b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  startGameOnAwake: 0
+  startGameOnAwake: 1
   createPlayerIfMissing: 1
   defaultPlayerPosition: {x: 0, y: -3.5, z: 0}
   designResolution: {x: 1080, y: 1920}

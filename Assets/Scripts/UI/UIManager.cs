@@ -1,19 +1,39 @@
+using System.Collections;
+using System.Collections.Generic;
 using LeiTing.Core;
 using LeiTing.Player;
-using System.Collections;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace LeiTing.UI
 {
     public class UIManager : MonoSingleton<UIManager>
     {
+        private const float PageSwitchDuration = 0.25f;
         private const string SingleBulletId = "player_bullet_01";
         private const string DoubleBulletId = "player_bullet_double_01";
         private const string SpreadBulletId = "player_bullet_spread_01";
         private const string PierceBulletId = "player_bullet_pierce_01";
         private const string LaserBulletId = "player_laser_01";
+
+        private readonly Dictionary<UIPageType, BasePage> pageInstances = new Dictionary<UIPageType, BasePage>();
+        private readonly Stack<BasePopup> popupStack = new Stack<BasePopup>();
+        private readonly Dictionary<string, BasePopup> cachedPopups = new Dictionary<string, BasePopup>();
+
+        private GameObject mainCanvasObject;
+        private RectTransform contentLayer;
+        private RectTransform popupLayer;
+        private RectTransform popupContainer;
+        private Image popupMask;
+        private TopBar topBar;
+        private BottomBar bottomBar;
+        private BasePage currentPageInstance;
+        private UIPageType currentPageType;
+        private bool hasCurrentPage;
+        private bool isSwitching;
+        private bool mainUiInitialized;
 
         private readonly WeaponButton[] weaponButtons =
         {
@@ -40,20 +60,687 @@ namespace LeiTing.UI
         private Text bossNoticeText;
         private Coroutine bossNoticeRoutine;
         private string selectedBulletId = LaserBulletId;
+        private bool battleHudInitialized;
 
         protected override void Awake()
         {
             base.Awake();
 
-            if (Instance == this)
+            if (Instance != this)
             {
-                EnsureWeaponTestUi();
+                return;
+            }
+
+            EnsureEventSystem();
+
+            if (GameSceneManager.IsBattleSceneName(SceneManager.GetActiveScene().name))
+            {
+                EnsureBattleHud();
+            }
+            else
+            {
+                Init();
             }
         }
 
         private void Start()
         {
+            if (battleHudInitialized)
+            {
+                ApplyWeaponSelection(selectedBulletId);
+            }
+        }
+
+        private void Update()
+        {
+            if (!battleHudInitialized)
+            {
+                return;
+            }
+
+            UpdateHud();
+            UpdateSettlement();
+        }
+
+        public void Init()
+        {
+            if (mainUiInitialized)
+            {
+                ShowMainUI(true);
+                return;
+            }
+
+            EnsureEventSystem();
+            EnsureMainUi();
+            ShowTopBar(true);
+            ShowBottomBar(true);
+
+            topBar.UpdatePlayerInfo(new PlayerInfo
+            {
+                coin = 1200,
+                diamond = 80,
+                score = GameManager.Instance != null ? GameManager.Instance.Score : 0
+            });
+
+            OpenPage(UIPageType.Lobby);
+        }
+
+        public void OpenPage(UIPageType pageType)
+        {
+            if (!mainUiInitialized)
+            {
+                EnsureMainUi();
+            }
+
+            if (isSwitching)
+            {
+                return;
+            }
+
+            var targetPage = GetOrCreatePage(pageType);
+            if (targetPage == null)
+            {
+                return;
+            }
+
+            if (currentPageInstance != null && currentPageInstance != targetPage)
+            {
+                currentPageInstance.OnHide();
+                currentPageInstance.gameObject.SetActive(false);
+            }
+
+            targetPage.gameObject.SetActive(true);
+            targetPage.RectTransform.anchoredPosition = Vector2.zero;
+            targetPage.OnOpen();
+            targetPage.OnShow();
+
+            currentPageType = pageType;
+            currentPageInstance = targetPage;
+            hasCurrentPage = true;
+            bottomBar?.SetSelected(pageType);
+        }
+
+        public void SwitchPage(UIPageType targetPageType)
+        {
+            if (!mainUiInitialized)
+            {
+                Init();
+            }
+
+            if (isSwitching || hasCurrentPage && currentPageType == targetPageType)
+            {
+                return;
+            }
+
+            if (!hasCurrentPage || currentPageInstance == null)
+            {
+                OpenPage(targetPageType);
+                return;
+            }
+
+            StartCoroutine(SwitchPageCoroutine(targetPageType));
+        }
+
+        public void ClosePage(UIPageType pageType)
+        {
+            if (!pageInstances.TryGetValue(pageType, out var page) || page == null)
+            {
+                return;
+            }
+
+            page.OnClose();
+            page.gameObject.SetActive(false);
+
+            if (UIConfig.PageConfigs.TryGetValue(pageType, out var config) && !config.cache)
+            {
+                page.OnDestroyPage();
+                pageInstances.Remove(pageType);
+                Destroy(page.gameObject);
+            }
+
+            if (hasCurrentPage && currentPageType == pageType)
+            {
+                hasCurrentPage = false;
+                currentPageInstance = null;
+            }
+        }
+
+        public void OpenPopup(string popupName, object data = null)
+        {
+            if (string.IsNullOrEmpty(popupName))
+            {
+                return;
+            }
+
+            if (!mainUiInitialized)
+            {
+                Init();
+            }
+
+            StartCoroutine(OpenPopupCoroutine(popupName, data));
+        }
+
+        public void ClosePopup(string popupName)
+        {
+            if (popupStack.Count == 0)
+            {
+                return;
+            }
+
+            var target = FindPopup(popupName);
+            if (target != null)
+            {
+                StartCoroutine(ClosePopupCoroutine(target));
+            }
+        }
+
+        public void CloseTopPopup()
+        {
+            if (popupStack.Count == 0)
+            {
+                return;
+            }
+
+            StartCoroutine(ClosePopupCoroutine(popupStack.Peek()));
+        }
+
+        public void CloseAllPopups()
+        {
+            while (popupStack.Count > 0)
+            {
+                var popup = popupStack.Pop();
+                if (popup == null)
+                {
+                    continue;
+                }
+
+                popup.OnClose();
+
+                if (ShouldCachePopup(popup.PopupName))
+                {
+                    popup.gameObject.SetActive(false);
+                }
+                else
+                {
+                    Destroy(popup.gameObject);
+                }
+            }
+
+            RefreshPopupMask();
+        }
+
+        public void ShowTopBar(bool visible)
+        {
+            if (topBar != null)
+            {
+                topBar.gameObject.SetActive(visible);
+            }
+        }
+
+        public void ShowBottomBar(bool visible)
+        {
+            if (bottomBar != null)
+            {
+                bottomBar.gameObject.SetActive(visible);
+            }
+        }
+
+        public void ShowMainUI(bool visible)
+        {
+            if (mainCanvasObject != null)
+            {
+                mainCanvasObject.SetActive(visible);
+            }
+        }
+
+        public void EnsureBattleHud()
+        {
+            if (battleHudInitialized)
+            {
+                return;
+            }
+
+            battleHudInitialized = true;
+            ShowMainUI(false);
+            EnsureWeaponTestUi();
             ApplyWeaponSelection(selectedBulletId);
+        }
+
+        public void ShowScorePopup(Vector3 worldPosition, int amount)
+        {
+            if (canvasRoot == null || amount <= 0)
+            {
+                return;
+            }
+
+            var popupObject = new GameObject("ScorePopup", typeof(RectTransform));
+            popupObject.transform.SetParent(canvasRoot, false);
+
+            var rect = popupObject.GetComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(180f, 52f);
+
+            var screenPosition = Camera.main != null ? Camera.main.WorldToScreenPoint(worldPosition) : Vector3.zero;
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRoot, screenPosition, null, out var localPosition);
+            rect.anchoredPosition = localPosition;
+
+            var text = popupObject.AddComponent<Text>();
+            text.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            text.fontSize = 34;
+            text.fontStyle = FontStyle.Bold;
+            text.alignment = TextAnchor.MiddleCenter;
+            text.color = new Color(1f, 0.88f, 0.22f, 1f);
+            text.raycastTarget = false;
+            text.text = $"+{amount}";
+
+            StartCoroutine(AnimateScorePopup(rect, text));
+        }
+
+        public void UpdateBossHud(string bossName, int currentHp, int maxHp, string phaseName)
+        {
+            if (bossHudRoot == null || bossHealthFill == null)
+            {
+                return;
+            }
+
+            bossHudRoot.SetActive(maxHp > 0 && currentHp > 0);
+            bossHealthFill.fillAmount = maxHp > 0 ? Mathf.Clamp01(currentHp / (float)maxHp) : 0f;
+
+            if (bossNameText != null)
+            {
+                bossNameText.text = string.IsNullOrEmpty(bossName) ? "BOSS" : bossName;
+            }
+
+            if (bossPhaseText != null)
+            {
+                bossPhaseText.text = string.IsNullOrEmpty(phaseName) ? string.Empty : phaseName;
+            }
+        }
+
+        public void HideBossHud()
+        {
+            if (bossHudRoot != null)
+            {
+                bossHudRoot.SetActive(false);
+            }
+        }
+
+        public void ShowBossPhaseNotice(string message)
+        {
+            if (bossNoticeText == null || string.IsNullOrEmpty(message))
+            {
+                return;
+            }
+
+            if (bossNoticeRoutine != null)
+            {
+                StopCoroutine(bossNoticeRoutine);
+            }
+
+            bossNoticeRoutine = StartCoroutine(AnimateBossNotice(message));
+        }
+
+        private IEnumerator SwitchPageCoroutine(UIPageType targetPageType)
+        {
+            isSwitching = true;
+
+            var currentPage = currentPageInstance;
+            var targetPage = GetOrCreatePage(targetPageType);
+
+            if (currentPage == null || targetPage == null)
+            {
+                isSwitching = false;
+                yield break;
+            }
+
+            var width = Mathf.Max(1f, contentLayer != null ? contentLayer.rect.width : Screen.width);
+            var targetToRight = targetPage.PageIndex > currentPage.PageIndex;
+            var currentTargetX = targetToRight ? -width : width;
+            var targetStartX = targetToRight ? width : -width;
+
+            targetPage.gameObject.SetActive(true);
+            targetPage.RectTransform.anchoredPosition = new Vector2(targetStartX, 0f);
+            targetPage.OnOpen();
+
+            var timer = 0f;
+            var currentStartPos = currentPage.RectTransform.anchoredPosition;
+            var currentEndPos = new Vector2(currentTargetX, 0f);
+            var targetStartPos = new Vector2(targetStartX, 0f);
+            var targetEndPos = Vector2.zero;
+
+            while (timer < PageSwitchDuration)
+            {
+                timer += Time.deltaTime;
+                var t = EaseOutQuad(Mathf.Clamp01(timer / PageSwitchDuration));
+
+                currentPage.RectTransform.anchoredPosition = Vector2.Lerp(currentStartPos, currentEndPos, t);
+                targetPage.RectTransform.anchoredPosition = Vector2.Lerp(targetStartPos, targetEndPos, t);
+                yield return null;
+            }
+
+            currentPage.RectTransform.anchoredPosition = Vector2.zero;
+            currentPage.gameObject.SetActive(false);
+            currentPage.OnHide();
+
+            targetPage.RectTransform.anchoredPosition = Vector2.zero;
+            targetPage.OnShow();
+
+            currentPageType = targetPageType;
+            currentPageInstance = targetPage;
+            hasCurrentPage = true;
+            bottomBar?.SetSelected(targetPageType);
+            isSwitching = false;
+        }
+
+        private IEnumerator OpenPopupCoroutine(string popupName, object data)
+        {
+            var popup = GetOrCreatePopup(popupName);
+            if (popup == null)
+            {
+                yield break;
+            }
+
+            popup.gameObject.SetActive(true);
+            popup.transform.SetAsLastSibling();
+            popup.OnOpen(data);
+            popupStack.Push(popup);
+            RefreshPopupMask();
+            yield return popup.PlayOpenAnim();
+        }
+
+        private IEnumerator ClosePopupCoroutine(BasePopup popup)
+        {
+            if (popup == null || popup.IsClosing)
+            {
+                yield break;
+            }
+
+            popup.OnClose();
+            yield return popup.PlayCloseAnim();
+            RemovePopupFromStack(popup);
+
+            if (ShouldCachePopup(popup.PopupName))
+            {
+                popup.gameObject.SetActive(false);
+            }
+            else
+            {
+                cachedPopups.Remove(popup.PopupName);
+                Destroy(popup.gameObject);
+            }
+
+            RefreshPopupMask();
+        }
+
+        private void EnsureMainUi()
+        {
+            mainUiInitialized = true;
+
+            mainCanvasObject = new GameObject("MainUICanvas", typeof(RectTransform));
+            mainCanvasObject.transform.SetParent(transform, false);
+
+            var canvas = mainCanvasObject.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvas.sortingOrder = 50;
+
+            var scaler = mainCanvasObject.AddComponent<CanvasScaler>();
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1080f, 1920f);
+            scaler.matchWidthOrHeight = 0.5f;
+
+            mainCanvasObject.AddComponent<GraphicRaycaster>();
+
+            var root = UIFactory.CreateRect("UIManagerRoot", mainCanvasObject.transform);
+            UIFactory.Stretch(root);
+
+            var backgroundLayer = CreateLayer("BackgroundLayer", root);
+            contentLayer = CreateLayer("ContentLayer", root);
+            var commonLayer = CreateLayer("CommonLayer", root);
+            popupLayer = CreateLayer("PopupLayer", root);
+
+            CreateBackgroundLayer(backgroundLayer);
+            topBar = CreateTopBar(commonLayer);
+            bottomBar = CreateBottomBar(commonLayer);
+            CreatePopupLayer(popupLayer);
+        }
+
+        private RectTransform CreateLayer(string layerName, Transform parent)
+        {
+            var layer = UIFactory.CreateRect(layerName, parent);
+            UIFactory.Stretch(layer);
+            return layer;
+        }
+
+        private void CreateBackgroundLayer(RectTransform parent)
+        {
+            var background = UIFactory.CreatePanel("PixelSpaceBackground", parent, new Color(0.006f, 0.01f, 0.024f, 1f));
+            UIFactory.Stretch(background.rectTransform);
+
+            for (var index = 0; index < 32; index++)
+            {
+                var star = UIFactory.CreatePanel("Star_" + index, parent, index % 3 == 0 ? UIFactory.PanelAccentColor : UIFactory.MutedTextColor);
+                var rect = star.rectTransform;
+                rect.anchorMin = new Vector2((index * 37 % 100) / 100f, (index * 61 % 100) / 100f);
+                rect.anchorMax = rect.anchorMin;
+                rect.pivot = new Vector2(0.5f, 0.5f);
+                rect.sizeDelta = Vector2.one * (index % 3 == 0 ? 5f : 3f);
+            }
+        }
+
+        private TopBar CreateTopBar(RectTransform parent)
+        {
+            var rect = UIFactory.CreateRect("TopBar", parent);
+            rect.anchorMin = new Vector2(0f, 1f);
+            rect.anchorMax = new Vector2(1f, 1f);
+            rect.pivot = new Vector2(0.5f, 1f);
+            rect.anchoredPosition = Vector2.zero;
+            rect.sizeDelta = new Vector2(0f, 112f);
+
+            var bar = rect.gameObject.AddComponent<TopBar>();
+            bar.BuildDefaultView();
+            return bar;
+        }
+
+        private BottomBar CreateBottomBar(RectTransform parent)
+        {
+            var rect = UIFactory.CreateRect("BottomBar", parent);
+            rect.anchorMin = new Vector2(0f, 0f);
+            rect.anchorMax = new Vector2(1f, 0f);
+            rect.pivot = new Vector2(0.5f, 0f);
+            rect.anchoredPosition = Vector2.zero;
+            rect.sizeDelta = new Vector2(0f, 144f);
+
+            var bar = rect.gameObject.AddComponent<BottomBar>();
+            bar.BuildDefaultView();
+            return bar;
+        }
+
+        private void CreatePopupLayer(RectTransform parent)
+        {
+            var maskObject = UIFactory.CreateRect("Mask", parent);
+            UIFactory.Stretch(maskObject);
+            popupMask = maskObject.gameObject.AddComponent<Image>();
+            popupMask.color = new Color(0f, 0f, 0f, 0.55f);
+
+            var maskButton = maskObject.gameObject.AddComponent<Button>();
+            maskButton.targetGraphic = popupMask;
+            maskButton.onClick.AddListener(OnClickPopupMask);
+            maskObject.gameObject.SetActive(false);
+
+            popupContainer = UIFactory.CreateRect("PopupContainer", parent);
+            UIFactory.Stretch(popupContainer);
+        }
+
+        private BasePage GetOrCreatePage(UIPageType pageType)
+        {
+            if (pageInstances.TryGetValue(pageType, out var page) && page != null)
+            {
+                return page;
+            }
+
+            if (!UIConfig.PageConfigs.TryGetValue(pageType, out var config))
+            {
+                Debug.LogWarning($"UI page config not found: {pageType}");
+                return null;
+            }
+
+            GameObject pageObject = null;
+            var prefab = Resources.Load<GameObject>(config.prefabPath);
+            if (prefab != null)
+            {
+                pageObject = Instantiate(prefab, contentLayer);
+            }
+
+            if (pageObject == null)
+            {
+                pageObject = CreateFallbackPage(config);
+            }
+
+            page = pageObject.GetComponent<BasePage>();
+            if (page == null)
+            {
+                page = AddPageComponent(pageObject, pageType);
+            }
+
+            page.Configure(config.pageType, config.index);
+            page.gameObject.SetActive(false);
+            pageInstances[pageType] = page;
+            return page;
+        }
+
+        private GameObject CreateFallbackPage(UIPageConfig config)
+        {
+            var rect = UIFactory.CreateRect(config.pageType + "Page", contentLayer);
+            UIFactory.Stretch(rect);
+            AddPageComponent(rect.gameObject, config.pageType);
+            return rect.gameObject;
+        }
+
+        private BasePage AddPageComponent(GameObject pageObject, UIPageType pageType)
+        {
+            switch (pageType)
+            {
+                case UIPageType.Hangar:
+                    return pageObject.AddComponent<HangarPage>();
+                case UIPageType.Setting:
+                    return pageObject.AddComponent<SettingPage>();
+                default:
+                    return pageObject.AddComponent<LobbyPage>();
+            }
+        }
+
+        private BasePopup GetOrCreatePopup(string popupName)
+        {
+            if (cachedPopups.TryGetValue(popupName, out var cached) && cached != null)
+            {
+                return cached;
+            }
+
+            if (!UIConfig.PopupConfigs.TryGetValue(popupName, out var config))
+            {
+                Debug.LogWarning($"Popup config not found: {popupName}");
+                return null;
+            }
+
+            GameObject popupObject = null;
+            var prefab = Resources.Load<GameObject>(config.prefabPath);
+            if (prefab != null)
+            {
+                popupObject = Instantiate(prefab, popupContainer);
+            }
+
+            if (popupObject == null)
+            {
+                popupObject = CreateFallbackPopup(config);
+            }
+
+            var popup = popupObject.GetComponent<BasePopup>();
+            if (popup == null)
+            {
+                popup = AddPopupComponent(popupObject, popupName);
+            }
+
+            popup.Configure(popupName);
+            cachedPopups[popupName] = popup;
+            return popup;
+        }
+
+        private GameObject CreateFallbackPopup(PopupConfig config)
+        {
+            var rect = UIFactory.CreateRect(config.popupName, popupContainer);
+            AddPopupComponent(rect.gameObject, config.popupName);
+            return rect.gameObject;
+        }
+
+        private BasePopup AddPopupComponent(GameObject popupObject, string popupName)
+        {
+            if (popupName == UIConfig.PlaneUnlockSuccessPopupName)
+            {
+                return popupObject.AddComponent<PlaneUnlockSuccessPopup>();
+            }
+
+            return popupObject.AddComponent<PlaneUnlockPopup>();
+        }
+
+        private BasePopup FindPopup(string popupName)
+        {
+            foreach (var popup in popupStack)
+            {
+                if (popup != null && popup.PopupName == popupName)
+                {
+                    return popup;
+                }
+            }
+
+            return null;
+        }
+
+        private void RemovePopupFromStack(BasePopup target)
+        {
+            var popups = new List<BasePopup>(popupStack);
+            popupStack.Clear();
+
+            for (var index = popups.Count - 1; index >= 0; index--)
+            {
+                if (popups[index] != null && popups[index] != target)
+                {
+                    popupStack.Push(popups[index]);
+                }
+            }
+        }
+
+        private bool ShouldCachePopup(string popupName)
+        {
+            return UIConfig.PopupConfigs.TryGetValue(popupName, out var config) && config.cache;
+        }
+
+        private void RefreshPopupMask()
+        {
+            if (popupMask != null)
+            {
+                popupMask.gameObject.SetActive(popupStack.Count > 0);
+                popupMask.transform.SetAsFirstSibling();
+            }
+        }
+
+        private void OnClickPopupMask()
+        {
+            if (popupStack.Count == 0)
+            {
+                return;
+            }
+
+            var top = popupStack.Peek();
+            if (top != null
+                && UIConfig.PopupConfigs.TryGetValue(top.PopupName, out var config)
+                && config.closeOnMaskClick)
+            {
+                CloseTopPopup();
+            }
+        }
+
+        private static float EaseOutQuad(float t)
+        {
+            return 1f - (1f - t) * (1f - t);
         }
 
         private void EnsureWeaponTestUi()
@@ -225,24 +912,7 @@ namespace LeiTing.UI
             restartChallengeButton.colors = CreateButtonColors();
             restartChallengeButton.onClick.AddListener(RestartChallenge);
 
-            var labelObject = new GameObject("Label", typeof(RectTransform));
-            labelObject.transform.SetParent(restartChallengeRoot.transform, false);
-
-            var labelRect = labelObject.GetComponent<RectTransform>();
-            labelRect.anchorMin = Vector2.zero;
-            labelRect.anchorMax = Vector2.one;
-            labelRect.offsetMin = Vector2.zero;
-            labelRect.offsetMax = Vector2.zero;
-
-            var text = labelObject.AddComponent<Text>();
-            text.text = "重新挑战";
-            text.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
-            text.fontSize = 34;
-            text.fontStyle = FontStyle.Bold;
-            text.alignment = TextAnchor.MiddleCenter;
-            text.color = Color.white;
-            text.raycastTarget = false;
-
+            CreateBattleButtonLabel(restartChallengeRoot.transform, "重新挑战");
             restartChallengeRoot.SetActive(false);
         }
 
@@ -267,8 +937,14 @@ namespace LeiTing.UI
             nextLevelButton.colors = CreateButtonColors();
             nextLevelButton.onClick.AddListener(LoadNextLevel);
 
+            CreateBattleButtonLabel(nextLevelRoot.transform, "下一关");
+            nextLevelRoot.SetActive(false);
+        }
+
+        private static void CreateBattleButtonLabel(Transform parent, string label)
+        {
             var labelObject = new GameObject("Label", typeof(RectTransform));
-            labelObject.transform.SetParent(nextLevelRoot.transform, false);
+            labelObject.transform.SetParent(parent, false);
 
             var labelRect = labelObject.GetComponent<RectTransform>();
             labelRect.anchorMin = Vector2.zero;
@@ -277,15 +953,13 @@ namespace LeiTing.UI
             labelRect.offsetMax = Vector2.zero;
 
             var text = labelObject.AddComponent<Text>();
-            text.text = "下一关";
+            text.text = label;
             text.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
             text.fontSize = 34;
             text.fontStyle = FontStyle.Bold;
             text.alignment = TextAnchor.MiddleCenter;
             text.color = Color.white;
             text.raycastTarget = false;
-
-            nextLevelRoot.SetActive(false);
         }
 
         private void CreateBossHud(Transform parent)
@@ -385,85 +1059,6 @@ namespace LeiTing.UI
             bossNoticeText.color = new Color(1f, 0.85f, 0.22f, 0f);
             bossNoticeText.raycastTarget = false;
             bossNoticeText.enabled = false;
-        }
-
-        private void Update()
-        {
-            UpdateHud();
-            UpdateSettlement();
-        }
-
-        public void ShowScorePopup(Vector3 worldPosition, int amount)
-        {
-            if (canvasRoot == null || amount <= 0)
-            {
-                return;
-            }
-
-            var popupObject = new GameObject("ScorePopup", typeof(RectTransform));
-            popupObject.transform.SetParent(canvasRoot, false);
-
-            var rect = popupObject.GetComponent<RectTransform>();
-            rect.sizeDelta = new Vector2(180f, 52f);
-
-            var screenPosition = Camera.main != null ? Camera.main.WorldToScreenPoint(worldPosition) : Vector3.zero;
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRoot, screenPosition, null, out var localPosition);
-            rect.anchoredPosition = localPosition;
-
-            var text = popupObject.AddComponent<Text>();
-            text.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
-            text.fontSize = 34;
-            text.fontStyle = FontStyle.Bold;
-            text.alignment = TextAnchor.MiddleCenter;
-            text.color = new Color(1f, 0.88f, 0.22f, 1f);
-            text.raycastTarget = false;
-            text.text = $"+{amount}";
-
-            StartCoroutine(AnimateScorePopup(rect, text));
-        }
-
-        public void UpdateBossHud(string bossName, int currentHp, int maxHp, string phaseName)
-        {
-            if (bossHudRoot == null || bossHealthFill == null)
-            {
-                return;
-            }
-
-            bossHudRoot.SetActive(maxHp > 0 && currentHp > 0);
-            bossHealthFill.fillAmount = maxHp > 0 ? Mathf.Clamp01(currentHp / (float)maxHp) : 0f;
-
-            if (bossNameText != null)
-            {
-                bossNameText.text = string.IsNullOrEmpty(bossName) ? "BOSS" : bossName;
-            }
-
-            if (bossPhaseText != null)
-            {
-                bossPhaseText.text = string.IsNullOrEmpty(phaseName) ? string.Empty : phaseName;
-            }
-        }
-
-        public void HideBossHud()
-        {
-            if (bossHudRoot != null)
-            {
-                bossHudRoot.SetActive(false);
-            }
-        }
-
-        public void ShowBossPhaseNotice(string message)
-        {
-            if (bossNoticeText == null || string.IsNullOrEmpty(message))
-            {
-                return;
-            }
-
-            if (bossNoticeRoutine != null)
-            {
-                StopCoroutine(bossNoticeRoutine);
-            }
-
-            bossNoticeRoutine = StartCoroutine(AnimateBossNotice(message));
         }
 
         private IEnumerator AnimateScorePopup(RectTransform rect, Text text)
