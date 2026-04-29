@@ -57,8 +57,6 @@ namespace LeiTing.UI
                 {
                     label.color = selected ? Color.white : UIFactory.MutedTextColor;
                 }
-
-                pair.Value.rectTransform.anchoredPosition = Vector2.zero;
             }
         }
 
