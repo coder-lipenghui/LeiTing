@@ -1,4 +1,3 @@
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -27,23 +26,25 @@ namespace LeiTing.UI
             return image;
         }
 
-        public static TextMeshProUGUI CreateText(
+        public static Text CreateText(
             string name,
             Transform parent,
             string text,
             float fontSize,
-            TextAlignmentOptions alignment,
+            TextAnchor alignment,
             Color color)
         {
             var rect = CreateRect(name, parent);
-            var label = rect.gameObject.AddComponent<TextMeshProUGUI>();
+            var label = rect.gameObject.AddComponent<Text>();
             label.text = text;
-            label.fontSize = fontSize;
+            label.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            label.fontSize = Mathf.RoundToInt(fontSize);
+            label.fontStyle = FontStyle.Bold;
             label.alignment = alignment;
             label.color = color;
             label.raycastTarget = false;
-            label.enableWordWrapping = true;
-            label.overflowMode = TextOverflowModes.Ellipsis;
+            label.horizontalOverflow = HorizontalWrapMode.Wrap;
+            label.verticalOverflow = VerticalWrapMode.Truncate;
             return label;
         }
 
@@ -52,7 +53,7 @@ namespace LeiTing.UI
             Transform parent,
             string text,
             Color normalColor,
-            out TextMeshProUGUI label,
+            out Text label,
             out Image image)
         {
             var rect = CreateRect(name, parent);
@@ -64,12 +65,12 @@ namespace LeiTing.UI
             button.transition = Selectable.Transition.ColorTint;
             button.colors = CreateButtonColors(normalColor);
 
-            label = CreateText("Label", rect, text, 30f, TextAlignmentOptions.Center, Color.white);
+            label = CreateText("Label", rect, text, 30f, TextAnchor.MiddleCenter, Color.white);
             Stretch(label.rectTransform);
             return button;
         }
 
-        public static Toggle CreateToggle(string name, Transform parent, string text, out TextMeshProUGUI label)
+        public static Toggle CreateToggle(string name, Transform parent, string text, out Text label)
         {
             var root = CreateRect(name, parent);
             root.sizeDelta = new Vector2(760f, 88f);
@@ -77,7 +78,7 @@ namespace LeiTing.UI
             var panel = CreatePanel("Background", root, new Color(0.05f, 0.08f, 0.13f, 0.82f));
             Stretch(panel.rectTransform);
 
-            label = CreateText("Label", root, text, 32f, TextAlignmentOptions.MidlineLeft, TextColor);
+            label = CreateText("Label", root, text, 32f, TextAnchor.MiddleLeft, TextColor);
             var labelRect = label.rectTransform;
             labelRect.anchorMin = new Vector2(0f, 0f);
             labelRect.anchorMax = new Vector2(1f, 1f);

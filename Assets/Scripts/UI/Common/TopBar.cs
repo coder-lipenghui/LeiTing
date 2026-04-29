@@ -1,4 +1,3 @@
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -6,9 +5,9 @@ namespace LeiTing.UI
 {
     public class TopBar : MonoBehaviour
     {
-        [SerializeField] private TextMeshProUGUI coinText;
-        [SerializeField] private TextMeshProUGUI diamondText;
-        [SerializeField] private TextMeshProUGUI scoreText;
+        [SerializeField] private Text coinText;
+        [SerializeField] private Text diamondText;
+        [SerializeField] private Text scoreText;
 
         private bool built;
 
@@ -95,11 +94,11 @@ namespace LeiTing.UI
             var image = rect.gameObject.AddComponent<Image>();
             image.color = new Color(0.1f, 0.68f, 1f, 0.95f);
 
-            var label = UIFactory.CreateText("Icon", rect, "P", 34f, TextAlignmentOptions.Center, Color.white);
+            var label = UIFactory.CreateText("Icon", rect, "P", 34f, TextAnchor.MiddleCenter, Color.white);
             UIFactory.Stretch(label.rectTransform);
         }
 
-        private TextMeshProUGUI CreateResourceText(string name, string text)
+        private Text CreateResourceText(string name, string text)
         {
             var rect = UIFactory.CreateRect(name, transform);
             rect.sizeDelta = new Vector2(220f, 72f);
@@ -112,7 +111,7 @@ namespace LeiTing.UI
             layoutElement.preferredWidth = 220f;
             layoutElement.minHeight = 72f;
 
-            var label = UIFactory.CreateText("Label", rect, text, 27f, TextAlignmentOptions.Center, UIFactory.TextColor);
+            var label = UIFactory.CreateText("Label", rect, text, 27f, TextAnchor.MiddleCenter, UIFactory.TextColor);
             UIFactory.Stretch(label.rectTransform);
             return label;
         }

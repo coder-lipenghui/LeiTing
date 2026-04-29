@@ -1,4 +1,3 @@
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -6,7 +5,7 @@ namespace LeiTing.UI
 {
     public class PlaneUnlockSuccessPopup : BasePopup
     {
-        private TextMeshProUGUI messageText;
+        private Text messageText;
         private Button closeButton;
         private bool built;
 
@@ -42,7 +41,7 @@ namespace LeiTing.UI
             var background = gameObject.GetComponent<Image>() ?? gameObject.AddComponent<Image>();
             background.color = new Color(0.03f, 0.05f, 0.08f, 0.96f);
 
-            messageText = UIFactory.CreateText("Message", transform, string.Empty, 42f, TextAlignmentOptions.Center, Color.white);
+            messageText = UIFactory.CreateText("Message", transform, string.Empty, 42f, TextAnchor.MiddleCenter, Color.white);
             var messageRect = messageText.rectTransform;
             messageRect.anchorMin = new Vector2(0f, 0f);
             messageRect.anchorMax = new Vector2(1f, 1f);

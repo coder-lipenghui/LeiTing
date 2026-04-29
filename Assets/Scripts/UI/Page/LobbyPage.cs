@@ -1,5 +1,4 @@
 using LeiTing.Core;
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -9,8 +8,8 @@ namespace LeiTing.UI
     {
         [SerializeField] private Button startGameButton;
 
-        private TextMeshProUGUI planeNameText;
-        private TextMeshProUGUI planeStatsText;
+        private Text planeNameText;
+        private Text planeStatsText;
 
         public override void OnCreate()
         {
@@ -40,7 +39,7 @@ namespace LeiTing.UI
             var backdrop = UIFactory.CreatePanel("LobbyBackdrop", transform, new Color(0.015f, 0.02f, 0.045f, 0.96f));
             UIFactory.Stretch(backdrop.rectTransform);
 
-            var title = UIFactory.CreateText("Title", transform, "雷霆战机", 72f, TextAlignmentOptions.Center, Color.white);
+            var title = UIFactory.CreateText("Title", transform, "雷霆战机", 72f, TextAnchor.MiddleCenter, Color.white);
             var titleRect = title.rectTransform;
             titleRect.anchorMin = new Vector2(0.5f, 1f);
             titleRect.anchorMax = new Vector2(0.5f, 1f);
@@ -56,7 +55,7 @@ namespace LeiTing.UI
             previewRect.anchoredPosition = new Vector2(0f, 80f);
             previewRect.sizeDelta = new Vector2(720f, 520f);
 
-            var planeIcon = UIFactory.CreateText("PlaneIcon", previewRect, "▲", 150f, TextAlignmentOptions.Center, UIFactory.PanelAccentColor);
+            var planeIcon = UIFactory.CreateText("PlaneIcon", previewRect, "▲", 150f, TextAnchor.MiddleCenter, UIFactory.PanelAccentColor);
             var iconRect = planeIcon.rectTransform;
             iconRect.anchorMin = new Vector2(0.5f, 0.5f);
             iconRect.anchorMax = new Vector2(0.5f, 0.5f);
@@ -64,7 +63,7 @@ namespace LeiTing.UI
             iconRect.anchoredPosition = new Vector2(0f, 62f);
             iconRect.sizeDelta = new Vector2(360f, 220f);
 
-            planeNameText = UIFactory.CreateText("PlaneName", previewRect, string.Empty, 40f, TextAlignmentOptions.Center, Color.white);
+            planeNameText = UIFactory.CreateText("PlaneName", previewRect, string.Empty, 40f, TextAnchor.MiddleCenter, Color.white);
             var nameRect = planeNameText.rectTransform;
             nameRect.anchorMin = new Vector2(0f, 0f);
             nameRect.anchorMax = new Vector2(1f, 0f);
@@ -72,7 +71,7 @@ namespace LeiTing.UI
             nameRect.anchoredPosition = new Vector2(0f, 126f);
             nameRect.sizeDelta = new Vector2(0f, 56f);
 
-            planeStatsText = UIFactory.CreateText("PlaneStats", previewRect, string.Empty, 28f, TextAlignmentOptions.Center, UIFactory.MutedTextColor);
+            planeStatsText = UIFactory.CreateText("PlaneStats", previewRect, string.Empty, 28f, TextAnchor.MiddleCenter, UIFactory.MutedTextColor);
             var statRect = planeStatsText.rectTransform;
             statRect.anchorMin = new Vector2(0f, 0f);
             statRect.anchorMax = new Vector2(1f, 0f);

@@ -1,4 +1,3 @@
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -27,7 +26,7 @@ namespace LeiTing.UI
             var backdrop = UIFactory.CreatePanel("SettingBackdrop", transform, new Color(0.014f, 0.022f, 0.04f, 0.96f));
             UIFactory.Stretch(backdrop.rectTransform);
 
-            var title = UIFactory.CreateText("Title", transform, "设置", 54f, TextAlignmentOptions.MidlineLeft, Color.white);
+            var title = UIFactory.CreateText("Title", transform, "设置", 54f, TextAnchor.MiddleLeft, Color.white);
             var titleRect = title.rectTransform;
             titleRect.anchorMin = new Vector2(0f, 1f);
             titleRect.anchorMax = new Vector2(1f, 1f);

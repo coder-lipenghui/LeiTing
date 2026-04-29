@@ -1,4 +1,3 @@
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -7,9 +6,9 @@ namespace LeiTing.UI
     public class PlaneItem : MonoBehaviour
     {
         private PlaneData data;
-        private TextMeshProUGUI nameText;
-        private TextMeshProUGUI statsText;
-        private TextMeshProUGUI actionText;
+        private Text nameText;
+        private Text statsText;
+        private Text actionText;
         private Button actionButton;
         private Image actionImage;
         private bool built;
@@ -53,7 +52,7 @@ namespace LeiTing.UI
             iconRect.sizeDelta = new Vector2(116f, 116f);
             var iconImage = iconRect.gameObject.AddComponent<Image>();
             iconImage.color = new Color(0.1f, 0.68f, 1f, 0.82f);
-            var iconLabel = UIFactory.CreateText("IconLabel", iconRect, "▲", 54f, TextAlignmentOptions.Center, Color.white);
+            var iconLabel = UIFactory.CreateText("IconLabel", iconRect, "▲", 54f, TextAnchor.MiddleCenter, Color.white);
             UIFactory.Stretch(iconLabel.rectTransform);
 
             var infoRect = UIFactory.CreateRect("Info", transform);
@@ -68,10 +67,10 @@ namespace LeiTing.UI
             var infoElement = infoRect.gameObject.AddComponent<LayoutElement>();
             infoElement.flexibleWidth = 1f;
 
-            nameText = UIFactory.CreateText("Name", infoRect, string.Empty, 34f, TextAlignmentOptions.MidlineLeft, Color.white);
+            nameText = UIFactory.CreateText("Name", infoRect, string.Empty, 34f, TextAnchor.MiddleLeft, Color.white);
             nameText.rectTransform.sizeDelta = new Vector2(0f, 46f);
 
-            statsText = UIFactory.CreateText("Stats", infoRect, string.Empty, 24f, TextAlignmentOptions.TopLeft, UIFactory.MutedTextColor);
+            statsText = UIFactory.CreateText("Stats", infoRect, string.Empty, 24f, TextAnchor.UpperLeft, UIFactory.MutedTextColor);
             statsText.rectTransform.sizeDelta = new Vector2(0f, 58f);
 
             actionButton = UIFactory.CreateButton("ActionButton", transform, string.Empty, new Color(0.07f, 0.62f, 1f, 0.96f), out actionText, out actionImage);

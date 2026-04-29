@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -71,7 +70,7 @@ namespace LeiTing.UI
             var backdrop = UIFactory.CreatePanel("HangarBackdrop", transform, new Color(0.016f, 0.023f, 0.04f, 0.96f));
             UIFactory.Stretch(backdrop.rectTransform);
 
-            var title = UIFactory.CreateText("Title", transform, "机库", 54f, TextAlignmentOptions.MidlineLeft, Color.white);
+            var title = UIFactory.CreateText("Title", transform, "机库", 54f, TextAnchor.MiddleLeft, Color.white);
             var titleRect = title.rectTransform;
             titleRect.anchorMin = new Vector2(0f, 1f);
             titleRect.anchorMax = new Vector2(1f, 1f);

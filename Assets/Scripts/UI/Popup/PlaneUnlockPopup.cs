@@ -1,4 +1,3 @@
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -7,10 +6,10 @@ namespace LeiTing.UI
     public class PlaneUnlockPopup : BasePopup
     {
         private PlaneData data;
-        private TextMeshProUGUI nameText;
-        private TextMeshProUGUI statsText;
-        private TextMeshProUGUI progressText;
-        private TextMeshProUGUI watchAdText;
+        private Text nameText;
+        private Text statsText;
+        private Text progressText;
+        private Text watchAdText;
         private Button watchAdButton;
         private Button closeButton;
         private bool built;
@@ -46,7 +45,7 @@ namespace LeiTing.UI
             var background = gameObject.GetComponent<Image>() ?? gameObject.AddComponent<Image>();
             background.color = new Color(0.03f, 0.045f, 0.08f, 0.96f);
 
-            var title = UIFactory.CreateText("Title", transform, "飞机获取", 44f, TextAlignmentOptions.Center, Color.white);
+            var title = UIFactory.CreateText("Title", transform, "飞机获取", 44f, TextAnchor.MiddleCenter, Color.white);
             var titleRect = title.rectTransform;
             titleRect.anchorMin = new Vector2(0f, 1f);
             titleRect.anchorMax = new Vector2(1f, 1f);
@@ -62,10 +61,10 @@ namespace LeiTing.UI
             iconRect.anchoredPosition = new Vector2(0f, -120f);
             iconRect.sizeDelta = new Vector2(560f, 260f);
 
-            var icon = UIFactory.CreateText("PlaneIcon", iconRect, "▲", 116f, TextAlignmentOptions.Center, UIFactory.PanelAccentColor);
+            var icon = UIFactory.CreateText("PlaneIcon", iconRect, "▲", 116f, TextAnchor.MiddleCenter, UIFactory.PanelAccentColor);
             UIFactory.Stretch(icon.rectTransform);
 
-            nameText = UIFactory.CreateText("Name", transform, string.Empty, 40f, TextAlignmentOptions.Center, Color.white);
+            nameText = UIFactory.CreateText("Name", transform, string.Empty, 40f, TextAnchor.MiddleCenter, Color.white);
             var nameRect = nameText.rectTransform;
             nameRect.anchorMin = new Vector2(0f, 1f);
             nameRect.anchorMax = new Vector2(1f, 1f);
@@ -73,7 +72,7 @@ namespace LeiTing.UI
             nameRect.anchoredPosition = new Vector2(0f, -404f);
             nameRect.sizeDelta = new Vector2(0f, 56f);
 
-            statsText = UIFactory.CreateText("Stats", transform, string.Empty, 29f, TextAlignmentOptions.Center, UIFactory.TextColor);
+            statsText = UIFactory.CreateText("Stats", transform, string.Empty, 29f, TextAnchor.MiddleCenter, UIFactory.TextColor);
             var statRect = statsText.rectTransform;
             statRect.anchorMin = new Vector2(0f, 1f);
             statRect.anchorMax = new Vector2(1f, 1f);
@@ -81,7 +80,7 @@ namespace LeiTing.UI
             statRect.anchoredPosition = new Vector2(0f, -470f);
             statRect.sizeDelta = new Vector2(0f, 105f);
 
-            progressText = UIFactory.CreateText("Progress", transform, string.Empty, 30f, TextAlignmentOptions.Center, UIFactory.WarningColor);
+            progressText = UIFactory.CreateText("Progress", transform, string.Empty, 30f, TextAnchor.MiddleCenter, UIFactory.WarningColor);
             var progressRect = progressText.rectTransform;
             progressRect.anchorMin = new Vector2(0f, 1f);
             progressRect.anchorMax = new Vector2(1f, 1f);

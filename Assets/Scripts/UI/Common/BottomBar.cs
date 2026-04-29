@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -12,7 +11,7 @@ namespace LeiTing.UI
         [SerializeField] private Button settingButton;
 
         private readonly Dictionary<UIPageType, Image> buttonImages = new Dictionary<UIPageType, Image>();
-        private readonly Dictionary<UIPageType, TextMeshProUGUI> buttonLabels = new Dictionary<UIPageType, TextMeshProUGUI>();
+        private readonly Dictionary<UIPageType, Text> buttonLabels = new Dictionary<UIPageType, Text>();
         private bool built;
 
         public void BuildDefaultView()
