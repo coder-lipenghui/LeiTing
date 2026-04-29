@@ -58,8 +58,7 @@ namespace LeiTing.UI
                     label.color = selected ? Color.white : UIFactory.MutedTextColor;
                 }
 
-                var rect = pair.Value.rectTransform;
-                rect.anchoredPosition = selected ? new Vector2(0f, 8f) : Vector2.zero;
+                pair.Value.rectTransform.anchoredPosition = Vector2.zero;
             }
         }
 

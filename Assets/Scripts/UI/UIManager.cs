@@ -12,6 +12,8 @@ namespace LeiTing.UI
     public class UIManager : MonoSingleton<UIManager>
     {
         private const float PageSwitchDuration = 0.25f;
+        private const float MainTopBarHeight = 112f;
+        private const float MainBottomBarHeight = 144f;
         private const string SingleBulletId = "player_bullet_01";
         private const string DoubleBulletId = "player_bullet_double_01";
         private const string SpreadBulletId = "player_bullet_spread_01";
@@ -494,6 +496,7 @@ namespace LeiTing.UI
 
             var backgroundLayer = CreateLayer("BackgroundLayer", root);
             contentLayer = CreateLayer("ContentLayer", root);
+            UIFactory.SetInset(contentLayer, 0f, MainTopBarHeight, 0f, MainBottomBarHeight);
             var commonLayer = CreateLayer("CommonLayer", root);
             popupLayer = CreateLayer("PopupLayer", root);
 
@@ -533,7 +536,7 @@ namespace LeiTing.UI
             rect.anchorMax = new Vector2(1f, 1f);
             rect.pivot = new Vector2(0.5f, 1f);
             rect.anchoredPosition = Vector2.zero;
-            rect.sizeDelta = new Vector2(0f, 112f);
+            rect.sizeDelta = new Vector2(0f, MainTopBarHeight);
 
             var bar = rect.gameObject.AddComponent<TopBar>();
             bar.BuildDefaultView();
@@ -547,7 +550,7 @@ namespace LeiTing.UI
             rect.anchorMax = new Vector2(1f, 0f);
             rect.pivot = new Vector2(0.5f, 0f);
             rect.anchoredPosition = Vector2.zero;
-            rect.sizeDelta = new Vector2(0f, 144f);
+            rect.sizeDelta = new Vector2(0f, MainBottomBarHeight);
 
             var bar = rect.gameObject.AddComponent<BottomBar>();
             bar.BuildDefaultView();
