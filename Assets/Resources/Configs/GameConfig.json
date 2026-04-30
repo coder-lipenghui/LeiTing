@@ -20,11 +20,6 @@
     "defaultBulletId": "player_laser_01",
     "fireInterval": 0.16
   },
-  "background": {
-    "id": "background_01",
-    "spritePath": "Assets/Art/Sprites/Backgrounds/background-01.png",
-    "scrollSpeed": 2.1
-  },
   "enemies": [
     {
       "id": "enemy_a",
@@ -1046,62 +1041,86 @@
     {
       "id": "level_01",
       "displayName": "第 1 关",
-      "bossId": "boss_01"
+      "backgroundSpritePath": "Assets/Art/Sprites/Backgrounds/background-01.png",
+      "backgroundScrollSpeed": 2.1,
+      "bgmPath": ""
     },
     {
       "id": "level_02",
       "displayName": "第 2 关",
-      "bossId": "boss_02"
+      "backgroundSpritePath": "Assets/Art/Sprites/Backgrounds/background-01.png",
+      "backgroundScrollSpeed": 2.1,
+      "bgmPath": ""
     },
     {
       "id": "level_03",
       "displayName": "第 3 关",
-      "bossId": "boss_03"
+      "backgroundSpritePath": "Assets/Art/Sprites/Backgrounds/background-01.png",
+      "backgroundScrollSpeed": 2.1,
+      "bgmPath": ""
     },
     {
       "id": "level_04",
       "displayName": "第 4 关",
-      "bossId": "boss_04"
+      "backgroundSpritePath": "Assets/Art/Sprites/Backgrounds/background-01.png",
+      "backgroundScrollSpeed": 2.1,
+      "bgmPath": ""
     },
     {
       "id": "level_05",
       "displayName": "第 5 关",
-      "bossId": "boss_05"
+      "backgroundSpritePath": "Assets/Art/Sprites/Backgrounds/background-01.png",
+      "backgroundScrollSpeed": 2.1,
+      "bgmPath": ""
     },
     {
       "id": "level_06",
       "displayName": "第 6 关",
-      "bossId": "boss_06"
+      "backgroundSpritePath": "Assets/Art/Sprites/Backgrounds/background-01.png",
+      "backgroundScrollSpeed": 2.1,
+      "bgmPath": ""
     },
     {
       "id": "level_07",
       "displayName": "第 7 关",
-      "bossId": "boss_07"
+      "backgroundSpritePath": "Assets/Art/Sprites/Backgrounds/background-01.png",
+      "backgroundScrollSpeed": 2.1,
+      "bgmPath": ""
     },
     {
       "id": "level_08",
       "displayName": "第 8 关",
-      "bossId": "boss_08"
+      "backgroundSpritePath": "Assets/Art/Sprites/Backgrounds/background-01.png",
+      "backgroundScrollSpeed": 2.1,
+      "bgmPath": ""
     },
     {
       "id": "level_09",
       "displayName": "第 9 关",
-      "bossId": "boss_09"
+      "backgroundSpritePath": "Assets/Art/Sprites/Backgrounds/background-01.png",
+      "backgroundScrollSpeed": 2.1,
+      "bgmPath": ""
     },
     {
       "id": "level_10",
       "displayName": "第 10 关",
-      "bossId": "boss_10"
+      "backgroundSpritePath": "Assets/Art/Sprites/Backgrounds/background-01.png",
+      "backgroundScrollSpeed": 2.1,
+      "bgmPath": ""
     },
     {
       "id": "level_11",
       "displayName": "第 11 关",
-      "bossId": "boss_11"
+      "backgroundSpritePath": "Assets/Art/Sprites/Backgrounds/background-01.png",
+      "backgroundScrollSpeed": 2.1,
+      "bgmPath": ""
     },
     {
       "id": "level_12",
       "displayName": "第 12 关",
-      "bossId": "boss_12"
+      "backgroundSpritePath": "Assets/Art/Sprites/Backgrounds/background-01.png",
+      "backgroundScrollSpeed": 2.1,
+      "bgmPath": ""
     }
   ],
   "bulletPatterns": [
@@ -2119,7 +2138,8 @@
       ]
     },
     {
-      "id": "wave_boss_final",
+      "id": "wave_boss_final_01",
+      "levelId": "level_01",
       "startTime": 180,
       "spawns": [
         {
@@ -2132,7 +2152,237 @@
           },
           "attackPatternId": "",
           "movementPath": "BossEntry",
-          "useCurrentLevelBoss": true,
+          "pathAmplitude": 0,
+          "pathSpeed": 0,
+          "holdDuration": 0
+        }
+      ]
+    },
+    {
+      "id": "wave_boss_final_02",
+      "levelId": "level_02",
+      "startTime": 180,
+      "spawns": [
+        {
+          "enemyId": "boss_02",
+          "count": 1,
+          "interval": 0.1,
+          "startPosition": {
+            "x": 0,
+            "y": 6.2
+          },
+          "attackPatternId": "",
+          "movementPath": "BossEntry",
+          "pathAmplitude": 0,
+          "pathSpeed": 0,
+          "holdDuration": 0
+        }
+      ]
+    },
+    {
+      "id": "wave_boss_final_03",
+      "levelId": "level_03",
+      "startTime": 180,
+      "spawns": [
+        {
+          "enemyId": "boss_03",
+          "count": 1,
+          "interval": 0.1,
+          "startPosition": {
+            "x": 0,
+            "y": 6.2
+          },
+          "attackPatternId": "",
+          "movementPath": "BossEntry",
+          "pathAmplitude": 0,
+          "pathSpeed": 0,
+          "holdDuration": 0
+        }
+      ]
+    },
+    {
+      "id": "wave_boss_final_04",
+      "levelId": "level_04",
+      "startTime": 180,
+      "spawns": [
+        {
+          "enemyId": "boss_04",
+          "count": 1,
+          "interval": 0.1,
+          "startPosition": {
+            "x": 0,
+            "y": 6.2
+          },
+          "attackPatternId": "",
+          "movementPath": "BossEntry",
+          "pathAmplitude": 0,
+          "pathSpeed": 0,
+          "holdDuration": 0
+        }
+      ]
+    },
+    {
+      "id": "wave_boss_final_05",
+      "levelId": "level_05",
+      "startTime": 180,
+      "spawns": [
+        {
+          "enemyId": "boss_05",
+          "count": 1,
+          "interval": 0.1,
+          "startPosition": {
+            "x": 0,
+            "y": 6.2
+          },
+          "attackPatternId": "",
+          "movementPath": "BossEntry",
+          "pathAmplitude": 0,
+          "pathSpeed": 0,
+          "holdDuration": 0
+        }
+      ]
+    },
+    {
+      "id": "wave_boss_final_06",
+      "levelId": "level_06",
+      "startTime": 180,
+      "spawns": [
+        {
+          "enemyId": "boss_06",
+          "count": 1,
+          "interval": 0.1,
+          "startPosition": {
+            "x": 0,
+            "y": 6.2
+          },
+          "attackPatternId": "",
+          "movementPath": "BossEntry",
+          "pathAmplitude": 0,
+          "pathSpeed": 0,
+          "holdDuration": 0
+        }
+      ]
+    },
+    {
+      "id": "wave_boss_final_07",
+      "levelId": "level_07",
+      "startTime": 180,
+      "spawns": [
+        {
+          "enemyId": "boss_07",
+          "count": 1,
+          "interval": 0.1,
+          "startPosition": {
+            "x": 0,
+            "y": 6.2
+          },
+          "attackPatternId": "",
+          "movementPath": "BossEntry",
+          "pathAmplitude": 0,
+          "pathSpeed": 0,
+          "holdDuration": 0
+        }
+      ]
+    },
+    {
+      "id": "wave_boss_final_08",
+      "levelId": "level_08",
+      "startTime": 180,
+      "spawns": [
+        {
+          "enemyId": "boss_08",
+          "count": 1,
+          "interval": 0.1,
+          "startPosition": {
+            "x": 0,
+            "y": 6.2
+          },
+          "attackPatternId": "",
+          "movementPath": "BossEntry",
+          "pathAmplitude": 0,
+          "pathSpeed": 0,
+          "holdDuration": 0
+        }
+      ]
+    },
+    {
+      "id": "wave_boss_final_09",
+      "levelId": "level_09",
+      "startTime": 180,
+      "spawns": [
+        {
+          "enemyId": "boss_09",
+          "count": 1,
+          "interval": 0.1,
+          "startPosition": {
+            "x": 0,
+            "y": 6.2
+          },
+          "attackPatternId": "",
+          "movementPath": "BossEntry",
+          "pathAmplitude": 0,
+          "pathSpeed": 0,
+          "holdDuration": 0
+        }
+      ]
+    },
+    {
+      "id": "wave_boss_final_10",
+      "levelId": "level_10",
+      "startTime": 180,
+      "spawns": [
+        {
+          "enemyId": "boss_10",
+          "count": 1,
+          "interval": 0.1,
+          "startPosition": {
+            "x": 0,
+            "y": 6.2
+          },
+          "attackPatternId": "",
+          "movementPath": "BossEntry",
+          "pathAmplitude": 0,
+          "pathSpeed": 0,
+          "holdDuration": 0
+        }
+      ]
+    },
+    {
+      "id": "wave_boss_final_11",
+      "levelId": "level_11",
+      "startTime": 180,
+      "spawns": [
+        {
+          "enemyId": "boss_11",
+          "count": 1,
+          "interval": 0.1,
+          "startPosition": {
+            "x": 0,
+            "y": 6.2
+          },
+          "attackPatternId": "",
+          "movementPath": "BossEntry",
+          "pathAmplitude": 0,
+          "pathSpeed": 0,
+          "holdDuration": 0
+        }
+      ]
+    },
+    {
+      "id": "wave_boss_final_12",
+      "levelId": "level_12",
+      "startTime": 180,
+      "spawns": [
+        {
+          "enemyId": "boss_12",
+          "count": 1,
+          "interval": 0.1,
+          "startPosition": {
+            "x": 0,
+            "y": 6.2
+          },
+          "attackPatternId": "",
+          "movementPath": "BossEntry",
           "pathAmplitude": 0,
           "pathSpeed": 0,
           "holdDuration": 0

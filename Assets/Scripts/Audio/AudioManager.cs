@@ -1,6 +1,10 @@
 using LeiTing.Core;
 using UnityEngine;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 namespace LeiTing.Audio
 {
     public class AudioManager : MonoSingleton<AudioManager>
@@ -31,6 +35,36 @@ namespace LeiTing.Audio
             PlayClip(playerDestroyedClip ??= CreateImpactClip(0.32f, 180f, 45f));
         }
 
+        public void PlayBgm(string clipPath)
+        {
+            if (audioSource == null)
+            {
+                return;
+            }
+
+            if (string.IsNullOrEmpty(clipPath))
+            {
+                if (audioSource.loop)
+                {
+                    audioSource.Stop();
+                    audioSource.clip = null;
+                    audioSource.loop = false;
+                }
+
+                return;
+            }
+
+            var clip = LoadAudioClip(clipPath);
+            if (clip == null || audioSource.clip == clip)
+            {
+                return;
+            }
+
+            audioSource.clip = clip;
+            audioSource.loop = true;
+            audioSource.Play();
+        }
+
         private void PlayClip(AudioClip clip)
         {
             if (audioSource != null && clip != null)
@@ -58,6 +92,42 @@ namespace LeiTing.Audio
             var clip = AudioClip.Create("GeneratedImpact", sampleCount, 1, sampleRate, false);
             clip.SetData(samples, 0);
             return clip;
+        }
+
+        private static AudioClip LoadAudioClip(string clipPath)
+        {
+#if UNITY_EDITOR
+            if (!string.IsNullOrEmpty(clipPath) && clipPath.StartsWith("Assets/", System.StringComparison.OrdinalIgnoreCase))
+            {
+                var editorClip = AssetDatabase.LoadAssetAtPath<AudioClip>(clipPath);
+                if (editorClip != null)
+                {
+                    return editorClip;
+                }
+            }
+#endif
+
+            return Resources.Load<AudioClip>(NormalizeResourcesPath(clipPath));
+        }
+
+        private static string NormalizeResourcesPath(string assetPath)
+        {
+            const string resourcesSegment = "/Resources/";
+            var normalized = assetPath.Replace("\\", "/");
+            var resourcesIndex = normalized.IndexOf(resourcesSegment, System.StringComparison.OrdinalIgnoreCase);
+
+            if (resourcesIndex >= 0)
+            {
+                normalized = normalized.Substring(resourcesIndex + resourcesSegment.Length);
+            }
+
+            var extensionIndex = normalized.LastIndexOf(".", System.StringComparison.Ordinal);
+            if (extensionIndex >= 0)
+            {
+                normalized = normalized.Substring(0, extensionIndex);
+            }
+
+            return normalized;
         }
     }
 }

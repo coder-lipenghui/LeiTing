@@ -28,7 +28,6 @@ public sealed partial class WaveSpawn : Luban.BeanBase
         { if(!_buf["startPositionY"].IsNumber) { throw new SerializationException(); }  StartPositionY = _buf["startPositionY"]; }
         { if(!_buf["attackPatternId"].IsString) { throw new SerializationException(); }  AttackPatternId = _buf["attackPatternId"]; }
         { if(!_buf["movementPath"].IsString) { throw new SerializationException(); }  MovementPath = _buf["movementPath"]; }
-        { if(!_buf["useCurrentLevelBoss"].IsBoolean) { throw new SerializationException(); }  UseCurrentLevelBoss = _buf["useCurrentLevelBoss"]; }
         { if(!_buf["pathAmplitude"].IsNumber) { throw new SerializationException(); }  PathAmplitude = _buf["pathAmplitude"]; }
         { if(!_buf["pathSpeed"].IsNumber) { throw new SerializationException(); }  PathSpeed = _buf["pathSpeed"]; }
         { if(!_buf["holdDuration"].IsNumber) { throw new SerializationException(); }  HoldDuration = _buf["holdDuration"]; }
@@ -81,10 +80,6 @@ public sealed partial class WaveSpawn : Luban.BeanBase
     /// </summary>
     public readonly string MovementPath;
     /// <summary>
-    /// 使用当前关卡Boss
-    /// </summary>
-    public readonly bool UseCurrentLevelBoss;
-    /// <summary>
     /// 路径幅度
     /// </summary>
     public readonly float PathAmplitude;
@@ -118,7 +113,6 @@ public sealed partial class WaveSpawn : Luban.BeanBase
         + "startPositionY:" + StartPositionY + ","
         + "attackPatternId:" + AttackPatternId + ","
         + "movementPath:" + MovementPath + ","
-        + "useCurrentLevelBoss:" + UseCurrentLevelBoss + ","
         + "pathAmplitude:" + PathAmplitude + ","
         + "pathSpeed:" + PathSpeed + ","
         + "holdDuration:" + HoldDuration + ","

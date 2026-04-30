@@ -19,10 +19,6 @@ public partial class Tables
     /// </summary>
     public leiting.TbPlayer TbPlayer {get; }
     /// <summary>
-    /// 背景配置
-    /// </summary>
-    public leiting.TbBackground TbBackground {get; }
-    /// <summary>
     /// Boss阶段配置
     /// </summary>
     public leiting.TbBossPhase TbBossPhase {get; }
@@ -82,7 +78,6 @@ public partial class Tables
     public Tables(System.Func<string, JSONNode> loader)
     {
         TbPlayer = new leiting.TbPlayer(loader("leiting_tbplayer"));
-        TbBackground = new leiting.TbBackground(loader("leiting_tbbackground"));
         TbBossPhase = new leiting.TbBossPhase(loader("leiting_tbbossphase"));
         TbBossPhasePattern = new leiting.TbBossPhasePattern(loader("leiting_tbbossphasepattern"));
         TbBossSkill = new leiting.TbBossSkill(loader("leiting_tbbossskill"));
@@ -103,7 +98,6 @@ public partial class Tables
     private void ResolveRef()
     {
         TbPlayer.ResolveRef(this);
-        TbBackground.ResolveRef(this);
         TbBossPhase.ResolveRef(this);
         TbBossPhasePattern.ResolveRef(this);
         TbBossSkill.ResolveRef(this);

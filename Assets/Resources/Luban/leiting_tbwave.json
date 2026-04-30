@@ -79,8 +79,74 @@
   },
   {
     "index": 14,
-    "id": "wave_boss_final",
-    "levelId": "",
+    "id": "wave_boss_final_01",
+    "levelId": "level_01",
+    "startTime": 180
+  },
+  {
+    "index": 15,
+    "id": "wave_boss_final_02",
+    "levelId": "level_02",
+    "startTime": 180
+  },
+  {
+    "index": 16,
+    "id": "wave_boss_final_03",
+    "levelId": "level_03",
+    "startTime": 180
+  },
+  {
+    "index": 17,
+    "id": "wave_boss_final_04",
+    "levelId": "level_04",
+    "startTime": 180
+  },
+  {
+    "index": 18,
+    "id": "wave_boss_final_05",
+    "levelId": "level_05",
+    "startTime": 180
+  },
+  {
+    "index": 19,
+    "id": "wave_boss_final_06",
+    "levelId": "level_06",
+    "startTime": 180
+  },
+  {
+    "index": 20,
+    "id": "wave_boss_final_07",
+    "levelId": "level_07",
+    "startTime": 180
+  },
+  {
+    "index": 21,
+    "id": "wave_boss_final_08",
+    "levelId": "level_08",
+    "startTime": 180
+  },
+  {
+    "index": 22,
+    "id": "wave_boss_final_09",
+    "levelId": "level_09",
+    "startTime": 180
+  },
+  {
+    "index": 23,
+    "id": "wave_boss_final_10",
+    "levelId": "level_10",
+    "startTime": 180
+  },
+  {
+    "index": 24,
+    "id": "wave_boss_final_11",
+    "levelId": "level_11",
+    "startTime": 180
+  },
+  {
+    "index": 25,
+    "id": "wave_boss_final_12",
+    "levelId": "level_12",
     "startTime": 180
   }
 ]

@@ -11,7 +11,6 @@ namespace LeiTing.Core
     public class GameManager : MonoSingleton<GameManager>
     {
         private const int DefaultMaxLevelCount = 12;
-        private const string BossIdPrefix = "boss_";
 #if UNITY_EDITOR
         private const string EditorRequestedLevelKey = "LeiTing.Editor.RequestedLevelNumber";
 #endif
@@ -122,10 +121,9 @@ namespace LeiTing.Core
 
         private string ResolveCurrentLevelBossId()
         {
-            var levelConfig = ResolveCurrentLevelConfig();
-            return levelConfig != null && !string.IsNullOrEmpty(levelConfig.bossId)
-                ? levelConfig.bossId
-                : $"{BossIdPrefix}{currentLevelNumber:00}";
+            return ConfigManager.Instance != null && ConfigManager.Instance.IsLoaded
+                ? ConfigManager.Instance.GetBossEnemyIdForLevel(currentLevelNumber) ?? string.Empty
+                : string.Empty;
         }
 
         private string ResolveCurrentLevelBossDisplayName()
@@ -136,7 +134,7 @@ namespace LeiTing.Core
 
             return enemyConfig != null && !string.IsNullOrEmpty(enemyConfig.displayName)
                 ? enemyConfig.displayName
-                : $"BOSS {currentLevelNumber}";
+                : "BOSS";
         }
     }
 }

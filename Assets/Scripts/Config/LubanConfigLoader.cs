@@ -60,7 +60,6 @@ namespace LeiTing.Config
             var gameConfig = new GameConfig
             {
                 player = tables.TbPlayer.DataList.Count > 0 ? ToConfig(tables.TbPlayer.DataList[0]) : null,
-                background = tables.TbBackground.DataList.Count > 0 ? ToConfig(tables.TbBackground.DataList[0]) : null,
                 levels = tables.TbLevel.DataList.Select(ToConfig).ToList(),
                 enemies = tables.TbEnemy.DataList.Select(ToConfig).ToList(),
                 bullets = tables.TbBullet.DataList.Select(ToConfig).ToList(),
@@ -182,23 +181,15 @@ namespace LeiTing.Config
             };
         }
 
-        private static BackgroundConfig ToConfig(global::cfg.leiting.Background row)
-        {
-            return new BackgroundConfig
-            {
-                id = row.Id,
-                spritePath = row.SpritePath,
-                scrollSpeed = row.ScrollSpeed
-            };
-        }
-
         private static LevelConfig ToConfig(global::cfg.leiting.Level row)
         {
             return new LevelConfig
             {
                 id = row.Id,
                 displayName = row.DisplayName,
-                bossId = row.BossId
+                backgroundSpritePath = row.BackgroundSpritePath,
+                backgroundScrollSpeed = row.BackgroundScrollSpeed,
+                bgmPath = row.BgmPath
             };
         }
 
@@ -343,7 +334,6 @@ namespace LeiTing.Config
                 startPosition = new Vector2(row.StartPositionX, row.StartPositionY),
                 attackPatternId = row.AttackPatternId,
                 movementPath = row.MovementPath,
-                useCurrentLevelBoss = row.UseCurrentLevelBoss,
                 pathAmplitude = row.PathAmplitude,
                 pathSpeed = row.PathSpeed,
                 holdDuration = row.HoldDuration

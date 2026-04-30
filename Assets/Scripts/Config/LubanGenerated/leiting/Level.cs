@@ -20,7 +20,9 @@ public sealed partial class Level : Luban.BeanBase
         { if(!_buf["index"].IsNumber) { throw new SerializationException(); }  Index = _buf["index"]; }
         { if(!_buf["id"].IsString) { throw new SerializationException(); }  Id = _buf["id"]; }
         { if(!_buf["displayName"].IsString) { throw new SerializationException(); }  DisplayName = _buf["displayName"]; }
-        { if(!_buf["bossId"].IsString) { throw new SerializationException(); }  BossId = _buf["bossId"]; }
+        { if(!_buf["backgroundSpritePath"].IsString) { throw new SerializationException(); }  BackgroundSpritePath = _buf["backgroundSpritePath"]; }
+        { if(!_buf["backgroundScrollSpeed"].IsNumber) { throw new SerializationException(); }  BackgroundScrollSpeed = _buf["backgroundScrollSpeed"]; }
+        { if(!_buf["bgmPath"].IsString) { throw new SerializationException(); }  BgmPath = _buf["bgmPath"]; }
     }
 
     public static Level DeserializeLevel(JSONNode _buf)
@@ -38,9 +40,17 @@ public sealed partial class Level : Luban.BeanBase
     /// </summary>
     public readonly string DisplayName;
     /// <summary>
-    /// 本关Boss敌机ID
+    /// 背景图片路径
     /// </summary>
-    public readonly string BossId;
+    public readonly string BackgroundSpritePath;
+    /// <summary>
+    /// 背景滚动速度
+    /// </summary>
+    public readonly float BackgroundScrollSpeed;
+    /// <summary>
+    /// 背景音乐路径
+    /// </summary>
+    public readonly string BgmPath;
    
     public const int __ID__ = 2042875508;
     public override int GetTypeId() => __ID__;
@@ -55,7 +65,9 @@ public sealed partial class Level : Luban.BeanBase
         + "index:" + Index + ","
         + "id:" + Id + ","
         + "displayName:" + DisplayName + ","
-        + "bossId:" + BossId + ","
+        + "backgroundSpritePath:" + BackgroundSpritePath + ","
+        + "backgroundScrollSpeed:" + BackgroundScrollSpeed + ","
+        + "bgmPath:" + BgmPath + ","
         + "}";
     }
 }

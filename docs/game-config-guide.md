@@ -7,10 +7,10 @@
 | 节点 | 类型 | 作用 |
 | --- | --- | --- |
 | `player` | object | 玩家飞机基础属性、武器、碰撞和掉落物吸附参数。 |
-| `background` | object | 关卡背景资源与滚动速度。 |
 | `enemies` | array | 敌机和 Boss 的生命、移动、攻击、分数、死亡掉落等配置。 |
 | `bullets` | array | 玩家弹、敌机弹、激光等弹体基础配置。 |
 | `pickupItems` | array | 掉落物类型配置，目前包含星星。 |
+| `levels` | array | 关卡显示名、背景资源、背景滚速和背景音乐。 |
 | `bulletPatterns` | array | 敌机和 Boss 使用的弹幕模式。 |
 | `waves` | array | 关卡刷怪波次。 |
 | `stageEvents` | array | 关卡时间轴事件，例如提示、清弹。 |
@@ -74,23 +74,27 @@
 }
 ```
 
-## `background` 背景配置
+## `levels` 关卡配置
 
-作用：控制滚动背景图片和速度。
+作用：控制关卡显示名、滚动背景图片、滚动速度和背景音乐。Boss 不再挂在关卡表上，改由 `waves` / `spawns` 显式配置。
 
 | 字段 | 类型 | 作用 | 示例 |
 | --- | --- | --- | --- |
-| `id` | string | 背景配置唯一 ID。 | `"background_01"` |
-| `spritePath` | string | 背景图片路径。 | `"Assets/Art/Sprites/Backgrounds/background-01.png"` |
-| `scrollSpeed` | float | 背景向下滚动速度。 | `2.1` |
+| `id` | string | 关卡唯一 ID。 | `"level_01"` |
+| `displayName` | string | 关卡显示名。 | `"第 1 关"` |
+| `backgroundSpritePath` | string | 背景图片路径。 | `"Assets/Art/Sprites/Backgrounds/background-01.png"` |
+| `backgroundScrollSpeed` | float | 背景向下滚动速度。 | `2.1` |
+| `bgmPath` | string | 背景音乐资源路径，可为空。 | `""` |
 
 示例：
 
 ```json
 {
-  "id": "background_01",
-  "spritePath": "Assets/Art/Sprites/Backgrounds/background-01.png",
-  "scrollSpeed": 2.1
+  "id": "level_01",
+  "displayName": "第 1 关",
+  "backgroundSpritePath": "Assets/Art/Sprites/Backgrounds/background-01.png",
+  "backgroundScrollSpeed": 2.1,
+  "bgmPath": ""
 }
 ```
 

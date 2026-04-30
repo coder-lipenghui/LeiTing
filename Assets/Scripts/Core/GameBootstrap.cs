@@ -1,4 +1,5 @@
 using LeiTing.Config;
+using LeiTing.Audio;
 using LeiTing.Pickups;
 using LeiTing.Player;
 using LeiTing.Stage;
@@ -29,11 +30,12 @@ namespace LeiTing.Core
             EnsureDesignCamera();
             EnsurePickupManager();
             EnsurePlayerReady();
-            EnsureBackgroundReady();
 
             if (GameManager.Instance != null)
             {
                 GameManager.Instance.Initialize();
+                EnsureBackgroundReady();
+                EnsureLevelAudio();
 
                 if (startGameOnAwake)
                 {
@@ -141,9 +143,44 @@ namespace LeiTing.Core
             scroller.transform.localPosition = Vector3.zero;
             scroller.transform.localScale = Vector3.one;
 
-            if (ConfigManager.Instance != null && ConfigManager.Instance.IsLoaded && ConfigManager.Instance.Config.background != null)
+            var levelConfig = GetCurrentLevelConfig();
+            if (levelConfig != null)
             {
-                scroller.Configure(null, ConfigManager.Instance.Config.background.scrollSpeed);
+                scroller.Configure(LoadBackgroundSprite(levelConfig.backgroundSpritePath), levelConfig.backgroundScrollSpeed);
+            }
+        }
+
+        private static LevelConfig GetCurrentLevelConfig()
+        {
+            return ConfigManager.Instance != null && ConfigManager.Instance.IsLoaded && GameManager.Instance != null
+                ? ConfigManager.Instance.GetLevel(GameManager.Instance.CurrentLevelNumber)
+                : null;
+        }
+
+        private static Sprite LoadBackgroundSprite(string spritePath)
+        {
+            if (string.IsNullOrEmpty(spritePath))
+            {
+                return null;
+            }
+
+#if UNITY_EDITOR
+            var editorSprite = AssetDatabase.LoadAssetAtPath<Sprite>(spritePath);
+            if (editorSprite != null)
+            {
+                return editorSprite;
+            }
+#endif
+
+            return RuntimeAssetCatalog.LoadSprite(spritePath);
+        }
+
+        private static void EnsureLevelAudio()
+        {
+            var levelConfig = GetCurrentLevelConfig();
+            if (levelConfig != null && AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlayBgm(levelConfig.bgmPath);
             }
         }
     }

@@ -85,14 +85,15 @@ namespace LeiTing.Stage
 
         private void ApplyConfig()
         {
-            if (ConfigManager.Instance == null || !ConfigManager.Instance.IsLoaded || ConfigManager.Instance.Config.background == null)
+            if (ConfigManager.Instance == null || !ConfigManager.Instance.IsLoaded || GameManager.Instance == null)
             {
                 return;
             }
 
-            if (ConfigManager.Instance.Config.background.scrollSpeed > 0f)
+            var levelConfig = ConfigManager.Instance.GetLevel(GameManager.Instance.CurrentLevelNumber);
+            if (levelConfig != null && levelConfig.backgroundScrollSpeed > 0f)
             {
-                scrollSpeed = ConfigManager.Instance.Config.background.scrollSpeed;
+                scrollSpeed = levelConfig.backgroundScrollSpeed;
             }
         }
 

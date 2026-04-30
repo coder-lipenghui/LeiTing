@@ -75,10 +75,17 @@ namespace LeiTing.Editor
         private static void CollectConfiguredPaths(GameConfig config, HashSet<string> prefabPaths, HashSet<string> spritePaths)
         {
             AddPath(prefabPaths, config.player?.prefabPath);
-            AddPath(spritePaths, config.background?.spritePath);
 
             AddPath(spritePaths, "Assets/Art/Animations/Enemies/enemy-01.png");
             AddPath(spritePaths, "Assets/Art/Animations/Enemies/BOSS-1.png");
+
+            if (config.levels != null)
+            {
+                foreach (var level in config.levels)
+                {
+                    AddPath(spritePaths, level?.backgroundSpritePath);
+                }
+            }
 
             if (config.enemies != null)
             {

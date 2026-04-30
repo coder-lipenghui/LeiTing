@@ -1,12 +1,12 @@
 # LeiTing Codex Handoff
 
-This project is a Unity 2021.3.6f1c1 2D vertical shooter demo inspired by LeiDian/Raiden-style gameplay. The main design notes live in `雷霆战机.md`; the playable implementation is driven mostly by scripts under `Assets/Scripts` and runtime data in `Assets/Resources/Configs/GameConfig.json`.
+This project is a Unity 2021.3.6f1c1 2D vertical shooter demo inspired by LeiDian/Raiden-style gameplay. The main design notes live in `雷霆战机.md`; the playable implementation is driven mostly by scripts under `Assets/Scripts` and Luban source tables under `Luban/Datas`.
 
 ## Quick State
 
 - Unity version: `2021.3.6f1c1`
 - Main scene: `Assets/Scenes/SampleScene.unity`
-- Runtime config: `Assets/Resources/Configs/GameConfig.json`
+- Runtime config: Luban tables generated to `Assets/Resources/Luban`; `Assets/Resources/Configs/GameConfig.json` is only the legacy fallback.
 - Demo scene setup menu: `LeiTing/Setup/Create Demo Scene Skeleton`
 - Editor level test menu: `LeiTing/Test/Level Selector`
 - Current content count:
@@ -31,13 +31,28 @@ node -e "JSON.parse(require('fs').readFileSync('Assets/Resources/Configs/GameCon
 
 These are the current lightweight validation commands. Full gameplay still needs Unity Play Mode checks.
 
+## Luban Config Rule
+
+Do not directly edit Luban generated code or generated JSON:
+
+- `Assets/Scripts/Config/LubanGenerated/**`
+- `Assets/Resources/Luban/**`
+
+For config changes, edit the corresponding source workbook under `Luban/Datas/*.xlsx`, then run:
+
+```bash
+bash Luban/gen.sh
+```
+
+Generated code and generated JSON should only change as output from Luban generation.
+
 ## Architecture
 
 Core flow:
 
 - `GameBootstrap` loads config, prepares camera/player/background, then starts the game.
 - `GameManager` owns game state and score.
-- `ConfigManager` loads `Resources/Configs/GameConfig.json`.
+- `ConfigManager` loads generated Luban resources first, then falls back to `Resources/Configs/GameConfig.json`.
 - `EnemyManager` reads wave config and spawns enemies.
 - `StageManager` reads stage timeline events, expands level/Boss placeholders, and shows notices/clears enemy bullets.
 - `BulletManager` pools and fires projectiles.
@@ -179,7 +194,7 @@ If hit feedback looks wrong again, inspect:
 
 ## Level And Stage Timeline
 
-Levels are declared in `levels`; each level points to `boss_01` through `boss_12`. The final wave uses `useCurrentLevelBoss` so the same stage pacing can route to the current level's Boss resource.
+Levels are declared in `levels`; each level owns its background sprite, background scroll speed, and BGM path. Boss spawning is declared by level-specific `Wave` / `WaveSpawn` rows, with each Boss spawn using an explicit `enemyId`.
 
 Current demo structure:
 

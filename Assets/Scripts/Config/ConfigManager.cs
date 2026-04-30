@@ -102,6 +102,16 @@ namespace LeiTing.Config
             return config?.bossSkills.FirstOrDefault(item => item.id == id);
         }
 
+        public string GetBossEnemyIdForLevel(int levelNumber)
+        {
+            return GetWavesForLevel(levelNumber)
+                .OrderByDescending(wave => wave.startTime)
+                .Where(wave => wave?.spawns != null)
+                .SelectMany(wave => wave.spawns)
+                .Select(spawn => spawn?.enemyId)
+                .FirstOrDefault(IsBossId);
+        }
+
         public IEnumerable<WaveConfig> GetWavesForLevel(int levelNumber)
         {
             if (config?.waves == null)
@@ -146,6 +156,12 @@ namespace LeiTing.Config
                 || string.Equals(levelId, levelNumber.ToString(), StringComparison.OrdinalIgnoreCase)
                 || string.Equals(levelId, $"level_{levelNumber}", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(levelId, $"level_{levelNumber:00}", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool IsBossId(string enemyId)
+        {
+            return !string.IsNullOrEmpty(enemyId)
+                && enemyId.StartsWith("boss", StringComparison.OrdinalIgnoreCase);
         }
     }
 }

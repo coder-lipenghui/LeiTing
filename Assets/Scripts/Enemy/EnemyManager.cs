@@ -234,14 +234,7 @@ namespace LeiTing.Enemy
 
         private static string ResolveSpawnEnemyId(WaveSpawnConfig spawn)
         {
-            if (spawn == null)
-            {
-                return string.Empty;
-            }
-
-            return spawn.useCurrentLevelBoss && GameManager.Instance != null
-                ? GameManager.Instance.CurrentLevelBossId
-                : spawn.enemyId;
+            return spawn == null ? string.Empty : spawn.enemyId;
         }
 
         private static bool IsBossId(string enemyId)

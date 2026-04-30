@@ -20,12 +20,7 @@
 
 ```text
 Level
-  -> bossId
-      -> Enemy(id 以 boss 开头)
-          -> BossPhase
-              -> BossPhasePattern
-                  -> BulletPattern -> Bullet
-                  -> MissilePattern -> Missile
+  -> 背景图 / 背景滚速 / 背景音乐
 
 Level
   -> Wave(levelId 为空表示所有关卡通用)
@@ -34,6 +29,10 @@ Level
               -> bulletPatternId
                   -> BulletPattern -> Bullet
                   -> MissilePattern -> Missile
+              -> BossPhase
+                  -> BossPhasePattern
+                      -> BulletPattern -> Bullet
+                      -> MissilePattern -> Missile
 
 Enemy
   -> EnemyDrop
@@ -142,8 +141,8 @@ Luban 会在生成阶段做基础结构和类型校验。如果填错字段类�
 2. 填 Boss 预制体、血量、分数、兜底子弹等。
 3. 在 `Luban/Datas/BossPhase.xlsx` 的 `BossPhase` sheet 给它添加至少一个满血阶段，`triggerHpPercent` 填 `1`。
 4. 在 `Luban/Datas/BossPhasePattern.xlsx` 的 `BossPhasePattern` sheet 给阶段挂子弹或导弹模式。
-5. 在 `Luban/Datas/Level.xlsx` 的 `Level` sheet 把某关 `bossId` 改成新 Boss ID。
-6. 确认关卡里有 Boss 波次：`WaveSpawn.useCurrentLevelBoss` 为 `true` 的刷怪行会自动读取当前 `Level.bossId`。
+5. 在 `Luban/Datas/Wave.xlsx` 的 `Wave` sheet 给目标关卡新增或修改 Boss 波次。
+6. 在 `Luban/Datas/WaveSpawn.xlsx` 的 `WaveSpawn` sheet 把 Boss 波次的 `enemyId` 填成新 Boss ID。
 
 ## 六、给飞机装备子弹、导弹和挂点
 
@@ -170,7 +169,7 @@ Boss 装备在阶段上：
 
 新增关卡：
 
-1. 在 `Luban/Datas/Level.xlsx` 的 `Level` sheet 新增一行，填写 `id`、`displayName`、`bossId`。
+1. 在 `Luban/Datas/Level.xlsx` 的 `Level` sheet 新增一行，填写 `id`、`displayName`、`backgroundSpritePath`、`backgroundScrollSpeed`、`bgmPath`。
 2. 在 `Luban/Datas/Wave.xlsx` 的 `Wave` sheet 新增关卡波次：
    - `levelId` 填关卡 ID，例如 `level_13`。
    - `levelId` 留空表示所有关卡都会使用这波。
@@ -183,9 +182,9 @@ Boss 装备在阶段上：
    - `startPositionX/Y` 决定第一架飞机出生点，多架会自动横向展开。
    - `movementPath` 常用 `Straight`、`Hold`、`StopAndLeave`、`Sine`、`DriftLeft`、`DriftRight`。
 4. Boss 波次通常这样配：
-   - `Wave.levelId` 填对应关卡，或留空做全关卡通用 Boss 波。
-   - `WaveSpawn.useCurrentLevelBoss` 填 `true`。
-   - 这样 `enemyId` 可留空，运行时会使用当前 `Level.bossId`。
+   - `Wave.levelId` 填对应关卡。
+   - `WaveSpawn.enemyId` 直接填 Boss 的 `Enemy.id`。
+   - Boss 如何出现、何时出现、刷哪一个，都交给 `Wave` 和 `WaveSpawn`。
 
 关卡事件在 `Luban/Datas/StageEvent.xlsx` 的 `StageEvent` sheet：
 
@@ -213,7 +212,7 @@ Boss 装备在阶段上：
 ## 九、提交前检查
 
 - 每张表的 `id` 保持唯一。
-- 引用 ID 必须存在：`bossId`、`enemyId`、`bulletId`、`missileId`、`patternId`、`itemId`。
+- 引用 ID 必须存在：`enemyId`、`bulletId`、`missileId`、`patternId`、`itemId`。
 - 不要删除前三行 Luban 表头，也不要改 `##var`、`##type`、`##` 这几个标记。
 - 新增全新业务表时，同步维护 `Luban/Datas/__tables__.xlsx` 的 `full_name`、`value_type`、`read_schema_from_file`、`input`、`mode`、`group`。
 - `Wave.levelId` 和 `StageEvent.levelId` 留空会影响所有关卡。

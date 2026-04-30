@@ -155,10 +155,12 @@ namespace LeiTing.EditorTools
 
         private string ResolveBossName(int levelNumber)
         {
-            var level = ResolveLevel(levelNumber);
-            var bossId = level != null && !string.IsNullOrEmpty(level.bossId)
-                ? level.bossId
-                : $"boss_{levelNumber:00}";
+            var bossId = ResolveBossId(levelNumber);
+            if (string.IsNullOrEmpty(bossId))
+            {
+                return string.Empty;
+            }
+
             var enemies = config != null ? config.enemies : null;
 
             if (enemies == null)
@@ -175,6 +177,56 @@ namespace LeiTing.EditorTools
             }
 
             return bossId;
+        }
+
+        private string ResolveBossId(int levelNumber)
+        {
+            if (config?.waves == null)
+            {
+                return string.Empty;
+            }
+
+            var bossId = string.Empty;
+            var bossStartTime = float.NegativeInfinity;
+
+            foreach (var wave in config.waves)
+            {
+                if (wave == null || wave.spawns == null || !IsWaveForLevel(wave, levelNumber))
+                {
+                    continue;
+                }
+
+                foreach (var spawn in wave.spawns)
+                {
+                    if (spawn != null && IsBossId(spawn.enemyId) && wave.startTime >= bossStartTime)
+                    {
+                        bossId = spawn.enemyId;
+                        bossStartTime = wave.startTime;
+                    }
+                }
+            }
+
+            return bossId;
+        }
+
+        private bool IsWaveForLevel(WaveConfig wave, int levelNumber)
+        {
+            if (string.IsNullOrEmpty(wave.levelId))
+            {
+                return true;
+            }
+
+            var level = ResolveLevel(levelNumber);
+            return string.Equals(wave.levelId, level?.id, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(wave.levelId, levelNumber.ToString(), StringComparison.OrdinalIgnoreCase)
+                || string.Equals(wave.levelId, $"level_{levelNumber}", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(wave.levelId, $"level_{levelNumber:00}", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool IsBossId(string enemyId)
+        {
+            return !string.IsNullOrEmpty(enemyId)
+                && enemyId.StartsWith("boss", StringComparison.OrdinalIgnoreCase);
         }
 
         private LevelConfig ResolveLevel(int levelNumber)

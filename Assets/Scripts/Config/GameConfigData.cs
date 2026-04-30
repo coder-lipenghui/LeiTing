@@ -8,7 +8,6 @@ namespace LeiTing.Config
     public class GameConfig
     {
         public PlayerConfig player;
-        public BackgroundConfig background;
         public List<EnemyConfig> enemies = new List<EnemyConfig>();
         public List<BulletConfig> bullets = new List<BulletConfig>();
         public List<MissileConfig> missiles = new List<MissileConfig>();
@@ -44,19 +43,13 @@ namespace LeiTing.Config
     }
 
     [Serializable]
-    public class BackgroundConfig
-    {
-        public string id;
-        public string spritePath;
-        public float scrollSpeed;
-    }
-
-    [Serializable]
     public class LevelConfig
     {
         public string id;
         public string displayName;
-        public string bossId;
+        public string backgroundSpritePath;
+        public float backgroundScrollSpeed;
+        public string bgmPath;
     }
 
     [Serializable]
@@ -187,7 +180,6 @@ namespace LeiTing.Config
         public Vector2 startPosition;
         public string attackPatternId;
         public string movementPath;
-        public bool useCurrentLevelBoss;
         public float pathAmplitude;
         public float pathSpeed;
         public float holdDuration;
