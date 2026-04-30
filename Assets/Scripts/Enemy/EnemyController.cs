@@ -167,7 +167,7 @@ namespace LeiTing.Enemy
             spriteRenderer.sprite = spriteRenderer.sprite != null ? spriteRenderer.sprite : LoadEnemySprite() ?? CreateFallbackEnemySprite();
             spriteRenderer.flipY = true;
             spriteRenderer.sortingOrder = 15;
-            originalColor = GetEnemyColor();
+            originalColor = Color.white;
             spriteRenderer.color = originalColor;
 
             var scale = IsEnemyType("enemy_b") || IsEnemyType("enemy_e") ? 0.82f : IsEnemyType("enemy_c") ? 0.68f : 0.58f;
@@ -588,31 +588,6 @@ namespace LeiTing.Enemy
             flashTransform.localRotation = visualTransform == transform ? Quaternion.identity : visualTransform.localRotation;
             flashBaseLocalScale = visualTransform == transform ? Vector3.one : visualTransform.localScale;
             flashTransform.localScale = flashBaseLocalScale;
-        }
-
-        private Color GetEnemyColor()
-        {
-            if (IsEnemyType("enemy_b"))
-            {
-                return new Color(1f, 0.58f, 0.22f, 1f);
-            }
-
-            if (IsEnemyType("enemy_c"))
-            {
-                return new Color(0.95f, 0.32f, 1f, 1f);
-            }
-
-            if (IsEnemyType("enemy_d"))
-            {
-                return new Color(0.45f, 0.95f, 1f, 1f);
-            }
-
-            if (IsEnemyType("enemy_e"))
-            {
-                return new Color(1f, 0.22f, 0.32f, 1f);
-            }
-
-            return new Color(1f, 1f, 1f, 1f);
         }
 
         private static Vector2 Rotate(Vector2 vector, float degrees)

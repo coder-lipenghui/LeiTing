@@ -372,9 +372,9 @@ namespace LeiTing.Missiles
 
         private void ApplyVisual()
         {
-            baseColor = ResolveBodyColor();
             bodyRenderer.sprite = LoadConfiguredSprite(config.bodyRes) ?? GetFallbackSprite();
-            bodyRenderer.color = baseColor;
+            baseColor = Color.white;
+            bodyRenderer.color = Color.white;
             bodyRenderer.sortingOrder = CanBeDestroyed ? 24 : 22;
             bodyRenderer.sharedMaterial = GetDefaultMaterial();
 
@@ -985,20 +985,7 @@ namespace LeiTing.Missiles
                 return;
             }
 
-            var color = baseColor;
-
-            if (CanBeDestroyed && currentHp <= Mathf.Max(1, config.hp) * 0.35f)
-            {
-                color = Color.Lerp(baseColor, new Color(0.42f, 0.42f, 0.42f, 1f), 0.35f);
-            }
-
-            if (state == MissileState.Locking || state == MissileState.Warning || ShouldShowExplosionWarning())
-            {
-                var pulse = Mathf.PingPong(Time.time * 7f, 1f);
-                color = Color.Lerp(color, Color.white, pulse * 0.55f);
-            }
-
-            bodyRenderer.color = color;
+            bodyRenderer.color = baseColor;
 
             if (visualEffects != null)
             {
@@ -1128,34 +1115,6 @@ namespace LeiTing.Missiles
             DeactivateForPool();
         }
 
-        private Color ResolveBodyColor()
-        {
-            if (CanBeDestroyed)
-            {
-                return new Color(1f, 0.48f, 0.12f, 1f);
-            }
-
-            switch (GetBehaviorType())
-            {
-                case MissileBehaviorType.WeakHoming:
-                case MissileBehaviorType.StrongHoming:
-                    return new Color(1f, 0.12f, 0.36f, 1f);
-                case MissileBehaviorType.LockAndDash:
-                    return new Color(1f, 0.92f, 0.95f, 1f);
-                case MissileBehaviorType.Split:
-                case MissileBehaviorType.Carrier:
-                    return new Color(0.95f, 0.2f, 1f, 1f);
-                case MissileBehaviorType.Explode:
-                case MissileBehaviorType.Mine:
-                    return new Color(1f, 0.2f, 0.08f, 1f);
-                case MissileBehaviorType.Wave:
-                case MissileBehaviorType.Curve:
-                    return new Color(0.28f, 0.9f, 1f, 1f);
-                default:
-                    return new Color(1f, 0.76f, 0.16f, 1f);
-            }
-        }
-
         private Color ResolveTrailColor()
         {
             if (!string.IsNullOrEmpty(config.tailColor) && ColorUtility.TryParseHtmlString(config.tailColor, out var parsed))
@@ -1163,7 +1122,7 @@ namespace LeiTing.Missiles
                 return parsed;
             }
 
-            return ResolveBodyColor();
+            return Color.white;
         }
 
         private MissileTrailStyle ResolveTrailStyle()
