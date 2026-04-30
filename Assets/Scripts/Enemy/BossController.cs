@@ -178,7 +178,7 @@ namespace LeiTing.Enemy
             spriteRenderer.sprite = hasConfiguredSprite ? spriteRenderer.sprite : LoadBossSprite() ?? CreateFallbackBossSprite();
             spriteRenderer.flipY = true;
             spriteRenderer.sortingOrder = 25;
-            originalColor = hasConfiguredSprite ? spriteRenderer.color : new Color(1f, 0.92f, 0.82f, 1f);
+            originalColor = hasConfiguredSprite ? spriteRenderer.color : Color.white;
             spriteRenderer.color = originalColor;
             baseScale = hasPrefabVisual ? Vector3.one : Vector3.one * 1.42f;
             transform.localScale = baseScale;
