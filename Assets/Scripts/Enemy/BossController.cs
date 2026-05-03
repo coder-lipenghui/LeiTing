@@ -35,6 +35,9 @@ namespace LeiTing.Enemy
         private CircleCollider2D hitbox;
         private SpriteRenderer spriteRenderer;
         private SpriteRenderer flashRenderer;
+        private SpriteRenderer[] flashTargetRenderers;
+        private Material[] originalFlashMaterials;
+        private Color[] originalFlashColors;
         private ActorMounts mounts;
         private Color originalColor = Color.white;
         private Vector3 baseScale = Vector3.one * 1.35f;
@@ -48,6 +51,7 @@ namespace LeiTing.Enemy
         private bool isEntering;
         private bool isFiringBurst;
         private bool useChildHitboxes;
+        private bool isHitFlashApplied;
         private bool isDead;
 
         public int CurrentHp => currentHp;
@@ -71,6 +75,7 @@ namespace LeiTing.Enemy
             volleyCursor = 0;
             isEntering = true;
             isFiringBurst = false;
+            isHitFlashApplied = false;
             isDead = false;
 
             ApplyLayer();
@@ -193,6 +198,8 @@ namespace LeiTing.Enemy
                 flashRenderer.sharedMaterial = GetHitFlashMaterial();
                 SyncFlashRendererTransform();
             }
+
+            RefreshHitFlashTargets();
         }
 
         private void UpdateEntry()
@@ -504,6 +511,7 @@ namespace LeiTing.Enemy
 
             var isFlashing = Time.time < flashUntil;
             var scaleFeedback = config != null && config.hitScaleFeedback;
+            ApplyHitFlash(isFlashing);
             spriteRenderer.color = isFlashing ? Color.white : originalColor;
             transform.localScale = isFlashing && scaleFeedback ? baseScale * 1.05f : baseScale;
 
@@ -512,6 +520,67 @@ namespace LeiTing.Enemy
                 flashRenderer.sprite = spriteRenderer.sprite;
                 flashRenderer.color = isFlashing ? new Color(1f, 1f, 1f, 0.78f) : new Color(1f, 1f, 1f, 0f);
                 flashRenderer.transform.localScale = flashBaseLocalScale;
+            }
+        }
+
+        private void RefreshHitFlashTargets()
+        {
+            var allRenderers = GetComponentsInChildren<SpriteRenderer>(true);
+            var targetCount = 0;
+            for (var index = 0; index < allRenderers.Length; index++)
+            {
+                var renderer = allRenderers[index];
+                if (renderer != null && renderer != flashRenderer && renderer.sprite != null)
+                {
+                    targetCount++;
+                }
+            }
+
+            flashTargetRenderers = new SpriteRenderer[targetCount];
+            originalFlashMaterials = new Material[targetCount];
+            originalFlashColors = new Color[targetCount];
+
+            var targetIndex = 0;
+            for (var index = 0; index < allRenderers.Length; index++)
+            {
+                var renderer = allRenderers[index];
+                if (renderer == null || renderer == flashRenderer || renderer.sprite == null)
+                {
+                    continue;
+                }
+
+                flashTargetRenderers[targetIndex] = renderer;
+                originalFlashMaterials[targetIndex] = renderer.sharedMaterial;
+                originalFlashColors[targetIndex] = renderer.color;
+                targetIndex++;
+            }
+        }
+
+        private void ApplyHitFlash(bool enabled)
+        {
+            if (isHitFlashApplied == enabled)
+            {
+                return;
+            }
+
+            isHitFlashApplied = enabled;
+
+            if (flashTargetRenderers == null || flashTargetRenderers.Length == 0)
+            {
+                RefreshHitFlashTargets();
+            }
+
+            var flashMaterial = GetHitFlashMaterial();
+            for (var index = 0; index < flashTargetRenderers.Length; index++)
+            {
+                var renderer = flashTargetRenderers[index];
+                if (renderer == null)
+                {
+                    continue;
+                }
+
+                renderer.sharedMaterial = enabled && flashMaterial != null ? flashMaterial : originalFlashMaterials[index];
+                renderer.color = enabled ? Color.white : originalFlashColors[index];
             }
         }
 
