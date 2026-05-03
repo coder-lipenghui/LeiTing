@@ -24,6 +24,8 @@ namespace LeiTing.Enemy
         private const float EntrySpeed = 1.65f;
         private const float DefaultAttackInterval = 1.8f;
 
+        private static Material hitFlashMaterial;
+
         [SerializeField] private EnemyConfig config;
         [SerializeField] private int currentHp;
         [SerializeField] private int maxHp;
@@ -153,6 +155,7 @@ namespace LeiTing.Enemy
                 flashRenderer = flashObject.AddComponent<SpriteRenderer>();
                 flashRenderer.sortingOrder = 26;
                 flashRenderer.color = new Color(1f, 1f, 1f, 0f);
+                flashRenderer.sharedMaterial = GetHitFlashMaterial();
             }
 
             mounts = mounts != null ? mounts : GetComponent<ActorMounts>();
@@ -187,6 +190,7 @@ namespace LeiTing.Enemy
             {
                 flashRenderer.sprite = spriteRenderer.sprite;
                 flashRenderer.flipY = true;
+                flashRenderer.sharedMaterial = GetHitFlashMaterial();
                 SyncFlashRendererTransform();
             }
         }
@@ -517,6 +521,26 @@ namespace LeiTing.Enemy
             {
                 UIManager.Instance.UpdateBossHud(config != null ? config.displayName : "BOSS", currentHp, maxHp, GetCurrentPhaseName());
             }
+        }
+
+        private static Material GetHitFlashMaterial()
+        {
+            if (hitFlashMaterial != null)
+            {
+                return hitFlashMaterial;
+            }
+
+            var shader = Shader.Find("LeiTing/SpriteSilhouette");
+            if (shader == null)
+            {
+                return null;
+            }
+
+            hitFlashMaterial = new Material(shader)
+            {
+                name = "BossHitFlashMaterial"
+            };
+            return hitFlashMaterial;
         }
 
         private BossPhaseConfig GetCurrentPhase()
