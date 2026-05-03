@@ -29,7 +29,6 @@ namespace LeiTing.Enemy
         private ActorMounts mounts;
         private Color originalColor = Color.white;
         private Vector3 spawnPosition;
-        private Vector3 baseScale = Vector3.one;
         private Vector3 flashBaseLocalScale = Vector3.one;
         private string attackPatternId;
         private string movementPath;
@@ -163,16 +162,11 @@ namespace LeiTing.Enemy
 
         private void ApplyVisual()
         {
-            var hasPrefabVisual = transform.Find("Visual") != null;
             spriteRenderer.sprite = spriteRenderer.sprite != null ? spriteRenderer.sprite : LoadEnemySprite() ?? CreateFallbackEnemySprite();
             spriteRenderer.flipY = true;
             spriteRenderer.sortingOrder = 15;
             originalColor = Color.white;
             spriteRenderer.color = originalColor;
-
-            var scale = IsEnemyType("enemy_b") || IsEnemyType("enemy_e") ? 0.82f : IsEnemyType("enemy_c") ? 0.68f : 0.58f;
-            baseScale = hasPrefabVisual ? Vector3.one : Vector3.one * scale;
-            transform.localScale = baseScale;
 
             if (flashRenderer != null)
             {
@@ -531,7 +525,6 @@ namespace LeiTing.Enemy
 
             var isFlashing = Time.time < flashUntil;
             spriteRenderer.color = isFlashing ? Color.white : originalColor;
-            transform.localScale = isFlashing ? baseScale * 1.08f : baseScale;
 
             if (flashRenderer != null)
             {
