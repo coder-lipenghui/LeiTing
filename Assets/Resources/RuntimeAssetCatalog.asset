@@ -67,7 +67,7 @@ MonoBehaviour:
   - path: Assets/Art/Animations/Enemies/enemy-01.png
     sprite: {fileID: 21300000, guid: d2f16c8f7f46a40be9e08c5d584da0d6, type: 3}
   - path: Assets/Art/Sprites/Backgrounds/background-01.png
-    sprite: {fileID: 21300000, guid: a56edecbc701a4c7aa9891d05c6313c7, type: 3}
+    sprite: {fileID: 21300000, guid: 7061789d426f74cecbba946337ad4ab8, type: 3}
   - path: Assets/Art/Sprites/Bullets/enemy_bullet_01.png
     sprite: {fileID: 21300000, guid: 6b07a0cd9ca8f44088f4cf651dbcff97, type: 3}
   - path: Assets/Art/Sprites/Bullets/missile_01.png

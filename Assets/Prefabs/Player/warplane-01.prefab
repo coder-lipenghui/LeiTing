@@ -73,8 +73,13 @@ MonoBehaviour:
     displayName: 
     prefabPath: 
     hp: 0
+    shield: 0
+    stars: 0
+    coins: 0
     moveSpeed: 0
     invincibleTime: 0
+    pickupAttractRange: 0
+    pickupAttractSpeed: 0
     visualScale: 0
     hitboxRadius: 0
     hitboxOffset: {x: 0, y: 0}
@@ -82,12 +87,16 @@ MonoBehaviour:
     fireInterval: 0
   visualRoot: {fileID: 400001}
   playerHitbox: {fileID: 11400001}
+  playerShooter: {fileID: 0}
   gameplayCamera: {fileID: 0}
   damageSourceLayers:
     serializedVersion: 2
     m_Bits: 0
   fallbackMoveSpeed: 6
+  fallbackShield: 1
   fallbackInvincibleTime: 1.5
+  fallbackPickupAttractRange: 2.2
+  fallbackPickupAttractSpeed: 8
   hitboxRadius: 0.18
   hitboxOffset: {x: 0, y: -0.08}
   contactDamage: 1
@@ -118,7 +127,7 @@ Transform:
   m_GameObject: {fileID: 100001}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.55, y: 0.55, z: 1}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 400000}
