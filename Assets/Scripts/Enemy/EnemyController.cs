@@ -19,6 +19,8 @@ namespace LeiTing.Enemy
         private const float DespawnY = -6.4f;
         private const float EntryStopY = 2.6f;
 
+        private static Material hitFlashMaterial;
+
         [SerializeField] private EnemyConfig config;
         [SerializeField] private int currentHp;
 
@@ -142,6 +144,7 @@ namespace LeiTing.Enemy
                 flashObject.transform.SetParent(transform, false);
                 flashRenderer = flashObject.AddComponent<SpriteRenderer>();
                 flashRenderer.color = new Color(1f, 1f, 1f, 0f);
+                flashRenderer.sharedMaterial = GetHitFlashMaterial();
                 flashRenderer.sortingOrder = 16;
             }
 
@@ -179,6 +182,7 @@ namespace LeiTing.Enemy
                 flashRenderer.sprite = spriteRenderer.sprite;
                 flashRenderer.flipY = true;
                 flashRenderer.color = new Color(1f, 1f, 1f, 0f);
+                flashRenderer.sharedMaterial = GetHitFlashMaterial();
                 SyncFlashRendererTransform();
             }
         }
@@ -544,6 +548,26 @@ namespace LeiTing.Enemy
         private bool IsEnemyType(string enemyId)
         {
             return string.Equals(config?.id, enemyId, System.StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static Material GetHitFlashMaterial()
+        {
+            if (hitFlashMaterial != null)
+            {
+                return hitFlashMaterial;
+            }
+
+            var shader = Shader.Find("LeiTing/SpriteSilhouette");
+            if (shader == null)
+            {
+                return null;
+            }
+
+            hitFlashMaterial = new Material(shader)
+            {
+                name = "EnemyHitFlashMaterial"
+            };
+            return hitFlashMaterial;
         }
 
         private static bool IsMovementPath(string path, string expected)
