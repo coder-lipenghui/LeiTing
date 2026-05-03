@@ -507,12 +507,6 @@ namespace LeiTing.Player
 
         private void ApplyAircraftConfig()
         {
-            if (visualRoot != null)
-            {
-                var scale = config != null && config.visualScale > 0f ? config.visualScale : 1f;
-                visualRoot.localScale = new Vector3(scale, scale, 1f);
-            }
-
             if (config != null)
             {
                 hitboxRadius = config.hitboxRadius > 0f ? config.hitboxRadius : hitboxRadius;
