@@ -571,6 +571,24 @@
         }
       ],
       "prefabPath": "Assets/Prefabs/Enemies/boss_helicopter_06.prefab"
+    },
+    {
+      "id": "enemy_resource",
+      "displayName": "资源敌机",
+      "hp": 3,
+      "moveSpeed": 2.4,
+      "attackInterval": 999,
+      "bulletId": "",
+      "bulletPatternId": "",
+      "hitScaleFeedback": false,
+      "score": 50,
+      "drops": [
+        {
+          "itemId": "star",
+          "count": 2
+        }
+      ],
+      "prefabPath": "Assets/Prefabs/Enemies/enemy_01.prefab"
     }
   ],
   "bullets": [
@@ -2133,6 +2151,181 @@
           "movementPath": "DriftLeft",
           "pathAmplitude": 0,
           "pathSpeed": 0.55,
+          "holdDuration": 0
+        }
+      ]
+    },
+    {
+      "id": "wave_level_01_resource_orbit",
+      "levelId": "level_01",
+      "startTime": 8,
+      "spawns": [
+        {
+          "enemyId": "enemy_resource",
+          "count": 1,
+          "interval": 0.1,
+          "startPosition": {
+            "x": -5.4,
+            "y": 7.6
+          },
+          "attackPatternId": "",
+          "movementPath": "Orbit:centerX=-0.45,centerY=2.25,radiusX=0.22,radiusY=0.16,angularSpeed=120,clockwise=false,startAngle=180,duration=0,loopCount=1,enterDuration=2.7,exitDirection=DownRight,exitSpeed=3.4",
+          "pathAmplitude": 0,
+          "pathSpeed": 0,
+          "holdDuration": 0
+        },
+        {
+          "enemyId": "enemy_resource",
+          "count": 1,
+          "interval": 0.1,
+          "startPosition": {
+            "x": -4.7,
+            "y": 7.6
+          },
+          "attackPatternId": "",
+          "movementPath": "Orbit:centerX=0.45,centerY=2.25,radiusX=0.22,radiusY=0.16,angularSpeed=120,clockwise=false,startAngle=180,duration=0,loopCount=1,enterDuration=2.7,exitDirection=DownRight,exitSpeed=3.4",
+          "pathAmplitude": 0,
+          "pathSpeed": 0,
+          "holdDuration": 0
+        },
+        {
+          "enemyId": "enemy_resource",
+          "count": 1,
+          "interval": 0.1,
+          "startPosition": {
+            "x": -5.4,
+            "y": 7.1
+          },
+          "attackPatternId": "",
+          "movementPath": "Orbit:centerX=-0.45,centerY=1.75,radiusX=0.22,radiusY=0.16,angularSpeed=120,clockwise=false,startAngle=180,duration=0,loopCount=1,enterDuration=2.7,exitDirection=DownRight,exitSpeed=3.4",
+          "pathAmplitude": 0,
+          "pathSpeed": 0,
+          "holdDuration": 0
+        },
+        {
+          "enemyId": "enemy_resource",
+          "count": 1,
+          "interval": 0.1,
+          "startPosition": {
+            "x": -4.7,
+            "y": 7.1
+          },
+          "attackPatternId": "",
+          "movementPath": "Orbit:centerX=0.45,centerY=1.75,radiusX=0.22,radiusY=0.16,angularSpeed=120,clockwise=false,startAngle=180,duration=0,loopCount=1,enterDuration=2.7,exitDirection=DownRight,exitSpeed=3.4",
+          "pathAmplitude": 0,
+          "pathSpeed": 0,
+          "holdDuration": 0
+        },
+        {
+          "enemyId": "enemy_resource",
+          "count": 1,
+          "interval": 0.1,
+          "startPosition": {
+            "x": -5.4,
+            "y": 6.6
+          },
+          "attackPatternId": "",
+          "movementPath": "Orbit:centerX=-0.45,centerY=1.25,radiusX=0.22,radiusY=0.16,angularSpeed=120,clockwise=false,startAngle=180,duration=0,loopCount=1,enterDuration=2.7,exitDirection=DownRight,exitSpeed=3.4",
+          "pathAmplitude": 0,
+          "pathSpeed": 0,
+          "holdDuration": 0
+        },
+        {
+          "enemyId": "enemy_resource",
+          "count": 1,
+          "interval": 0.1,
+          "startPosition": {
+            "x": -4.7,
+            "y": 6.6
+          },
+          "attackPatternId": "",
+          "movementPath": "Orbit:centerX=0.45,centerY=1.25,radiusX=0.22,radiusY=0.16,angularSpeed=120,clockwise=false,startAngle=180,duration=0,loopCount=1,enterDuration=2.7,exitDirection=DownRight,exitSpeed=3.4",
+          "pathAmplitude": 0,
+          "pathSpeed": 0,
+          "holdDuration": 0
+        },
+        {
+          "enemyId": "enemy_resource",
+          "count": 1,
+          "interval": 0.1,
+          "startPosition": {
+            "x": -5.4,
+            "y": 6.1
+          },
+          "attackPatternId": "",
+          "movementPath": "Orbit:centerX=-0.45,centerY=0.75,radiusX=0.22,radiusY=0.16,angularSpeed=120,clockwise=false,startAngle=180,duration=0,loopCount=1,enterDuration=2.7,exitDirection=DownRight,exitSpeed=3.4",
+          "pathAmplitude": 0,
+          "pathSpeed": 0,
+          "holdDuration": 0
+        },
+        {
+          "enemyId": "enemy_resource",
+          "count": 1,
+          "interval": 0.1,
+          "startPosition": {
+            "x": -4.7,
+            "y": 6.1
+          },
+          "attackPatternId": "",
+          "movementPath": "Orbit:centerX=0.45,centerY=0.75,radiusX=0.22,radiusY=0.16,angularSpeed=120,clockwise=false,startAngle=180,duration=0,loopCount=1,enterDuration=2.7,exitDirection=DownRight,exitSpeed=3.4",
+          "pathAmplitude": 0,
+          "pathSpeed": 0,
+          "holdDuration": 0
+        },
+        {
+          "enemyId": "enemy_resource",
+          "count": 1,
+          "interval": 0.1,
+          "startPosition": {
+            "x": -5.4,
+            "y": 5.6
+          },
+          "attackPatternId": "",
+          "movementPath": "Orbit:centerX=-0.45,centerY=0.25,radiusX=0.22,radiusY=0.16,angularSpeed=120,clockwise=false,startAngle=180,duration=0,loopCount=1,enterDuration=2.7,exitDirection=DownRight,exitSpeed=3.4",
+          "pathAmplitude": 0,
+          "pathSpeed": 0,
+          "holdDuration": 0
+        },
+        {
+          "enemyId": "enemy_resource",
+          "count": 1,
+          "interval": 0.1,
+          "startPosition": {
+            "x": -4.7,
+            "y": 5.6
+          },
+          "attackPatternId": "",
+          "movementPath": "Orbit:centerX=0.45,centerY=0.25,radiusX=0.22,radiusY=0.16,angularSpeed=120,clockwise=false,startAngle=180,duration=0,loopCount=1,enterDuration=2.7,exitDirection=DownRight,exitSpeed=3.4",
+          "pathAmplitude": 0,
+          "pathSpeed": 0,
+          "holdDuration": 0
+        },
+        {
+          "enemyId": "enemy_resource",
+          "count": 1,
+          "interval": 0.1,
+          "startPosition": {
+            "x": -5.4,
+            "y": 5.1
+          },
+          "attackPatternId": "",
+          "movementPath": "Orbit:centerX=-0.45,centerY=-0.25,radiusX=0.22,radiusY=0.16,angularSpeed=120,clockwise=false,startAngle=180,duration=0,loopCount=1,enterDuration=2.7,exitDirection=DownRight,exitSpeed=3.4",
+          "pathAmplitude": 0,
+          "pathSpeed": 0,
+          "holdDuration": 0
+        },
+        {
+          "enemyId": "enemy_resource",
+          "count": 1,
+          "interval": 0.1,
+          "startPosition": {
+            "x": -4.7,
+            "y": 5.1
+          },
+          "attackPatternId": "",
+          "movementPath": "Orbit:centerX=0.45,centerY=-0.25,radiusX=0.22,radiusY=0.16,angularSpeed=120,clockwise=false,startAngle=180,duration=0,loopCount=1,enterDuration=2.7,exitDirection=DownRight,exitSpeed=3.4",
+          "pathAmplitude": 0,
+          "pathSpeed": 0,
           "holdDuration": 0
         }
       ]

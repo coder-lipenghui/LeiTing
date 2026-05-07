@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using LeiTing.Enemy.Movement;
 using UnityEngine;
 
 namespace LeiTing.Config
@@ -183,6 +184,7 @@ namespace LeiTing.Config
         public float pathAmplitude;
         public float pathSpeed;
         public float holdDuration;
+        public OrbitMovementConfig orbitMovement;
     }
 
     [Serializable]

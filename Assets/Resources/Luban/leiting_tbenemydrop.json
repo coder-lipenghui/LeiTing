@@ -502,5 +502,14 @@
     "itemId": "boom",
     "count": 1,
     "dropOnce": true
+  },
+  {
+    "index": 57,
+    "id": "enemy_drop_enemy_resource_01",
+    "enemyId": "enemy_resource",
+    "sort": 1,
+    "itemId": "star",
+    "count": 2,
+    "dropOnce": false
   }
 ]

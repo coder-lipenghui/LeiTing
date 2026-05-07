@@ -1,8 +1,11 @@
+using System;
+using System.Globalization;
 using LeiTing.Bullets;
 using LeiTing.Audio;
 using LeiTing.Config;
 using LeiTing.Core;
 using LeiTing.Effects;
+using LeiTing.Enemy.Movement;
 using LeiTing.Missiles;
 using LeiTing.Pickups;
 using LeiTing.Player;
@@ -41,6 +44,8 @@ namespace LeiTing.Enemy
         private float aliveTime;
         private float nextAttackTime;
         private float flashUntil;
+        private OrbitMovement orbitMovement;
+        private bool usesOrbitMovement;
         private bool hasFiredEntryShot;
         private bool useChildHitboxes;
         private bool isDead;
@@ -76,6 +81,7 @@ namespace LeiTing.Enemy
             ApplyLayer();
             ApplyVisual();
             ConfigureRootHitbox();
+            ConfigureMovementBehavior(spawnConfig);
         }
 
         private void Awake()
@@ -99,7 +105,7 @@ namespace LeiTing.Enemy
             UpdateAttack();
             UpdateFlash();
 
-            if (transform.position.y < DespawnY)
+            if (!usesOrbitMovement && transform.position.y < DespawnY)
             {
                 Destroy(gameObject);
             }
@@ -209,6 +215,16 @@ namespace LeiTing.Enemy
 
         private void UpdateMovement()
         {
+            if (usesOrbitMovement)
+            {
+                if (orbitMovement != null && orbitMovement.IsActive)
+                {
+                    orbitMovement.Tick(Time.deltaTime);
+                }
+
+                return;
+            }
+
             if (!string.IsNullOrEmpty(movementPath))
             {
                 UpdateConfiguredMovement();
@@ -240,6 +256,71 @@ namespace LeiTing.Enemy
             }
 
             transform.position = position;
+        }
+
+        private void ConfigureMovementBehavior(WaveSpawnConfig spawnConfig)
+        {
+            usesOrbitMovement = false;
+
+            if (!IsOrbitMovementPath(movementPath))
+            {
+                if (orbitMovement != null)
+                {
+                    orbitMovement.AutoUpdate = false;
+                    orbitMovement.enabled = false;
+                }
+
+                return;
+            }
+
+            orbitMovement = orbitMovement != null ? orbitMovement : GetComponent<OrbitMovement>();
+            if (orbitMovement == null)
+            {
+                orbitMovement = gameObject.AddComponent<OrbitMovement>();
+            }
+
+            orbitMovement.enabled = true;
+            orbitMovement.AutoUpdate = false;
+            orbitMovement.Initialize(BuildOrbitMovementConfig(spawnConfig), spawnPosition, GetMoveSpeed());
+            usesOrbitMovement = true;
+        }
+
+        private OrbitMovementConfig BuildOrbitMovementConfig(WaveSpawnConfig spawnConfig)
+        {
+            if (spawnConfig != null && spawnConfig.orbitMovement != null)
+            {
+                var configured = spawnConfig.orbitMovement.Clone();
+                ApplyInlineOrbitParameters(configured, movementPath);
+                return NormalizeOrbitMovementConfig(configured);
+            }
+
+            var radius = spawnConfig != null && spawnConfig.pathAmplitude > 0f ? spawnConfig.pathAmplitude : 1.2f;
+            var fallback = new OrbitMovementConfig
+            {
+                centerX = spawnConfig != null ? spawnConfig.startPosition.x : spawnPosition.x,
+                centerY = EntryStopY,
+                radiusX = radius,
+                radiusY = radius * 0.65f,
+                angularSpeed = spawnConfig != null && spawnConfig.pathSpeed > 0f ? spawnConfig.pathSpeed : 120f,
+                startAngle = 90f,
+                orbitDuration = spawnConfig != null && spawnConfig.holdDuration > 0f ? spawnConfig.holdDuration : 3f,
+                enterSpeed = GetMoveSpeed(),
+                exitSpeed = GetMoveSpeed() * 1.25f,
+                exitDirection = OrbitExitDirection.Down,
+                rotateToPath = false
+            };
+
+            ApplyInlineOrbitParameters(fallback, movementPath);
+            return NormalizeOrbitMovementConfig(fallback);
+        }
+
+        private OrbitMovementConfig NormalizeOrbitMovementConfig(OrbitMovementConfig orbitConfig)
+        {
+            orbitConfig.radiusX = orbitConfig.radiusX > 0f ? orbitConfig.radiusX : 1.2f;
+            orbitConfig.radiusY = orbitConfig.radiusY > 0f ? orbitConfig.radiusY : orbitConfig.radiusX;
+            orbitConfig.angularSpeed = orbitConfig.angularSpeed > 0f ? orbitConfig.angularSpeed : GetMoveSpeed() * 60f;
+            orbitConfig.exitSpeed = orbitConfig.exitSpeed > 0f ? orbitConfig.exitSpeed : GetMoveSpeed() * 1.25f;
+            return orbitConfig;
         }
 
         private void UpdateConfiguredMovement()
@@ -566,6 +647,164 @@ namespace LeiTing.Enemy
         private static bool IsMovementPath(string path, string expected)
         {
             return string.Equals(path, expected, System.StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool IsOrbitMovementPath(string path)
+        {
+            var pathName = GetMovementPathName(path);
+            return IsMovementPath(pathName, "Orbit")
+                || IsMovementPath(pathName, "OrbitMovement")
+                || IsMovementPath(pathName, "EnemyOrbitMove");
+        }
+
+        private static string GetMovementPathName(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                return string.Empty;
+            }
+
+            var normalized = path.Trim();
+            var parameterStart = normalized.IndexOfAny(new[] { ':', '(' });
+            return parameterStart >= 0 ? normalized.Substring(0, parameterStart).Trim() : normalized;
+        }
+
+        private static void ApplyInlineOrbitParameters(OrbitMovementConfig orbitConfig, string path)
+        {
+            if (orbitConfig == null || string.IsNullOrWhiteSpace(path))
+            {
+                return;
+            }
+
+            var parameterStart = path.IndexOfAny(new[] { ':', '(' });
+            if (parameterStart < 0)
+            {
+                return;
+            }
+
+            var marker = path[parameterStart];
+            var body = path.Substring(parameterStart + 1).Trim();
+            if (marker == '(' && body.EndsWith(")", StringComparison.Ordinal))
+            {
+                body = body.Substring(0, body.Length - 1);
+            }
+            else if (body.StartsWith("(", StringComparison.Ordinal) && body.EndsWith(")", StringComparison.Ordinal))
+            {
+                body = body.Substring(1, body.Length - 2);
+            }
+
+            var pairs = body.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var pair in pairs)
+            {
+                var separator = pair.IndexOf('=');
+                if (separator <= 0 || separator >= pair.Length - 1)
+                {
+                    continue;
+                }
+
+                var key = pair.Substring(0, separator).Trim();
+                var value = pair.Substring(separator + 1).Trim();
+                ApplyInlineOrbitParameter(orbitConfig, key, value);
+            }
+        }
+
+        private static void ApplyInlineOrbitParameter(OrbitMovementConfig orbitConfig, string key, string value)
+        {
+            switch (key.ToLowerInvariant())
+            {
+                case "centerx":
+                    SetFloat(value, result => orbitConfig.centerX = result);
+                    break;
+                case "centery":
+                    SetFloat(value, result => orbitConfig.centerY = result);
+                    break;
+                case "radiusx":
+                    SetFloat(value, result => orbitConfig.radiusX = result);
+                    break;
+                case "radiusy":
+                    SetFloat(value, result => orbitConfig.radiusY = result);
+                    break;
+                case "angularspeed":
+                    SetFloat(value, result => orbitConfig.angularSpeed = result);
+                    break;
+                case "clockwise":
+                    SetBool(value, result => orbitConfig.clockwise = result);
+                    break;
+                case "startangle":
+                    SetFloat(value, result => orbitConfig.startAngle = result);
+                    break;
+                case "orbitduration":
+                case "duration":
+                    SetFloat(value, result => orbitConfig.orbitDuration = result);
+                    break;
+                case "loopcount":
+                    SetFloat(value, result => orbitConfig.loopCount = result);
+                    break;
+                case "centermovespeedy":
+                case "centermovespeed":
+                    SetFloat(value, result => orbitConfig.centerMoveSpeedY = result);
+                    break;
+                case "enterduration":
+                    SetFloat(value, result => orbitConfig.enterDuration = result);
+                    break;
+                case "enterspeed":
+                    SetFloat(value, result => orbitConfig.enterSpeed = result);
+                    break;
+                case "easeoutenter":
+                case "easeout":
+                    SetBool(value, result => orbitConfig.easeOutEnter = result);
+                    break;
+                case "exitdirection":
+                    SetExitDirection(value, result => orbitConfig.exitDirection = result);
+                    break;
+                case "exitspeed":
+                    SetFloat(value, result => orbitConfig.exitSpeed = result);
+                    break;
+                case "destroyonexitcomplete":
+                    SetBool(value, result => orbitConfig.destroyOnExitComplete = result);
+                    break;
+                case "exitdespawnpadding":
+                case "exitpadding":
+                    SetFloat(value, result => orbitConfig.exitDespawnPadding = result);
+                    break;
+                case "rotate":
+                case "rotatetopath":
+                    SetBool(value, result => orbitConfig.rotateToPath = result);
+                    break;
+                case "rotationoffset":
+                    SetFloat(value, result => orbitConfig.rotationOffset = result);
+                    break;
+            }
+        }
+
+        private static void SetFloat(string value, Action<float> apply)
+        {
+            if (float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var result))
+            {
+                apply(result);
+            }
+        }
+
+        private static void SetBool(string value, Action<bool> apply)
+        {
+            if (bool.TryParse(value, out var result))
+            {
+                apply(result);
+                return;
+            }
+
+            if (int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var numericResult))
+            {
+                apply(numericResult != 0);
+            }
+        }
+
+        private static void SetExitDirection(string value, Action<OrbitExitDirection> apply)
+        {
+            if (Enum.TryParse(value, true, out OrbitExitDirection result))
+            {
+                apply(result);
+            }
         }
 
         private float GetMoveSpeed()

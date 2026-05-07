@@ -148,5 +148,11 @@
     "id": "wave_boss_final_12",
     "levelId": "level_12",
     "startTime": 180
+  },
+  {
+    "index": 26,
+    "id": "wave_level_01_resource_orbit",
+    "levelId": "level_01",
+    "startTime": 8
   }
 ]
