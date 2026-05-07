@@ -2169,7 +2169,7 @@
             "y": 7.6
           },
           "attackPatternId": "",
-          "movementPath": "Orbit:centerX=-0.45,centerY=2.25,radiusX=0.22,radiusY=0.16,angularSpeed=120,clockwise=false,startAngle=180,duration=0,loopCount=1,enterDuration=2.7,rotateToPath=true,rotationOffset=90,exitDirection=DownRight,exitSpeed=3.4",
+          "movementPath": "Orbit:centerX=-0.45,centerY=2.25,radiusX=3.6,radiusY=3.6,angularSpeed=120,clockwise=false,startAngle=180,duration=0,loopCount=1,enterDuration=2.7,rotateToPath=true,rotationOffset=90,exitDirection=DownRight,exitSpeed=3.4",
           "pathAmplitude": 0,
           "pathSpeed": 0,
           "holdDuration": 0
@@ -2183,7 +2183,7 @@
             "y": 7.6
           },
           "attackPatternId": "",
-          "movementPath": "Orbit:centerX=0.45,centerY=2.25,radiusX=0.22,radiusY=0.16,angularSpeed=120,clockwise=false,startAngle=180,duration=0,loopCount=1,enterDuration=2.7,rotateToPath=true,rotationOffset=90,exitDirection=DownRight,exitSpeed=3.4",
+          "movementPath": "Orbit:centerX=0.45,centerY=2.25,radiusX=3.6,radiusY=3.6,angularSpeed=120,clockwise=false,startAngle=180,duration=0,loopCount=1,enterDuration=2.7,rotateToPath=true,rotationOffset=90,exitDirection=DownRight,exitSpeed=3.4",
           "pathAmplitude": 0,
           "pathSpeed": 0,
           "holdDuration": 0
@@ -2197,7 +2197,7 @@
             "y": 7.1
           },
           "attackPatternId": "",
-          "movementPath": "Orbit:centerX=-0.45,centerY=1.75,radiusX=0.22,radiusY=0.16,angularSpeed=120,clockwise=false,startAngle=180,duration=0,loopCount=1,enterDuration=2.7,rotateToPath=true,rotationOffset=90,exitDirection=DownRight,exitSpeed=3.4",
+          "movementPath": "Orbit:centerX=-0.45,centerY=1.75,radiusX=3.6,radiusY=3.6,angularSpeed=120,clockwise=false,startAngle=180,duration=0,loopCount=1,enterDuration=2.7,rotateToPath=true,rotationOffset=90,exitDirection=DownRight,exitSpeed=3.4",
           "pathAmplitude": 0,
           "pathSpeed": 0,
           "holdDuration": 0
@@ -2211,7 +2211,7 @@
             "y": 7.1
           },
           "attackPatternId": "",
-          "movementPath": "Orbit:centerX=0.45,centerY=1.75,radiusX=0.22,radiusY=0.16,angularSpeed=120,clockwise=false,startAngle=180,duration=0,loopCount=1,enterDuration=2.7,rotateToPath=true,rotationOffset=90,exitDirection=DownRight,exitSpeed=3.4",
+          "movementPath": "Orbit:centerX=0.45,centerY=1.75,radiusX=3.6,radiusY=3.6,angularSpeed=120,clockwise=false,startAngle=180,duration=0,loopCount=1,enterDuration=2.7,rotateToPath=true,rotationOffset=90,exitDirection=DownRight,exitSpeed=3.4",
           "pathAmplitude": 0,
           "pathSpeed": 0,
           "holdDuration": 0
@@ -2225,7 +2225,7 @@
             "y": 6.6
           },
           "attackPatternId": "",
-          "movementPath": "Orbit:centerX=-0.45,centerY=1.25,radiusX=0.22,radiusY=0.16,angularSpeed=120,clockwise=false,startAngle=180,duration=0,loopCount=1,enterDuration=2.7,rotateToPath=true,rotationOffset=90,exitDirection=DownRight,exitSpeed=3.4",
+          "movementPath": "Orbit:centerX=-0.45,centerY=1.25,radiusX=3.6,radiusY=3.6,angularSpeed=120,clockwise=false,startAngle=180,duration=0,loopCount=1,enterDuration=2.7,rotateToPath=true,rotationOffset=90,exitDirection=DownRight,exitSpeed=3.4",
           "pathAmplitude": 0,
           "pathSpeed": 0,
           "holdDuration": 0
@@ -2239,7 +2239,7 @@
             "y": 6.6
           },
           "attackPatternId": "",
-          "movementPath": "Orbit:centerX=0.45,centerY=1.25,radiusX=0.22,radiusY=0.16,angularSpeed=120,clockwise=false,startAngle=180,duration=0,loopCount=1,enterDuration=2.7,rotateToPath=true,rotationOffset=90,exitDirection=DownRight,exitSpeed=3.4",
+          "movementPath": "Orbit:centerX=0.45,centerY=1.25,radiusX=3.6,radiusY=3.6,angularSpeed=120,clockwise=false,startAngle=180,duration=0,loopCount=1,enterDuration=2.7,rotateToPath=true,rotationOffset=90,exitDirection=DownRight,exitSpeed=3.4",
           "pathAmplitude": 0,
           "pathSpeed": 0,
           "holdDuration": 0
@@ -2253,7 +2253,7 @@
             "y": 6.1
           },
           "attackPatternId": "",
-          "movementPath": "Orbit:centerX=-0.45,centerY=0.75,radiusX=0.22,radiusY=0.16,angularSpeed=120,clockwise=false,startAngle=180,duration=0,loopCount=1,enterDuration=2.7,rotateToPath=true,rotationOffset=90,exitDirection=DownRight,exitSpeed=3.4",
+          "movementPath": "Orbit:centerX=-0.45,centerY=0.75,radiusX=3.6,radiusY=3.6,angularSpeed=120,clockwise=false,startAngle=180,duration=0,loopCount=1,enterDuration=2.7,rotateToPath=true,rotationOffset=90,exitDirection=DownRight,exitSpeed=3.4",
           "pathAmplitude": 0,
           "pathSpeed": 0,
           "holdDuration": 0
@@ -2267,7 +2267,7 @@
             "y": 6.1
           },
           "attackPatternId": "",
-          "movementPath": "Orbit:centerX=0.45,centerY=0.75,radiusX=0.22,radiusY=0.16,angularSpeed=120,clockwise=false,startAngle=180,duration=0,loopCount=1,enterDuration=2.7,rotateToPath=true,rotationOffset=90,exitDirection=DownRight,exitSpeed=3.4",
+          "movementPath": "Orbit:centerX=0.45,centerY=0.75,radiusX=3.6,radiusY=3.6,angularSpeed=120,clockwise=false,startAngle=180,duration=0,loopCount=1,enterDuration=2.7,rotateToPath=true,rotationOffset=90,exitDirection=DownRight,exitSpeed=3.4",
           "pathAmplitude": 0,
           "pathSpeed": 0,
           "holdDuration": 0
@@ -2281,7 +2281,7 @@
             "y": 5.6
           },
           "attackPatternId": "",
-          "movementPath": "Orbit:centerX=-0.45,centerY=0.25,radiusX=0.22,radiusY=0.16,angularSpeed=120,clockwise=false,startAngle=180,duration=0,loopCount=1,enterDuration=2.7,rotateToPath=true,rotationOffset=90,exitDirection=DownRight,exitSpeed=3.4",
+          "movementPath": "Orbit:centerX=-0.45,centerY=0.25,radiusX=3.6,radiusY=3.6,angularSpeed=120,clockwise=false,startAngle=180,duration=0,loopCount=1,enterDuration=2.7,rotateToPath=true,rotationOffset=90,exitDirection=DownRight,exitSpeed=3.4",
           "pathAmplitude": 0,
           "pathSpeed": 0,
           "holdDuration": 0
@@ -2295,7 +2295,7 @@
             "y": 5.6
           },
           "attackPatternId": "",
-          "movementPath": "Orbit:centerX=0.45,centerY=0.25,radiusX=0.22,radiusY=0.16,angularSpeed=120,clockwise=false,startAngle=180,duration=0,loopCount=1,enterDuration=2.7,rotateToPath=true,rotationOffset=90,exitDirection=DownRight,exitSpeed=3.4",
+          "movementPath": "Orbit:centerX=0.45,centerY=0.25,radiusX=3.6,radiusY=3.6,angularSpeed=120,clockwise=false,startAngle=180,duration=0,loopCount=1,enterDuration=2.7,rotateToPath=true,rotationOffset=90,exitDirection=DownRight,exitSpeed=3.4",
           "pathAmplitude": 0,
           "pathSpeed": 0,
           "holdDuration": 0
@@ -2309,7 +2309,7 @@
             "y": 5.1
           },
           "attackPatternId": "",
-          "movementPath": "Orbit:centerX=-0.45,centerY=-0.25,radiusX=0.22,radiusY=0.16,angularSpeed=120,clockwise=false,startAngle=180,duration=0,loopCount=1,enterDuration=2.7,rotateToPath=true,rotationOffset=90,exitDirection=DownRight,exitSpeed=3.4",
+          "movementPath": "Orbit:centerX=-0.45,centerY=-0.25,radiusX=3.6,radiusY=3.6,angularSpeed=120,clockwise=false,startAngle=180,duration=0,loopCount=1,enterDuration=2.7,rotateToPath=true,rotationOffset=90,exitDirection=DownRight,exitSpeed=3.4",
           "pathAmplitude": 0,
           "pathSpeed": 0,
           "holdDuration": 0
@@ -2323,7 +2323,7 @@
             "y": 5.1
           },
           "attackPatternId": "",
-          "movementPath": "Orbit:centerX=0.45,centerY=-0.25,radiusX=0.22,radiusY=0.16,angularSpeed=120,clockwise=false,startAngle=180,duration=0,loopCount=1,enterDuration=2.7,rotateToPath=true,rotationOffset=90,exitDirection=DownRight,exitSpeed=3.4",
+          "movementPath": "Orbit:centerX=0.45,centerY=-0.25,radiusX=3.6,radiusY=3.6,angularSpeed=120,clockwise=false,startAngle=180,duration=0,loopCount=1,enterDuration=2.7,rotateToPath=true,rotationOffset=90,exitDirection=DownRight,exitSpeed=3.4",
           "pathAmplitude": 0,
           "pathSpeed": 0,
           "holdDuration": 0
