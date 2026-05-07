@@ -166,7 +166,7 @@ namespace LeiTing.Enemy
         private void ApplyVisual()
         {
             spriteRenderer.sprite = spriteRenderer.sprite != null ? spriteRenderer.sprite : LoadEnemySprite() ?? CreateFallbackEnemySprite();
-            spriteRenderer.flipY = true;
+            spriteRenderer.flipY = false;
             spriteRenderer.sortingOrder = 15;
             originalColor = Color.white;
             spriteRenderer.color = originalColor;
@@ -174,7 +174,7 @@ namespace LeiTing.Enemy
             if (flashRenderer != null)
             {
                 flashRenderer.sprite = spriteRenderer.sprite;
-                flashRenderer.flipY = true;
+                flashRenderer.flipY = false;
                 flashRenderer.color = new Color(1f, 1f, 1f, 0f);
                 flashRenderer.sharedMaterial = GetHitFlashMaterial();
                 SyncFlashRendererTransform();
