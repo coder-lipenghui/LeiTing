@@ -24,8 +24,6 @@ namespace LeiTing.Enemy
         private const float EntrySpeed = 1.65f;
         private const float DefaultAttackInterval = 1.8f;
 
-        private static Material hitFlashMaterial;
-
         [SerializeField] private EnemyConfig config;
         [SerializeField] private int currentHp;
         [SerializeField] private int maxHp;
@@ -34,23 +32,16 @@ namespace LeiTing.Enemy
         private Rigidbody2D body;
         private CircleCollider2D hitbox;
         private SpriteRenderer spriteRenderer;
-        private SpriteRenderer flashRenderer;
-        private SpriteRenderer[] flashTargetRenderers;
-        private Material[] originalFlashMaterials;
-        private Color[] originalFlashColors;
         private ActorMounts mounts;
         private Color originalColor = Color.white;
-        private Vector3 flashBaseLocalScale = Vector3.one;
         private Vector3 anchorPosition;
         private float aliveTime;
         private float nextAttackTime;
-        private float flashUntil;
         private int currentPhaseIndex = -1;
         private int volleyCursor;
         private bool isEntering;
         private bool isFiringBurst;
         private bool useChildHitboxes;
-        private bool isHitFlashApplied;
         private bool isDead;
 
         public int CurrentHp => currentHp;
@@ -69,12 +60,10 @@ namespace LeiTing.Enemy
             anchorPosition = new Vector3(0f, EntryTargetY, 0f);
             aliveTime = 0f;
             nextAttackTime = Time.time + 1.4f;
-            flashUntil = 0f;
             currentPhaseIndex = -1;
             volleyCursor = 0;
             isEntering = true;
             isFiringBurst = false;
-            isHitFlashApplied = false;
             isDead = false;
 
             ApplyLayer();
@@ -98,8 +87,6 @@ namespace LeiTing.Enemy
 
         private void Update()
         {
-            UpdateFlash();
-
             if (isDead || GameManager.Instance == null || GameManager.Instance.CurrentState != GameState.Playing)
             {
                 return;
@@ -152,16 +139,6 @@ namespace LeiTing.Enemy
                 spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
             }
 
-            if (flashRenderer == null)
-            {
-                var flashObject = new GameObject("BossHitFlash");
-                flashObject.transform.SetParent(transform, false);
-                flashRenderer = flashObject.AddComponent<SpriteRenderer>();
-                flashRenderer.sortingOrder = 26;
-                flashRenderer.color = new Color(1f, 1f, 1f, 0f);
-                flashRenderer.sharedMaterial = GetHitFlashMaterial();
-            }
-
             mounts = mounts != null ? mounts : GetComponent<ActorMounts>();
             if (mounts == null)
             {
@@ -186,16 +163,6 @@ namespace LeiTing.Enemy
             spriteRenderer.sortingOrder = 25;
             originalColor = hasConfiguredSprite ? spriteRenderer.color : Color.white;
             spriteRenderer.color = originalColor;
-
-            if (flashRenderer != null)
-            {
-                flashRenderer.sprite = spriteRenderer.sprite;
-                flashRenderer.flipY = true;
-                flashRenderer.sharedMaterial = GetHitFlashMaterial();
-                SyncFlashRendererTransform();
-            }
-
-            RefreshHitFlashTargets();
         }
 
         private void UpdateEntry()
@@ -420,7 +387,6 @@ namespace LeiTing.Enemy
             }
 
             currentHp = Mathf.Max(0, currentHp - damage);
-            flashUntil = Time.time + 0.08f;
 
             if (currentHp <= 0)
             {
@@ -498,112 +464,12 @@ namespace LeiTing.Enemy
             Destroy(gameObject);
         }
 
-        private void UpdateFlash()
-        {
-            if (spriteRenderer == null)
-            {
-                return;
-            }
-
-            var isFlashing = Time.time < flashUntil;
-            ApplyHitFlash(isFlashing);
-            spriteRenderer.color = isFlashing ? Color.white : originalColor;
-
-            if (flashRenderer != null)
-            {
-                flashRenderer.sprite = spriteRenderer.sprite;
-                flashRenderer.color = isFlashing ? new Color(1f, 1f, 1f, 0.78f) : new Color(1f, 1f, 1f, 0f);
-                flashRenderer.transform.localScale = flashBaseLocalScale;
-            }
-        }
-
-        private void RefreshHitFlashTargets()
-        {
-            var allRenderers = GetComponentsInChildren<SpriteRenderer>(true);
-            var targetCount = 0;
-            for (var index = 0; index < allRenderers.Length; index++)
-            {
-                var renderer = allRenderers[index];
-                if (renderer != null && renderer != flashRenderer && renderer.sprite != null)
-                {
-                    targetCount++;
-                }
-            }
-
-            flashTargetRenderers = new SpriteRenderer[targetCount];
-            originalFlashMaterials = new Material[targetCount];
-            originalFlashColors = new Color[targetCount];
-
-            var targetIndex = 0;
-            for (var index = 0; index < allRenderers.Length; index++)
-            {
-                var renderer = allRenderers[index];
-                if (renderer == null || renderer == flashRenderer || renderer.sprite == null)
-                {
-                    continue;
-                }
-
-                flashTargetRenderers[targetIndex] = renderer;
-                originalFlashMaterials[targetIndex] = renderer.sharedMaterial;
-                originalFlashColors[targetIndex] = renderer.color;
-                targetIndex++;
-            }
-        }
-
-        private void ApplyHitFlash(bool enabled)
-        {
-            if (isHitFlashApplied == enabled)
-            {
-                return;
-            }
-
-            isHitFlashApplied = enabled;
-
-            if (flashTargetRenderers == null || flashTargetRenderers.Length == 0)
-            {
-                RefreshHitFlashTargets();
-            }
-
-            var flashMaterial = GetHitFlashMaterial();
-            for (var index = 0; index < flashTargetRenderers.Length; index++)
-            {
-                var renderer = flashTargetRenderers[index];
-                if (renderer == null)
-                {
-                    continue;
-                }
-
-                renderer.sharedMaterial = enabled && flashMaterial != null ? flashMaterial : originalFlashMaterials[index];
-                renderer.color = enabled ? Color.white : originalFlashColors[index];
-            }
-        }
-
         private void UpdateBossUi()
         {
             if (UIManager.Instance != null)
             {
                 UIManager.Instance.UpdateBossHud(config != null ? config.displayName : "BOSS", currentHp, maxHp, GetCurrentPhaseName());
             }
-        }
-
-        private static Material GetHitFlashMaterial()
-        {
-            if (hitFlashMaterial != null)
-            {
-                return hitFlashMaterial;
-            }
-
-            var shader = Shader.Find("LeiTing/SpriteSilhouette");
-            if (shader == null)
-            {
-                return null;
-            }
-
-            hitFlashMaterial = new Material(shader)
-            {
-                name = "BossHitFlashMaterial"
-            };
-            return hitFlashMaterial;
         }
 
         private BossPhaseConfig GetCurrentPhase()
@@ -670,21 +536,6 @@ namespace LeiTing.Enemy
             {
                 hitbox.enabled = false;
             }
-        }
-
-        private void SyncFlashRendererTransform()
-        {
-            if (flashRenderer == null || spriteRenderer == null)
-            {
-                return;
-            }
-
-            var flashTransform = flashRenderer.transform;
-            var visualTransform = spriteRenderer.transform;
-            flashTransform.localPosition = visualTransform == transform ? Vector3.zero : visualTransform.localPosition;
-            flashTransform.localRotation = visualTransform == transform ? Quaternion.identity : visualTransform.localRotation;
-            flashBaseLocalScale = visualTransform == transform ? Vector3.one : visualTransform.localScale;
-            flashTransform.localScale = flashBaseLocalScale;
         }
 
         private BulletPatternManager EnsureBulletPatternManager()
