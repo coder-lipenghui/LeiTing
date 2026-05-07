@@ -154,5 +154,23 @@
     "id": "wave_level_01_resource_orbit",
     "levelId": "level_01",
     "startTime": 8
+  },
+  {
+    "index": 27,
+    "id": "wave_level_01_resource_left_downright",
+    "levelId": "level_01",
+    "startTime": 4
+  },
+  {
+    "index": 28,
+    "id": "wave_level_01_resource_right_downleft",
+    "levelId": "level_01",
+    "startTime": 16
+  },
+  {
+    "index": 29,
+    "id": "wave_level_01_resource_top_down",
+    "levelId": "level_01",
+    "startTime": 24
   }
 ]
