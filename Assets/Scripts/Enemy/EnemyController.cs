@@ -46,6 +46,8 @@ namespace LeiTing.Enemy
         private float flashUntil;
         private OrbitMovement orbitMovement;
         private bool usesOrbitMovement;
+        private bool configuredRotateToPath;
+        private float configuredRotationOffset = -90f;
         private bool hasFiredEntryShot;
         private bool useChildHitboxes;
         private bool isDead;
@@ -261,9 +263,13 @@ namespace LeiTing.Enemy
         private void ConfigureMovementBehavior(WaveSpawnConfig spawnConfig)
         {
             usesOrbitMovement = false;
+            configuredRotateToPath = false;
+            configuredRotationOffset = -90f;
 
             if (!IsOrbitMovementPath(movementPath))
             {
+                ConfigureConfiguredMovementRotation();
+
                 if (orbitMovement != null)
                 {
                     orbitMovement.AutoUpdate = false;
@@ -323,11 +329,29 @@ namespace LeiTing.Enemy
             return orbitConfig;
         }
 
+        private void ConfigureConfiguredMovementRotation()
+        {
+            ForEachInlineMovementParameter(movementPath, (key, value) =>
+            {
+                switch (key.ToLowerInvariant())
+                {
+                    case "rotate":
+                    case "rotatetopath":
+                        SetBool(value, result => configuredRotateToPath = result);
+                        break;
+                    case "rotationoffset":
+                        SetFloat(value, result => configuredRotationOffset = result);
+                        break;
+                }
+            });
+        }
+
         private void UpdateConfiguredMovement()
         {
+            var previousPosition = transform.position;
             var position = transform.position;
             var speed = GetMoveSpeed();
-            var normalizedPath = movementPath.Trim();
+            var normalizedPath = GetMovementPathName(movementPath);
 
             if (IsMovementPath(normalizedPath, "Hold") || IsMovementPath(normalizedPath, "StopAndLeave"))
             {
@@ -350,6 +374,7 @@ namespace LeiTing.Enemy
                 }
 
                 transform.position = position;
+                ApplyConfiguredPathRotation(previousPosition, position);
                 return;
             }
 
@@ -369,6 +394,24 @@ namespace LeiTing.Enemy
             }
 
             transform.position = position;
+            ApplyConfiguredPathRotation(previousPosition, position);
+        }
+
+        private void ApplyConfiguredPathRotation(Vector2 previousPosition, Vector2 currentPosition)
+        {
+            if (!configuredRotateToPath)
+            {
+                return;
+            }
+
+            var delta = currentPosition - previousPosition;
+            if (delta.sqrMagnitude <= 0.000001f)
+            {
+                return;
+            }
+
+            var angle = Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg;
+            transform.rotation = Quaternion.Euler(0f, 0f, angle + configuredRotationOffset);
         }
 
         private void UpdateAttack()
@@ -676,6 +719,16 @@ namespace LeiTing.Enemy
                 return;
             }
 
+            ForEachInlineMovementParameter(path, (key, value) => ApplyInlineOrbitParameter(orbitConfig, key, value));
+        }
+
+        private static void ForEachInlineMovementParameter(string path, Action<string, string> apply)
+        {
+            if (string.IsNullOrWhiteSpace(path) || apply == null)
+            {
+                return;
+            }
+
             var parameterStart = path.IndexOfAny(new[] { ':', '(' });
             if (parameterStart < 0)
             {
@@ -704,7 +757,7 @@ namespace LeiTing.Enemy
 
                 var key = pair.Substring(0, separator).Trim();
                 var value = pair.Substring(separator + 1).Trim();
-                ApplyInlineOrbitParameter(orbitConfig, key, value);
+                apply(key, value);
             }
         }
 
