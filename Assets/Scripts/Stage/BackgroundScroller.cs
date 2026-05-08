@@ -10,6 +10,7 @@ namespace LeiTing.Stage
         private const string TileAName = "BackgroundTile_A";
         private const string TileBName = "BackgroundTile_B";
         private const float TileOverlap = 0.02f;
+        private const float DefeatScrollSpeedMultiplier = 0.5f;
 
         [SerializeField] private Sprite backgroundSprite;
         [SerializeField] private Camera gameplayCamera;
@@ -47,7 +48,8 @@ namespace LeiTing.Stage
 
         private void LateUpdate()
         {
-            if (GameManager.Instance != null && GameManager.Instance.CurrentState != GameState.Playing)
+            var gameState = GameManager.Instance != null ? GameManager.Instance.CurrentState : GameState.Playing;
+            if (gameState != GameState.Playing && gameState != GameState.Defeat)
             {
                 return;
             }
@@ -62,7 +64,8 @@ namespace LeiTing.Stage
                 FitToCamera();
             }
 
-            var distance = scrollSpeed * Time.deltaTime;
+            var speedMultiplier = gameState == GameState.Defeat ? DefeatScrollSpeedMultiplier : 1f;
+            var distance = scrollSpeed * speedMultiplier * Time.deltaTime;
             tileA.localPosition += Vector3.down * distance;
             tileB.localPosition += Vector3.down * distance;
 
