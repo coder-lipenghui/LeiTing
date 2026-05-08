@@ -318,5 +318,25 @@
     "aimAtPlayer": false,
     "burstCount": 1,
     "fireInterval": 0
+  },
+  {
+    "index": 17,
+    "id": "enemy_spiral_windmill",
+    "patternType": "Spiral",
+    "bulletId": "enemy_bullet_02",
+    "firePointGroup": "center",
+    "firePointOffsetX": 0,
+    "firePointOffsetY": 0,
+    "baseAngle": 0,
+    "bulletCount": 6,
+    "angleStep": 0,
+    "spreadAngle": 360,
+    "bulletSpeed": 4.6,
+    "bulletLifetime": 4.6,
+    "rotate": true,
+    "rotationSpeed": -10,
+    "aimAtPlayer": false,
+    "burstCount": 40,
+    "fireInterval": 0.05
   }
 ]

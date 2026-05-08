@@ -1278,5 +1278,21 @@
     "pathAmplitude": 0,
     "pathSpeed": 0,
     "holdDuration": 0
+  },
+  {
+    "index": 81,
+    "id": "wave_spawn_wave_level_01_spiral_030_01",
+    "waveId": "wave_level_01_spiral_030",
+    "sort": 1,
+    "enemyId": "enemy_e",
+    "count": 1,
+    "interval": 0.1,
+    "startPositionX": 0,
+    "startPositionY": 5.8,
+    "attackPatternId": "enemy_spiral_windmill",
+    "movementPath": "StopAndLeave",
+    "pathAmplitude": 0,
+    "pathSpeed": 0,
+    "holdDuration": 5.2
   }
 ]

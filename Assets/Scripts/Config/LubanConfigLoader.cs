@@ -363,15 +363,19 @@ namespace LeiTing.Config
                 firePointOffset = new Vector2(row.FirePointOffsetX, row.FirePointOffsetY),
                 baseAngle = row.BaseAngle,
                 bulletCount = row.BulletCount,
+                bulletCountPerBurst = row.BulletCount,
                 angleStep = row.AngleStep,
                 spreadAngle = row.SpreadAngle,
                 bulletSpeed = row.BulletSpeed,
                 bulletLifetime = row.BulletLifetime,
                 rotate = row.Rotate,
                 rotationSpeed = row.RotationSpeed,
+                rotateStepDegrees = Mathf.Abs(row.RotationSpeed),
+                clockwise = row.RotationSpeed < 0f,
                 aimAtPlayer = row.AimAtPlayer,
                 burstCount = row.BurstCount,
-                fireInterval = row.FireInterval
+                fireInterval = row.FireInterval,
+                duration = row.FireInterval > 0f && row.BurstCount > 1 ? row.FireInterval * row.BurstCount : 0f
             };
         }
 

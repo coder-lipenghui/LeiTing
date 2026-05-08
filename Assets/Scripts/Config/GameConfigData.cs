@@ -207,15 +207,19 @@ namespace LeiTing.Config
         public Vector2 firePointOffset;
         public float baseAngle;
         public int bulletCount;
+        public int bulletCountPerBurst;
         public float angleStep;
         public float spreadAngle;
         public float bulletSpeed;
         public float bulletLifetime;
         public bool rotate;
         public float rotationSpeed;
+        public float rotateStepDegrees;
+        public bool clockwise;
         public bool aimAtPlayer;
         public int burstCount;
         public float fireInterval;
+        public float duration;
     }
 
     [Serializable]

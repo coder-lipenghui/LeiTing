@@ -234,21 +234,25 @@
 | 字段 | 类型 | 作用 | 示例 |
 | --- | --- | --- | --- |
 | `id` | string | 弹幕唯一 ID。 | `"enemy_aim_single"` |
-| `patternType` | string | 弹幕类型。支持 `Single`、`Fan`、`Aim`、`Ring`、`Rotating`。 | `"Aim"` |
+| `patternType` | string | 弹幕类型。支持 `Single`、`Fan`、`Aim`、`Ring`、`Rotating`、`Spiral`。 | `"Aim"` |
 | `bulletId` | string | 使用的弹体 ID。 | `"enemy_bullet_01"` |
 | `firePointGroup` | string | 发射点组名，配合 `ActorMounts` 使用。 | `"center"` |
 | `firePointOffset` | Vector2 | 发射点偏移。 | `{ "x": 0, "y": -0.38 }` |
 | `baseAngle` | float | 基础发射角度。 | `-90` |
 | `bulletCount` | int | 每轮弹幕弹体数量。 | `7` |
+| `bulletCountPerBurst` | int | `Spiral` 每组子弹数量；未填时使用 `bulletCount`。 | `6` |
 | `angleStep` | float | 环形弹幕步进角；或作为散射角备用计算。 | `22.5` |
 | `spreadAngle` | float | 扇形、瞄准、旋转弹幕总散布角度。 | `72` |
 | `bulletSpeed` | float | 覆盖弹体速度；`0` 时使用弹体配置速度。 | `4.4` |
 | `bulletLifetime` | float | 覆盖弹体生命周期；`0` 时使用弹体配置生命周期。 | `5` |
 | `rotate` | bool | 是否每次发射递增旋转偏移。 | `true` |
 | `rotationSpeed` | float | 每次发射增加的角度偏移。 | `18` |
+| `rotateStepDegrees` | float | `Spiral` 每组发射后的旋转角；未填时使用 `rotationSpeed` 的绝对值。 | `10` |
+| `clockwise` | bool | `Spiral` 是否顺时针旋转；Luban 表可用负 `rotationSpeed` 表示顺时针。 | `true` |
 | `aimAtPlayer` | bool | 是否以玩家方向作为基础角度。 | `true` |
 | `burstCount` | int | 连续发射轮数。 | `1` |
 | `fireInterval` | float | 连发轮之间的间隔。 | `0.08` |
+| `duration` | float | `Spiral` 持续时间；未填时使用 `burstCount * fireInterval`。 | `2` |
 
 示例：
 
@@ -270,6 +274,25 @@
   "burstCount": 1,
   "fireInterval": 0,
   "firePointGroup": "center"
+}
+```
+
+螺旋扩散示例：
+
+```json
+{
+  "id": "enemy_spiral_windmill",
+  "patternType": "Spiral",
+  "bulletId": "enemy_bullet_02",
+  "firePointGroup": "center",
+  "firePointOffset": { "x": 0, "y": 0 },
+  "baseAngle": 0,
+  "bulletCountPerBurst": 6,
+  "bulletSpeed": 4.6,
+  "rotateStepDegrees": 10,
+  "clockwise": true,
+  "fireInterval": 0.05,
+  "duration": 2
 }
 ```
 

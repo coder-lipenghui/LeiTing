@@ -172,5 +172,11 @@
     "id": "wave_level_01_resource_top_down",
     "levelId": "level_01",
     "startTime": 24
+  },
+  {
+    "index": 30,
+    "id": "wave_level_01_spiral_030",
+    "levelId": "level_01",
+    "startTime": 30
   }
 ]

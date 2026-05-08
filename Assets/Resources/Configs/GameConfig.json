@@ -1477,6 +1477,31 @@
       "aimAtPlayer": false,
       "burstCount": 1,
       "fireInterval": 0
+    },
+    {
+      "id": "enemy_spiral_windmill",
+      "patternType": "Spiral",
+      "bulletId": "enemy_bullet_02",
+      "firePointGroup": "center",
+      "firePointOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "baseAngle": 0,
+      "bulletCount": 6,
+      "bulletCountPerBurst": 6,
+      "angleStep": 0,
+      "spreadAngle": 360,
+      "bulletSpeed": 4.6,
+      "bulletLifetime": 4.6,
+      "rotate": true,
+      "rotationSpeed": -10,
+      "rotateStepDegrees": 10,
+      "clockwise": true,
+      "aimAtPlayer": false,
+      "burstCount": 40,
+      "fireInterval": 0.05,
+      "duration": 2
     }
   ],
   "missilePatterns": [
@@ -3104,6 +3129,27 @@
           "pathAmplitude": 0,
           "pathSpeed": 0,
           "holdDuration": 0
+        }
+      ]
+    },
+    {
+      "id": "wave_level_01_spiral_030",
+      "levelId": "level_01",
+      "startTime": 30,
+      "spawns": [
+        {
+          "enemyId": "enemy_e",
+          "count": 1,
+          "interval": 0.1,
+          "startPosition": {
+            "x": 0,
+            "y": 5.8
+          },
+          "attackPatternId": "enemy_spiral_windmill",
+          "movementPath": "StopAndLeave",
+          "pathAmplitude": 0,
+          "pathSpeed": 0,
+          "holdDuration": 5.2
         }
       ]
     }
