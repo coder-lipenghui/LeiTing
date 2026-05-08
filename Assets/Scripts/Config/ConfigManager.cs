@@ -47,7 +47,14 @@ namespace LeiTing.Config
 
         public EnemyConfig GetEnemy(string id)
         {
-            return config?.enemies.FirstOrDefault(item => item.id == id);
+            return config?.enemies?.FirstOrDefault(item => item != null
+                && string.Equals(item.id, id, StringComparison.OrdinalIgnoreCase));
+        }
+
+        public WaveConfig GetWave(string id)
+        {
+            return config?.waves?.FirstOrDefault(item => item != null
+                && string.Equals(item.id, id, StringComparison.OrdinalIgnoreCase));
         }
 
         public BulletConfig GetBullet(string id)

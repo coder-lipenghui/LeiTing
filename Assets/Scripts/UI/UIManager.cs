@@ -1,6 +1,10 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using LeiTing.Config;
 using LeiTing.Core;
+using LeiTing.Enemy;
 using LeiTing.Player;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -19,6 +23,8 @@ namespace LeiTing.UI
         private const string SpreadBulletId = "player_bullet_spread_01";
         private const string PierceBulletId = "player_bullet_pierce_01";
         private const string LaserBulletId = "player_laser_01";
+        private const float SimulatorDebugPanelWidth = 980f;
+        private const float SimulatorDebugRowHeight = 64f;
 
         private readonly Dictionary<UIPageType, BasePage> pageInstances = new Dictionary<UIPageType, BasePage>();
         private readonly Stack<BasePopup> popupStack = new Stack<BasePopup>();
@@ -46,7 +52,7 @@ namespace LeiTing.UI
             new WeaponButton("激光", LaserBulletId)
         };
 
-        private Button[] buttons;
+        private readonly List<string> spawnOptionIds = new List<string>();
         private RectTransform canvasRoot;
         private Text hudText;
         private GameObject settlementRoot;
@@ -63,6 +69,12 @@ namespace LeiTing.UI
         private Coroutine bossNoticeRoutine;
         private string selectedBulletId = LaserBulletId;
         private bool battleHudInitialized;
+        private bool debugSpawnOptionsLoadedFromConfig;
+        private Dropdown weaponDropdown;
+        private Dropdown spawnModeDropdown;
+        private Dropdown spawnOptionDropdown;
+        private InputField spawnIdInput;
+        private Text debugFeedbackText;
 
         protected override void Awake()
         {
@@ -89,6 +101,7 @@ namespace LeiTing.UI
         {
             if (battleHudInitialized)
             {
+                RefreshDebugSpawnOptions();
                 ApplyWeaponSelection(selectedBulletId);
             }
         }
@@ -102,6 +115,14 @@ namespace LeiTing.UI
 
             UpdateHud();
             UpdateSettlement();
+
+            if (ShouldShowSimulatorDebugUi()
+                && !debugSpawnOptionsLoadedFromConfig
+                && ConfigManager.Instance != null
+                && ConfigManager.Instance.IsLoaded)
+            {
+                RefreshDebugSpawnOptions();
+            }
         }
 
         public void Init()
@@ -765,79 +786,325 @@ namespace LeiTing.UI
             canvasObject.AddComponent<GraphicRaycaster>();
             canvasRoot = canvasObject.GetComponent<RectTransform>();
 
-            var barObject = new GameObject("WeaponButtons", typeof(RectTransform));
-            barObject.transform.SetParent(canvasObject.transform, false);
-
-            var bar = barObject.GetComponent<RectTransform>();
-            bar.anchorMin = new Vector2(0.5f, 1f);
-            bar.anchorMax = new Vector2(0.5f, 1f);
-            bar.pivot = new Vector2(0.5f, 1f);
-            bar.anchoredPosition = new Vector2(0f, -36f);
-            bar.sizeDelta = new Vector2(980f, 96f);
-
-            var layout = barObject.AddComponent<HorizontalLayoutGroup>();
-            layout.spacing = 12f;
-            layout.padding = new RectOffset(0, 0, 0, 0);
-            layout.childControlWidth = true;
-            layout.childControlHeight = true;
-            layout.childForceExpandWidth = true;
-            layout.childForceExpandHeight = true;
-
-            buttons = new Button[weaponButtons.Length];
-            for (var index = 0; index < weaponButtons.Length; index++)
+            var showDebugPanel = ShouldShowSimulatorDebugUi();
+            if (showDebugPanel)
             {
-                buttons[index] = CreateWeaponButton(barObject.transform, weaponButtons[index]);
+                CreateSimulatorDebugPanel(canvasObject.transform);
             }
 
-            RefreshButtonStates();
-            CreateHud(canvasObject.transform);
-            CreateBossHud(canvasObject.transform);
+            CreateHud(canvasObject.transform, showDebugPanel);
+            CreateBossHud(canvasObject.transform, showDebugPanel);
             CreateBossNotice(canvasObject.transform);
             CreateSettlementText(canvasObject.transform);
             CreateRestartChallengeButton(canvasObject.transform);
             CreateNextLevelButton(canvasObject.transform);
         }
 
-        private Button CreateWeaponButton(Transform parent, WeaponButton weaponButton)
+        private void CreateSimulatorDebugPanel(Transform parent)
         {
-            var buttonObject = new GameObject(weaponButton.Label, typeof(RectTransform));
+            var panelObject = new GameObject("SimulatorDebugPanel", typeof(RectTransform));
+            panelObject.transform.SetParent(parent, false);
+
+            var panelRect = panelObject.GetComponent<RectTransform>();
+            panelRect.anchorMin = new Vector2(0.5f, 1f);
+            panelRect.anchorMax = new Vector2(0.5f, 1f);
+            panelRect.pivot = new Vector2(0.5f, 1f);
+            panelRect.anchoredPosition = new Vector2(0f, -24f);
+            panelRect.sizeDelta = new Vector2(SimulatorDebugPanelWidth, 252f);
+
+            var panelImage = panelObject.AddComponent<Image>();
+            panelImage.color = new Color(0.025f, 0.038f, 0.065f, 0.88f);
+
+            var layout = panelObject.AddComponent<VerticalLayoutGroup>();
+            layout.spacing = 10f;
+            layout.padding = new RectOffset(18, 18, 14, 12);
+            layout.childAlignment = TextAnchor.UpperCenter;
+            layout.childControlWidth = true;
+            layout.childControlHeight = false;
+            layout.childForceExpandWidth = true;
+            layout.childForceExpandHeight = false;
+
+            var title = UIFactory.CreateText(
+                "Title",
+                panelObject.transform,
+                "模拟器调试",
+                24f,
+                TextAnchor.MiddleLeft,
+                new Color(0.78f, 0.93f, 1f, 1f));
+            SetPreferredSize(title.gameObject, -1f, 30f);
+
+            var weaponRow = CreateDebugRow("WeaponRow", panelObject.transform);
+            CreateDebugLabel(weaponRow.transform, "武器", 88f);
+            weaponDropdown = CreateDebugDropdown("WeaponDropdown", weaponRow.transform, 704f);
+            ConfigureWeaponDropdown();
+
+            var weaponApplyButton = CreateDebugButton("WeaponConfirm", weaponRow.transform, "确认", 112f);
+            weaponApplyButton.onClick.AddListener(ApplySelectedWeaponFromDebugPanel);
+
+            var spawnRow = CreateDebugRow("SpawnRow", panelObject.transform);
+            CreateDebugLabel(spawnRow.transform, "刷敌", 88f);
+            spawnModeDropdown = CreateDebugDropdown("SpawnModeDropdown", spawnRow.transform, 132f);
+            ConfigureSpawnModeDropdown();
+            spawnOptionDropdown = CreateDebugDropdown("SpawnOptionDropdown", spawnRow.transform, 300f);
+            spawnOptionDropdown.onValueChanged.AddListener(UpdateSpawnInputFromOption);
+            spawnIdInput = CreateDebugInput("SpawnIdInput", spawnRow.transform, 260f, "输入 ID");
+
+            var spawnConfirmButton = CreateDebugButton("SpawnConfirm", spawnRow.transform, "确认", 112f);
+            spawnConfirmButton.onClick.AddListener(ConfirmDebugSpawn);
+
+            debugFeedbackText = UIFactory.CreateText(
+                "DebugFeedback",
+                panelObject.transform,
+                string.Empty,
+                22f,
+                TextAnchor.MiddleLeft,
+                UIFactory.MutedTextColor);
+            SetPreferredSize(debugFeedbackText.gameObject, -1f, 28f);
+
+            RefreshWeaponDropdownState();
+            RefreshDebugSpawnOptions();
+        }
+
+        private GameObject CreateDebugRow(string name, Transform parent)
+        {
+            var row = new GameObject(name, typeof(RectTransform));
+            row.transform.SetParent(parent, false);
+            SetPreferredSize(row, -1f, SimulatorDebugRowHeight);
+
+            var layout = row.AddComponent<HorizontalLayoutGroup>();
+            layout.spacing = 10f;
+            layout.childAlignment = TextAnchor.MiddleLeft;
+            layout.childControlWidth = false;
+            layout.childControlHeight = true;
+            layout.childForceExpandWidth = false;
+            layout.childForceExpandHeight = true;
+            return row;
+        }
+
+        private static Text CreateDebugLabel(Transform parent, string label, float width)
+        {
+            var text = UIFactory.CreateText(
+                label + "Label",
+                parent,
+                label,
+                24f,
+                TextAnchor.MiddleLeft,
+                new Color(0.78f, 0.9f, 1f, 1f));
+            SetPreferredSize(text.gameObject, width, SimulatorDebugRowHeight);
+            return text;
+        }
+
+        private Dropdown CreateDebugDropdown(string name, Transform parent, float width)
+        {
+            var root = UIFactory.CreateRect(name, parent);
+            SetPreferredSize(root.gameObject, width, SimulatorDebugRowHeight);
+
+            var image = root.gameObject.AddComponent<Image>();
+            image.color = new Color(0.055f, 0.08f, 0.13f, 0.95f);
+
+            var dropdown = root.gameObject.AddComponent<Dropdown>();
+            dropdown.targetGraphic = image;
+            dropdown.transition = Selectable.Transition.ColorTint;
+            dropdown.colors = CreateButtonColors();
+
+            var caption = UIFactory.CreateText(
+                "Label",
+                root,
+                string.Empty,
+                24f,
+                TextAnchor.MiddleLeft,
+                Color.white);
+            var captionRect = caption.rectTransform;
+            captionRect.anchorMin = Vector2.zero;
+            captionRect.anchorMax = Vector2.one;
+            captionRect.offsetMin = new Vector2(16f, 0f);
+            captionRect.offsetMax = new Vector2(-44f, 0f);
+            dropdown.captionText = caption;
+
+            var arrow = UIFactory.CreateText(
+                "Arrow",
+                root,
+                "v",
+                22f,
+                TextAnchor.MiddleCenter,
+                new Color(0.72f, 0.86f, 0.96f, 1f));
+            var arrowRect = arrow.rectTransform;
+            arrowRect.anchorMin = new Vector2(1f, 0f);
+            arrowRect.anchorMax = Vector2.one;
+            arrowRect.pivot = new Vector2(1f, 0.5f);
+            arrowRect.offsetMin = new Vector2(-40f, 0f);
+            arrowRect.offsetMax = Vector2.zero;
+
+            var template = CreateDropdownTemplate(root);
+            dropdown.template = template;
+            dropdown.itemText = template.Find("Viewport/Content/Item/Item Label")?.GetComponent<Text>();
+            template.gameObject.SetActive(false);
+            return dropdown;
+        }
+
+        private RectTransform CreateDropdownTemplate(RectTransform parent)
+        {
+            var template = UIFactory.CreateRect("Template", parent);
+            template.anchorMin = new Vector2(0f, 0f);
+            template.anchorMax = new Vector2(1f, 0f);
+            template.pivot = new Vector2(0.5f, 1f);
+            template.anchoredPosition = new Vector2(0f, -4f);
+            template.sizeDelta = new Vector2(0f, 246f);
+
+            var templateImage = template.gameObject.AddComponent<Image>();
+            templateImage.color = new Color(0.035f, 0.052f, 0.085f, 0.98f);
+
+            var scrollRect = template.gameObject.AddComponent<ScrollRect>();
+            scrollRect.horizontal = false;
+            scrollRect.vertical = true;
+            scrollRect.movementType = ScrollRect.MovementType.Clamped;
+
+            var viewport = UIFactory.CreateRect("Viewport", template);
+            UIFactory.Stretch(viewport);
+
+            var viewportImage = viewport.gameObject.AddComponent<Image>();
+            viewportImage.color = new Color(1f, 1f, 1f, 0.03f);
+
+            var mask = viewport.gameObject.AddComponent<Mask>();
+            mask.showMaskGraphic = false;
+
+            var content = UIFactory.CreateRect("Content", viewport);
+            content.anchorMin = new Vector2(0f, 1f);
+            content.anchorMax = new Vector2(1f, 1f);
+            content.pivot = new Vector2(0.5f, 1f);
+            content.anchoredPosition = Vector2.zero;
+            content.sizeDelta = Vector2.zero;
+
+            var contentLayout = content.gameObject.AddComponent<VerticalLayoutGroup>();
+            contentLayout.spacing = 0f;
+            contentLayout.childControlWidth = true;
+            contentLayout.childControlHeight = true;
+            contentLayout.childForceExpandWidth = true;
+            contentLayout.childForceExpandHeight = false;
+
+            var fitter = content.gameObject.AddComponent<ContentSizeFitter>();
+            fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            var item = UIFactory.CreateRect("Item", content);
+            item.sizeDelta = new Vector2(0f, 46f);
+
+            var itemImage = item.gameObject.AddComponent<Image>();
+            itemImage.color = new Color(0.06f, 0.09f, 0.14f, 0.95f);
+
+            var toggle = item.gameObject.AddComponent<Toggle>();
+            toggle.targetGraphic = itemImage;
+            toggle.transition = Selectable.Transition.ColorTint;
+            toggle.colors = CreateButtonColors();
+
+            var checkmark = UIFactory.CreatePanel("Item Checkmark", item, new Color(0.1f, 0.62f, 1f, 0.92f));
+            var checkmarkRect = checkmark.rectTransform;
+            checkmarkRect.anchorMin = new Vector2(0f, 0.5f);
+            checkmarkRect.anchorMax = new Vector2(0f, 0.5f);
+            checkmarkRect.pivot = new Vector2(0f, 0.5f);
+            checkmarkRect.anchoredPosition = new Vector2(6f, 0f);
+            checkmarkRect.sizeDelta = new Vector2(4f, 30f);
+            toggle.graphic = checkmark;
+
+            var itemLabel = UIFactory.CreateText(
+                "Item Label",
+                item,
+                string.Empty,
+                22f,
+                TextAnchor.MiddleLeft,
+                Color.white);
+            var itemLabelRect = itemLabel.rectTransform;
+            itemLabelRect.anchorMin = Vector2.zero;
+            itemLabelRect.anchorMax = Vector2.one;
+            itemLabelRect.offsetMin = new Vector2(18f, 0f);
+            itemLabelRect.offsetMax = new Vector2(-8f, 0f);
+
+            scrollRect.viewport = viewport;
+            scrollRect.content = content;
+            return template;
+        }
+
+        private InputField CreateDebugInput(string name, Transform parent, float width, string placeholderText)
+        {
+            var root = UIFactory.CreateRect(name, parent);
+            SetPreferredSize(root.gameObject, width, SimulatorDebugRowHeight);
+
+            var image = root.gameObject.AddComponent<Image>();
+            image.color = new Color(0.04f, 0.06f, 0.1f, 0.94f);
+            root.gameObject.AddComponent<RectMask2D>();
+
+            var input = root.gameObject.AddComponent<InputField>();
+            input.targetGraphic = image;
+            input.transition = Selectable.Transition.ColorTint;
+            input.colors = CreateButtonColors();
+            input.lineType = InputField.LineType.SingleLine;
+
+            var text = UIFactory.CreateText(
+                "Text",
+                root,
+                string.Empty,
+                24f,
+                TextAnchor.MiddleLeft,
+                Color.white);
+            var textRect = text.rectTransform;
+            textRect.anchorMin = Vector2.zero;
+            textRect.anchorMax = Vector2.one;
+            textRect.offsetMin = new Vector2(16f, 0f);
+            textRect.offsetMax = new Vector2(-16f, 0f);
+            text.supportRichText = false;
+
+            var placeholder = UIFactory.CreateText(
+                "Placeholder",
+                root,
+                placeholderText,
+                24f,
+                TextAnchor.MiddleLeft,
+                UIFactory.MutedTextColor);
+            var placeholderRect = placeholder.rectTransform;
+            placeholderRect.anchorMin = Vector2.zero;
+            placeholderRect.anchorMax = Vector2.one;
+            placeholderRect.offsetMin = new Vector2(16f, 0f);
+            placeholderRect.offsetMax = new Vector2(-16f, 0f);
+
+            input.textComponent = text;
+            input.placeholder = placeholder;
+            return input;
+        }
+
+        private Button CreateDebugButton(string name, Transform parent, string label, float width)
+        {
+            var buttonObject = new GameObject(name, typeof(RectTransform));
             buttonObject.transform.SetParent(parent, false);
+            SetPreferredSize(buttonObject, width, SimulatorDebugRowHeight);
 
             var image = buttonObject.AddComponent<Image>();
-            image.color = GetButtonColor(false);
+            image.color = new Color(0.1f, 0.62f, 1f, 0.94f);
 
             var button = buttonObject.AddComponent<Button>();
             button.targetGraphic = image;
             button.transition = Selectable.Transition.ColorTint;
             button.colors = CreateButtonColors();
-            button.onClick.AddListener(() => ApplyWeaponSelection(weaponButton.BulletId));
 
-            var layoutElement = buttonObject.AddComponent<LayoutElement>();
-            layoutElement.minHeight = 72f;
-            layoutElement.preferredHeight = 72f;
-
-            var labelObject = new GameObject("Label", typeof(RectTransform));
-            labelObject.transform.SetParent(buttonObject.transform, false);
-
-            var labelRect = labelObject.GetComponent<RectTransform>();
-            labelRect.anchorMin = Vector2.zero;
-            labelRect.anchorMax = Vector2.one;
-            labelRect.offsetMin = Vector2.zero;
-            labelRect.offsetMax = Vector2.zero;
-
-            var text = labelObject.AddComponent<Text>();
-            text.text = weaponButton.Label;
-            text.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
-            text.fontSize = 30;
-            text.fontStyle = FontStyle.Bold;
-            text.alignment = TextAnchor.MiddleCenter;
-            text.color = Color.white;
-            text.raycastTarget = false;
-
+            CreateBattleButtonLabel(buttonObject.transform, label);
             return button;
         }
 
-        private void CreateHud(Transform parent)
+        private static void SetPreferredSize(GameObject target, float preferredWidth, float preferredHeight)
+        {
+            var layoutElement = target.GetComponent<LayoutElement>() ?? target.AddComponent<LayoutElement>();
+            if (preferredWidth >= 0f)
+            {
+                layoutElement.preferredWidth = preferredWidth;
+                layoutElement.minWidth = preferredWidth;
+            }
+
+            if (preferredHeight >= 0f)
+            {
+                layoutElement.preferredHeight = preferredHeight;
+                layoutElement.minHeight = preferredHeight;
+            }
+        }
+
+        private void CreateHud(Transform parent, bool offsetForDebugPanel)
         {
             var hudObject = new GameObject("HudText", typeof(RectTransform));
             hudObject.transform.SetParent(parent, false);
@@ -846,7 +1113,7 @@ namespace LeiTing.UI
             rect.anchorMin = new Vector2(0f, 1f);
             rect.anchorMax = new Vector2(0f, 1f);
             rect.pivot = new Vector2(0f, 1f);
-            rect.anchoredPosition = new Vector2(36f, -148f);
+            rect.anchoredPosition = new Vector2(36f, offsetForDebugPanel ? -304f : -148f);
             rect.sizeDelta = new Vector2(560f, 132f);
 
             hudText = hudObject.AddComponent<Text>();
@@ -965,7 +1232,7 @@ namespace LeiTing.UI
             text.raycastTarget = false;
         }
 
-        private void CreateBossHud(Transform parent)
+        private void CreateBossHud(Transform parent, bool offsetForDebugPanel)
         {
             bossHudRoot = new GameObject("BossHud", typeof(RectTransform));
             bossHudRoot.transform.SetParent(parent, false);
@@ -974,7 +1241,7 @@ namespace LeiTing.UI
             rootRect.anchorMin = new Vector2(0.5f, 1f);
             rootRect.anchorMax = new Vector2(0.5f, 1f);
             rootRect.pivot = new Vector2(0.5f, 1f);
-            rootRect.anchoredPosition = new Vector2(0f, -150f);
+            rootRect.anchoredPosition = new Vector2(0f, offsetForDebugPanel ? -306f : -150f);
             rootRect.sizeDelta = new Vector2(840f, 112f);
 
             var nameObject = new GameObject("BossName", typeof(RectTransform));
@@ -1254,24 +1521,247 @@ namespace LeiTing.UI
                 shooter.SetBulletId(bulletId);
             }
 
-            RefreshButtonStates();
+            RefreshWeaponDropdownState();
         }
 
-        private void RefreshButtonStates()
+        private void ConfigureWeaponDropdown()
         {
-            if (buttons == null)
+            if (weaponDropdown == null)
             {
                 return;
             }
 
-            for (var index = 0; index < buttons.Length; index++)
+            var options = new List<Dropdown.OptionData>();
+            for (var index = 0; index < weaponButtons.Length; index++)
             {
-                var image = buttons[index] != null ? buttons[index].GetComponent<Image>() : null;
-                if (image != null)
+                options.Add(new Dropdown.OptionData(weaponButtons[index].Label));
+            }
+
+            weaponDropdown.ClearOptions();
+            weaponDropdown.AddOptions(options);
+            RefreshWeaponDropdownState();
+        }
+
+        private void ApplySelectedWeaponFromDebugPanel()
+        {
+            if (weaponDropdown == null || weaponButtons.Length == 0)
+            {
+                return;
+            }
+
+            var index = Mathf.Clamp(weaponDropdown.value, 0, weaponButtons.Length - 1);
+            ApplyWeaponSelection(weaponButtons[index].BulletId);
+            SetDebugFeedback($"已切换武器: {weaponButtons[index].Label}", false);
+        }
+
+        private void RefreshWeaponDropdownState()
+        {
+            if (weaponDropdown == null)
+            {
+                return;
+            }
+
+            var selectedIndex = 0;
+            for (var index = 0; index < weaponButtons.Length; index++)
+            {
+                if (weaponButtons[index].BulletId == selectedBulletId)
                 {
-                    image.color = GetButtonColor(weaponButtons[index].BulletId == selectedBulletId);
+                    selectedIndex = index;
+                    break;
                 }
             }
+
+            weaponDropdown.SetValueWithoutNotify(selectedIndex);
+            weaponDropdown.RefreshShownValue();
+        }
+
+        private void ConfigureSpawnModeDropdown()
+        {
+            if (spawnModeDropdown == null)
+            {
+                return;
+            }
+
+            spawnModeDropdown.ClearOptions();
+            spawnModeDropdown.AddOptions(new List<Dropdown.OptionData>
+            {
+                new Dropdown.OptionData("波次"),
+                new Dropdown.OptionData("敌机"),
+                new Dropdown.OptionData("Boss")
+            });
+            spawnModeDropdown.onValueChanged.AddListener(_ => RefreshDebugSpawnOptions());
+        }
+
+        private void RefreshDebugSpawnOptions()
+        {
+            if (!ShouldShowSimulatorDebugUi() || spawnOptionDropdown == null)
+            {
+                return;
+            }
+
+            var configManager = ConfigManager.Instance;
+            var config = configManager != null && configManager.IsLoaded ? configManager.Config : null;
+            debugSpawnOptionsLoadedFromConfig = config != null;
+
+            spawnOptionIds.Clear();
+            var options = new List<Dropdown.OptionData>();
+
+            if (config != null)
+            {
+                switch (GetDebugSpawnMode())
+                {
+                    case DebugSpawnMode.Enemy:
+                        AddEnemySpawnOptions(config, false, options);
+                        break;
+                    case DebugSpawnMode.Boss:
+                        AddEnemySpawnOptions(config, true, options);
+                        break;
+                    default:
+                        AddWaveSpawnOptions(configManager, config, options);
+                        break;
+                }
+            }
+
+            if (options.Count == 0)
+            {
+                spawnOptionIds.Add(string.Empty);
+                options.Add(new Dropdown.OptionData("无可用配置"));
+            }
+
+            spawnOptionDropdown.ClearOptions();
+            spawnOptionDropdown.AddOptions(options);
+            spawnOptionDropdown.SetValueWithoutNotify(0);
+            spawnOptionDropdown.RefreshShownValue();
+            UpdateSpawnInputFromOption(0);
+        }
+
+        private void AddWaveSpawnOptions(ConfigManager configManager, GameConfig config, List<Dropdown.OptionData> options)
+        {
+            IEnumerable<WaveConfig> waves = config.waves ?? new List<WaveConfig>();
+            if (configManager != null && GameManager.Instance != null)
+            {
+                waves = configManager.GetWavesForLevel(GameManager.Instance.CurrentLevelNumber);
+            }
+
+            foreach (var wave in waves.Where(item => item != null && !string.IsNullOrEmpty(item.id)).OrderBy(item => item.startTime))
+            {
+                spawnOptionIds.Add(wave.id);
+                options.Add(new Dropdown.OptionData($"{wave.id}  {wave.startTime:0.#}s"));
+            }
+        }
+
+        private void AddEnemySpawnOptions(GameConfig config, bool bossOnly, List<Dropdown.OptionData> options)
+        {
+            var enemies = config.enemies ?? new List<EnemyConfig>();
+            foreach (var enemy in enemies
+                         .Where(item => item != null && !string.IsNullOrEmpty(item.id) && IsBossId(item.id) == bossOnly)
+                         .OrderBy(item => item.id))
+            {
+                spawnOptionIds.Add(enemy.id);
+                var label = string.IsNullOrEmpty(enemy.displayName)
+                    ? enemy.id
+                    : $"{enemy.id}  {enemy.displayName}";
+                options.Add(new Dropdown.OptionData(label));
+            }
+        }
+
+        private void UpdateSpawnInputFromOption(int optionIndex)
+        {
+            if (spawnIdInput == null)
+            {
+                return;
+            }
+
+            var id = optionIndex >= 0 && optionIndex < spawnOptionIds.Count
+                ? spawnOptionIds[optionIndex]
+                : string.Empty;
+            spawnIdInput.SetTextWithoutNotify(id);
+            SetDebugFeedback(string.Empty, false);
+        }
+
+        private void ConfirmDebugSpawn()
+        {
+            if (EnemyManager.Instance == null)
+            {
+                SetDebugFeedback("EnemyManager 未就绪", true);
+                return;
+            }
+
+            var id = spawnIdInput != null ? spawnIdInput.text.Trim() : GetSelectedSpawnOptionId();
+            if (string.IsNullOrEmpty(id))
+            {
+                SetDebugFeedback("请输入或选择 ID", true);
+                return;
+            }
+
+            string message;
+            bool succeeded;
+            switch (GetDebugSpawnMode())
+            {
+                case DebugSpawnMode.Enemy:
+                    succeeded = EnemyManager.Instance.TrySpawnEnemyNow(id, out message);
+                    break;
+                case DebugSpawnMode.Boss:
+                    succeeded = EnemyManager.Instance.TrySpawnBossNow(id, out message);
+                    break;
+                default:
+                    succeeded = EnemyManager.Instance.TrySpawnWaveNow(id, out message);
+                    break;
+            }
+
+            SetDebugFeedback(message, !succeeded);
+        }
+
+        private string GetSelectedSpawnOptionId()
+        {
+            var index = spawnOptionDropdown != null ? spawnOptionDropdown.value : 0;
+            return index >= 0 && index < spawnOptionIds.Count ? spawnOptionIds[index] : string.Empty;
+        }
+
+        private DebugSpawnMode GetDebugSpawnMode()
+        {
+            var value = spawnModeDropdown != null ? spawnModeDropdown.value : 0;
+            if (value == 1)
+            {
+                return DebugSpawnMode.Enemy;
+            }
+
+            return value == 2 ? DebugSpawnMode.Boss : DebugSpawnMode.Wave;
+        }
+
+        private void SetDebugFeedback(string message, bool warning)
+        {
+            if (debugFeedbackText == null)
+            {
+                return;
+            }
+
+            debugFeedbackText.text = message;
+            debugFeedbackText.color = warning
+                ? UIFactory.WarningColor
+                : new Color(0.68f, 0.95f, 0.8f, 1f);
+        }
+
+        private static bool IsBossId(string enemyId)
+        {
+            return !string.IsNullOrEmpty(enemyId)
+                && enemyId.StartsWith("boss", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool ShouldShowSimulatorDebugUi()
+        {
+#if UNITY_EDITOR
+            return Application.isEditor;
+#else
+            return false;
+#endif
+        }
+
+        private enum DebugSpawnMode
+        {
+            Wave,
+            Enemy,
+            Boss
         }
 
         private static ColorBlock CreateButtonColors()
@@ -1284,11 +1774,6 @@ namespace LeiTing.UI
             colors.disabledColor = new Color(0.35f, 0.35f, 0.35f, 0.65f);
             colors.colorMultiplier = 1f;
             return colors;
-        }
-
-        private static Color GetButtonColor(bool selected)
-        {
-            return selected ? new Color(0.1f, 0.62f, 1f, 0.92f) : new Color(0.06f, 0.09f, 0.14f, 0.78f);
         }
 
         private static void EnsureEventSystem()

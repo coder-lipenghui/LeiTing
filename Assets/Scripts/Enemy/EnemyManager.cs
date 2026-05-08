@@ -38,6 +38,40 @@ namespace LeiTing.Enemy
             return SpawnEnemy(enemyId, position, null);
         }
 
+        public bool TrySpawnWaveNow(string waveId, out string message)
+        {
+            message = string.Empty;
+
+            var configManager = ConfigManager.Instance;
+            if (!IsConfigReady(configManager))
+            {
+                message = "配置尚未加载";
+                return false;
+            }
+
+            waveId = NormalizeDebugId(waveId);
+            var wave = configManager.GetWave(waveId);
+            if (wave == null)
+            {
+                message = $"找不到波次: {waveId}";
+                return false;
+            }
+
+            StartCoroutine(SpawnWave(wave, false));
+            message = $"已刷波次: {wave.id}";
+            return true;
+        }
+
+        public bool TrySpawnEnemyNow(string enemyId, out string message)
+        {
+            return TrySpawnEnemyNow(enemyId, false, out message);
+        }
+
+        public bool TrySpawnBossNow(string bossId, out string message)
+        {
+            return TrySpawnEnemyNow(bossId, true, out message);
+        }
+
         private void UpdateWaves(ConfigManager configManager)
         {
             foreach (var wave in configManager.GetWavesForLevel(GameManager.Instance.CurrentLevelNumber))
@@ -48,12 +82,17 @@ namespace LeiTing.Enemy
                 }
 
                 startedWaves.Add(wave.id);
-                StartCoroutine(SpawnWave(wave));
+                StartCoroutine(SpawnWave(wave, true));
             }
         }
 
-        private IEnumerator SpawnWave(WaveConfig wave)
+        private IEnumerator SpawnWave(WaveConfig wave, bool enforceBossGate)
         {
+            if (wave?.spawns == null)
+            {
+                yield break;
+            }
+
             foreach (var spawn in wave.spawns)
             {
                 if (spawn == null)
@@ -61,11 +100,11 @@ namespace LeiTing.Enemy
                     continue;
                 }
 
-                yield return StartCoroutine(SpawnGroup(spawn));
+                yield return StartCoroutine(SpawnGroup(spawn, enforceBossGate));
             }
         }
 
-        private IEnumerator SpawnGroup(WaveSpawnConfig spawn)
+        private IEnumerator SpawnGroup(WaveSpawnConfig spawn, bool enforceBossGate)
         {
             var count = Mathf.Max(1, spawn.count);
             var interval = Mathf.Max(0.01f, spawn.interval);
@@ -79,7 +118,7 @@ namespace LeiTing.Enemy
                     yield return null;
                 }
 
-                if (isBossGroup)
+                if (isBossGroup && enforceBossGate)
                 {
                     pendingBossSpawnCount++;
                     while (activeBossCount > 0)
@@ -204,6 +243,58 @@ namespace LeiTing.Enemy
         private static bool IsBossEnemy(EnemyConfig enemyConfig)
         {
             return enemyConfig != null && IsBossId(enemyConfig.id);
+        }
+
+        private bool TrySpawnEnemyNow(string enemyId, bool requireBoss, out string message)
+        {
+            message = string.Empty;
+
+            var configManager = ConfigManager.Instance;
+            if (!IsConfigReady(configManager))
+            {
+                message = "配置尚未加载";
+                return false;
+            }
+
+            enemyId = NormalizeDebugId(enemyId);
+            var enemyConfig = configManager.GetEnemy(enemyId);
+            if (enemyConfig == null)
+            {
+                message = $"找不到敌机: {enemyId}";
+                return false;
+            }
+
+            var isBoss = IsBossEnemy(enemyConfig);
+            if (requireBoss && !isBoss)
+            {
+                message = $"不是 Boss: {enemyConfig.id}";
+                return false;
+            }
+
+            if (!requireBoss && isBoss)
+            {
+                message = "Boss 请使用 Boss 模式刷出";
+                return false;
+            }
+
+            SpawnEnemy(enemyConfig.id, ResolveDebugSpawnPosition(), null);
+            message = isBoss ? $"已刷 Boss: {enemyConfig.id}" : $"已刷敌机: {enemyConfig.id}";
+            return true;
+        }
+
+        private static Vector2 ResolveDebugSpawnPosition()
+        {
+            return new Vector2(0f, 5.8f);
+        }
+
+        private static bool IsConfigReady(ConfigManager configManager)
+        {
+            return configManager != null && configManager.IsLoaded && configManager.Config != null;
+        }
+
+        private static string NormalizeDebugId(string id)
+        {
+            return string.IsNullOrEmpty(id) ? string.Empty : id.Trim();
         }
 
         private bool HasUnstartedBossWaves()
