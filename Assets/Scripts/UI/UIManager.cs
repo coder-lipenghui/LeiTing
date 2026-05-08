@@ -69,7 +69,8 @@ namespace LeiTing.UI
         private Coroutine bossNoticeRoutine;
         private string selectedBulletId = LaserBulletId;
         private bool battleHudInitialized;
-        private bool debugSpawnOptionsLoadedFromConfig;
+        private bool debugConfigLoadRequested;
+        private string debugSpawnOptionsSignature;
         private Dropdown weaponDropdown;
         private Dropdown spawnModeDropdown;
         private Dropdown spawnOptionDropdown;
@@ -116,12 +117,9 @@ namespace LeiTing.UI
             UpdateHud();
             UpdateSettlement();
 
-            if (ShouldShowSimulatorDebugUi()
-                && !debugSpawnOptionsLoadedFromConfig
-                && ConfigManager.Instance != null
-                && ConfigManager.Instance.IsLoaded)
+            if (ShouldShowSimulatorDebugUi() && spawnOptionDropdown != null)
             {
-                RefreshDebugSpawnOptions();
+                RefreshDebugSpawnOptions(false);
             }
         }
 
@@ -1589,10 +1587,15 @@ namespace LeiTing.UI
                 new Dropdown.OptionData("敌机"),
                 new Dropdown.OptionData("Boss")
             });
-            spawnModeDropdown.onValueChanged.AddListener(_ => RefreshDebugSpawnOptions());
+            spawnModeDropdown.onValueChanged.AddListener(_ => RefreshDebugSpawnOptions(true));
         }
 
         private void RefreshDebugSpawnOptions()
+        {
+            RefreshDebugSpawnOptions(true);
+        }
+
+        private void RefreshDebugSpawnOptions(bool force)
         {
             if (!ShouldShowSimulatorDebugUi() || spawnOptionDropdown == null)
             {
@@ -1600,8 +1603,14 @@ namespace LeiTing.UI
             }
 
             var configManager = ConfigManager.Instance;
-            var config = configManager != null && configManager.IsLoaded ? configManager.Config : null;
-            debugSpawnOptionsLoadedFromConfig = config != null;
+            var config = ResolveDebugSpawnConfig(configManager);
+            var signature = BuildDebugSpawnOptionsSignature(config);
+            if (!force && string.Equals(debugSpawnOptionsSignature, signature, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            debugSpawnOptionsSignature = signature;
 
             spawnOptionIds.Clear();
             var options = new List<Dropdown.OptionData>();
@@ -1633,6 +1642,46 @@ namespace LeiTing.UI
             spawnOptionDropdown.SetValueWithoutNotify(0);
             spawnOptionDropdown.RefreshShownValue();
             UpdateSpawnInputFromOption(0);
+        }
+
+        private GameConfig ResolveDebugSpawnConfig(ConfigManager configManager)
+        {
+            if (configManager == null)
+            {
+                return null;
+            }
+
+            var config = configManager.IsLoaded ? configManager.Config : null;
+            if (!debugConfigLoadRequested && IsDebugSpawnConfigEmpty(config))
+            {
+                debugConfigLoadRequested = true;
+                configManager.LoadDefaultConfig();
+                config = configManager.IsLoaded ? configManager.Config : null;
+            }
+
+            return config;
+        }
+
+        private static bool IsDebugSpawnConfigEmpty(GameConfig config)
+        {
+            var enemyCount = config?.enemies != null ? config.enemies.Count : 0;
+            var waveCount = config?.waves != null ? config.waves.Count : 0;
+            return enemyCount == 0 && waveCount == 0;
+        }
+
+        private string BuildDebugSpawnOptionsSignature(GameConfig config)
+        {
+            if (config == null)
+            {
+                return $"{GetDebugSpawnMode()}:no-config";
+            }
+
+            var levelNumber = GameManager.Instance != null ? GameManager.Instance.CurrentLevelNumber : 0;
+            var enemyCount = config.enemies != null ? config.enemies.Count : 0;
+            var waveCount = config.waves != null ? config.waves.Count : 0;
+            var enemyLastId = enemyCount > 0 ? config.enemies[enemyCount - 1]?.id : string.Empty;
+            var waveLastId = waveCount > 0 ? config.waves[waveCount - 1]?.id : string.Empty;
+            return $"{GetDebugSpawnMode()}:{levelNumber}:{enemyCount}:{waveCount}:{enemyLastId}:{waveLastId}";
         }
 
         private void AddWaveSpawnOptions(ConfigManager configManager, GameConfig config, List<Dropdown.OptionData> options)
