@@ -8,10 +8,7 @@ namespace LeiTing.Config
 {
     public class ConfigManager : MonoSingleton<ConfigManager>
     {
-        private const string DefaultConfigPath = "Configs/GameConfig";
-
-        [SerializeField] private TextAsset configJson;
-        [SerializeField] private GameConfig config;
+        private GameConfig config;
 
         public GameConfig Config => config;
         public bool IsLoaded => config != null;
@@ -24,25 +21,8 @@ namespace LeiTing.Config
                 return;
             }
 
-            var source = configJson != null ? configJson : Resources.Load<TextAsset>(DefaultConfigPath);
-
-            if (source == null)
-            {
-                Debug.LogError($"Config not found at Resources/{DefaultConfigPath}.json");
-                return;
-            }
-
-            LoadFromJson(source.text);
-        }
-
-        public void LoadFromJson(string json)
-        {
-            config = JsonUtility.FromJson<GameConfig>(json);
-
-            if (config == null)
-            {
-                Debug.LogError("GameConfig parse failed.");
-            }
+            config = null;
+            Debug.LogError("Luban config load failed. Regenerate tables with Luban/gen.sh and ensure Assets/Resources/Luban is included.");
         }
 
         public EnemyConfig GetEnemy(string id)

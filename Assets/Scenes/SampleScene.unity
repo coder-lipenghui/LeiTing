@@ -807,36 +807,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 57af648de32654657a3e16476ce150d2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  configJson: {fileID: 0}
-  config:
-    player:
-      id: 
-      displayName: 
-      prefabPath: 
-      hp: 0
-      shield: 0
-      stars: 0
-      coins: 0
-      moveSpeed: 0
-      invincibleTime: 0
-      pickupAttractRange: 0
-      pickupAttractSpeed: 0
-      visualScale: 0
-      hitboxRadius: 0
-      hitboxOffset: {x: 0, y: 0}
-      defaultBulletId: 
-      fireInterval: 0
-    enemies: []
-    bullets: []
-    missiles: []
-    pickupItems: []
-    levels: []
-    bulletPatterns: []
-    missilePatterns: []
-    waves: []
-    stageEvents: []
-    bossPhases: []
-    bossSkills: []
 --- !u!114 &1949508815
 MonoBehaviour:
   m_ObjectHideFlags: 0

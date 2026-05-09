@@ -1,6 +1,6 @@
 # Luban 配置新人引导
 
-本文面向第一次接触本项目配置的同学。当前项目使用 Luban 工程生成运行时配置，源表在 `Luban/Datas`，生成后的运行时 JSON 在 `Assets/Resources/Luban`，生成后的 C# 表代码在 `Assets/Scripts/Config/LubanGenerated`。运行时由 `ConfigManager` 优先通过 Luban 的 `cs-simple-json` 代码读取配置；如果 Luban 数据不存在，才回退到旧的 `Assets/Resources/Configs/GameConfig.json`。
+本文面向第一次接触本项目配置的同学。当前项目使用 Luban 工程生成运行时配置，源表在 `Luban/Datas`，生成后的运行时 JSON 在 `Assets/Resources/Luban`，生成后的 C# 表代码在 `Assets/Scripts/Config/LubanGenerated`。运行时由 `ConfigManager` 通过 Luban 的 `cs-simple-json` 代码读取配置。
 
 ## 零、目录结构
 

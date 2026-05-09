@@ -46,4 +46,4 @@ Keep empty transparent padding tight around the visible shape.
 Use bright center pixels and softer outer glow for readability.
 ```
 
-Runtime sizing comes from `Assets/Resources/Configs/GameConfig.json`, not the source PNG size. Tune `size`, `laserLength`, `muzzleSpacing`, `spreadAngle`, and `pierceCount` there.
+Runtime sizing comes from the Luban tables, not the source PNG size. Tune `size`, `laserLength`, `muzzleSpacing`, `spreadAngle`, and `pierceCount` in the generated config source tables.
