@@ -26,6 +26,12 @@ namespace LeiTing.Missiles
     {
         private const float SpritePixelsPerUnit = 100f;
         private const int GlowTextureSize = 64;
+        private const string FlameParticleName = "Flame_Particle";
+        private const string SmokeParticleName = "Smoke_Particle";
+        private const string SparkParticleName = "Spark_Particle";
+        private const string TrailRendererName = "TrailRenderer";
+        private const string LegacyLightTrailName = "LightTrail";
+        private const string LegacySmokeTrailName = "SmokeTrail";
 
         private static Material defaultSpriteMaterial;
         private static Material smokeMaterial;
@@ -38,25 +44,38 @@ namespace LeiTing.Missiles
         [SerializeField] private Color customTailColor = new Color(1f, 0.72f, 0.22f, 1f);
 
         [Header("References")]
+        [SerializeField] private Transform flameParticleRoot;
+        [SerializeField] private ParticleSystem flameParticle;
+        [SerializeField] private ParticleSystemRenderer flameParticleRenderer;
         [SerializeField] private Transform lightTrailRoot;
         [SerializeField] private TrailRenderer lightTrailRenderer;
         [SerializeField] private Transform smokeTrailRoot;
         [SerializeField] private ParticleSystem smokeTrail;
         [SerializeField] private ParticleSystemRenderer smokeTrailRenderer;
+        [SerializeField] private Transform sparkParticleRoot;
+        [SerializeField] private ParticleSystem sparkParticle;
+        [SerializeField] private ParticleSystemRenderer sparkParticleRenderer;
         [SerializeField] private Transform tailGlowRoot;
         [SerializeField] private SpriteRenderer tailGlowRenderer;
 
-        [Header("Light Trail")]
-        [SerializeField] private LightTrailSettings lightTrail = new LightTrailSettings();
+        [Header("Flame_Particle")]
+        [SerializeField] private FlameParticleSettings flame = new FlameParticleSettings();
 
-        [Header("Smoke Trail")]
+        [Header("Smoke_Particle")]
         [SerializeField] private SmokeTrailSettings smoke = new SmokeTrailSettings();
+
+        [Header("Spark_Particle")]
+        [SerializeField] private SparkParticleSettings spark = new SparkParticleSettings();
+
+        [Header("TrailRenderer")]
+        [SerializeField] private LightTrailSettings lightTrail = new LightTrailSettings();
 
         [Header("Tail Glow")]
         [SerializeField] private TailGlowSettings tailGlow = new TailGlowSettings();
 
         private Color activeTailColor = Color.white;
         private float activeRadius = 0.16f;
+        private bool activeTailGlowEnabled = true;
 
 #if UNITY_EDITOR
         private bool validateQueued;
@@ -65,22 +84,38 @@ namespace LeiTing.Missiles
         public MissileVisualTrailMode TrailMode => trailMode;
         public bool UsesConfigTailColor => useConfigTailColor;
         public Color CustomTailColor => customTailColor;
+        public Transform FlameParticleRoot => flameParticleRoot;
+        public ParticleSystem FlameParticle => flameParticle;
+        public ParticleSystemRenderer FlameParticleRenderer => flameParticleRenderer;
         public Transform LightTrailRoot => lightTrailRoot;
         public TrailRenderer LightTrail => lightTrailRenderer;
         public Transform SmokeTrailRoot => smokeTrailRoot;
         public ParticleSystem SmokeTrail => smokeTrail;
         public ParticleSystemRenderer SmokeTrailRenderer => smokeTrailRenderer;
+        public Transform SparkParticleRoot => sparkParticleRoot;
+        public ParticleSystem SparkParticle => sparkParticle;
+        public ParticleSystemRenderer SparkParticleRenderer => sparkParticleRenderer;
         public Transform TailGlowRoot => tailGlowRoot;
         public SpriteRenderer TailGlow => tailGlowRenderer;
 
         public void EnsureEffectObjects()
         {
-            lightTrailRoot = EnsureChild(lightTrailRoot, "LightTrail");
-            lightTrailRenderer = EnsureComponent<TrailRenderer>(lightTrailRoot.gameObject);
+            EnsureSettings();
 
-            smokeTrailRoot = EnsureChild(smokeTrailRoot, "SmokeTrail");
+            flameParticleRoot = EnsureChild(flameParticleRoot, FlameParticleName);
+            flameParticle = EnsureComponent<ParticleSystem>(flameParticleRoot.gameObject);
+            flameParticleRenderer = flameParticleRoot.GetComponent<ParticleSystemRenderer>();
+
+            smokeTrailRoot = EnsureChild(smokeTrailRoot, SmokeParticleName, LegacySmokeTrailName);
             smokeTrail = EnsureComponent<ParticleSystem>(smokeTrailRoot.gameObject);
             smokeTrailRenderer = smokeTrailRoot.GetComponent<ParticleSystemRenderer>();
+
+            sparkParticleRoot = EnsureChild(sparkParticleRoot, SparkParticleName);
+            sparkParticle = EnsureComponent<ParticleSystem>(sparkParticleRoot.gameObject);
+            sparkParticleRenderer = sparkParticleRoot.GetComponent<ParticleSystemRenderer>();
+
+            lightTrailRoot = EnsureChild(lightTrailRoot, TrailRendererName, LegacyLightTrailName);
+            lightTrailRenderer = EnsureComponent<TrailRenderer>(lightTrailRoot.gameObject);
 
             tailGlowRoot = EnsureChild(tailGlowRoot, "TailGlow");
             tailGlowRenderer = EnsureComponent<SpriteRenderer>(tailGlowRoot.gameObject);
@@ -95,9 +130,12 @@ namespace LeiTing.Missiles
             activeTailColor = ResolveTailColor(context);
 
             var resolvedMode = ResolveTrailMode(context.TailType);
-            ConfigureLightTrail(UsesLightTrail(resolvedMode), activeTailColor, activeRadius);
+            activeTailGlowEnabled = resolvedMode != MissileVisualTrailMode.None;
+            ConfigureFlameParticle(UsesFlameParticle(resolvedMode), activeTailColor, activeRadius);
             ConfigureSmokeTrail(UsesSmokeTrail(resolvedMode), activeTailColor, activeRadius, context.CanBeDestroyed);
-            ConfigureTailGlow(activeTailColor, activeRadius, context.Time);
+            ConfigureSparkParticle(UsesSparkParticle(resolvedMode), activeTailColor, activeRadius);
+            ConfigureLightTrail(UsesLightTrail(resolvedMode), activeTailColor, activeRadius);
+            ConfigureTailGlow(activeTailGlowEnabled, activeTailColor, activeRadius, context.Time);
         }
 
         public void Play()
@@ -107,20 +145,9 @@ namespace LeiTing.Missiles
                 lightTrailRenderer.Clear();
             }
 
-            if (smokeTrail == null)
-            {
-                return;
-            }
-
-            var emission = smokeTrail.emission;
-            if (smokeTrailRenderer != null && smokeTrailRenderer.enabled && emission.enabled)
-            {
-                smokeTrail.Play(true);
-            }
-            else
-            {
-                smokeTrail.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-            }
+            PlayParticleIfEmitting(flameParticle, flameParticleRenderer);
+            PlayParticleIfEmitting(smokeTrail, smokeTrailRenderer);
+            PlayParticleIfEmitting(sparkParticle, sparkParticleRenderer);
         }
 
         public void StopAndClear()
@@ -130,32 +157,39 @@ namespace LeiTing.Missiles
                 lightTrailRenderer.Clear();
             }
 
-            if (smokeTrail != null)
-            {
-                smokeTrail.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-            }
+            StopParticle(flameParticle);
+            StopParticle(smokeTrail);
+            StopParticle(sparkParticle);
         }
 
         public void UpdateDynamic(float time)
         {
-            ConfigureTailGlow(activeTailColor, activeRadius, time);
+            ConfigureTailGlow(activeTailGlowEnabled, activeTailColor, activeRadius, time);
         }
 
         public void SetLayer(int layer)
         {
             gameObject.layer = layer;
+            SetLayerIfValid(flameParticleRoot, layer);
             SetLayerIfValid(lightTrailRoot, layer);
             SetLayerIfValid(smokeTrailRoot, layer);
+            SetLayerIfValid(sparkParticleRoot, layer);
             SetLayerIfValid(tailGlowRoot, layer);
         }
 
         public void ResetToDefaults(MissileVisualTrailMode defaultTrailMode, Color defaultTailColor, float missileRadius)
         {
+            EnsureSettings();
+
             trailMode = defaultTrailMode;
             useConfigTailColor = false;
             customTailColor = defaultTailColor;
 
             var radius = Mathf.Max(0.04f, missileRadius);
+            flame.emissionRate = defaultTrailMode == MissileVisualTrailMode.LightAndSmoke ? 46f : 54f;
+            flame.sizeRadiusScaleMax = defaultTrailMode == MissileVisualTrailMode.LightAndSmoke ? 1.7f : 1.95f;
+            flame.offsetRadiusScale = 0.86f;
+
             lightTrail.duration = Mathf.Lerp(0.22f, 0.46f, Mathf.InverseLerp(0.12f, 0.32f, radius));
             lightTrail.startWidthRadiusScale = defaultTrailMode == MissileVisualTrailMode.LightAndSmoke ? 0.62f : 0.82f;
             lightTrail.endWidth = 0.01f;
@@ -164,6 +198,9 @@ namespace LeiTing.Missiles
             smoke.emissionRate = defaultTrailMode == MissileVisualTrailMode.LightAndSmoke ? 16f : 24f;
             smoke.sizeRadiusScaleMax = defaultTrailMode == MissileVisualTrailMode.LightAndSmoke ? 1.95f : 2.45f;
             smoke.offsetRadiusScale = 0.78f;
+
+            spark.emissionRate = defaultTrailMode == MissileVisualTrailMode.LightAndSmoke ? 7f : 10f;
+            spark.offsetRadiusScale = 0.9f;
 
             tailGlow.enabled = true;
             tailGlow.diameterRadiusScale = defaultTrailMode == MissileVisualTrailMode.Smoke ? 1.75f : 2.05f;
@@ -188,7 +225,7 @@ namespace LeiTing.Missiles
             {
                 Radius = ResolveRadiusFromCollider(),
                 TailColor = customTailColor,
-                TailType = "light",
+                TailType = ResolveEditorTailType(),
                 Time = 0f
             });
             StopAndClear();
@@ -226,12 +263,101 @@ namespace LeiTing.Missiles
             {
                 Radius = ResolveRadiusFromCollider(),
                 TailColor = customTailColor,
-                TailType = "light",
+                TailType = ResolveEditorTailType(),
                 Time = 0f
             });
             StopAndClear();
         }
 #endif
+
+        private void ConfigureFlameParticle(bool enabled, Color tailColor, float radius)
+        {
+            if (flameParticle == null)
+            {
+                return;
+            }
+
+            flameParticleRoot.localPosition = Vector3.down * Mathf.Max(0.01f, radius * flame.offsetRadiusScale);
+            flameParticleRoot.localRotation = Quaternion.identity;
+            flameParticleRoot.localScale = Vector3.one;
+
+            var main = flameParticle.main;
+            main.loop = true;
+            main.playOnAwake = false;
+            main.prewarm = false;
+            main.duration = Mathf.Max(0.05f, flame.duration);
+            main.startDelay = 0f;
+            main.startLifetime = new ParticleSystem.MinMaxCurve(flame.lifetimeMin, flame.lifetimeMax);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(flame.startSpeedMin, flame.startSpeedMax);
+            main.startSize = new ParticleSystem.MinMaxCurve(
+                Mathf.Max(0.005f, radius * flame.sizeRadiusScaleMin),
+                Mathf.Max(0.005f, radius * flame.sizeRadiusScaleMax));
+            main.startRotation = new ParticleSystem.MinMaxCurve(0f, Mathf.PI * 2f);
+            main.startColor = new ParticleSystem.MinMaxGradient(
+                WithAlpha(Color.Lerp(tailColor, Color.white, flame.coreToWhite), flame.startAlpha),
+                WithAlpha(Color.Lerp(tailColor, flame.edgeColor, 0.45f), flame.startAlpha * 0.88f));
+            main.simulationSpace = ParticleSystemSimulationSpace.World;
+            main.scalingMode = ParticleSystemScalingMode.Hierarchy;
+            main.maxParticles = Mathf.Max(1, flame.maxParticles);
+
+            var emission = flameParticle.emission;
+            emission.enabled = enabled;
+            emission.rateOverTime = enabled
+                ? new ParticleSystem.MinMaxCurve(Mathf.Max(0f, flame.emissionRate))
+                : new ParticleSystem.MinMaxCurve(0f);
+
+            var shape = flameParticle.shape;
+            shape.enabled = true;
+            shape.shapeType = ParticleSystemShapeType.Circle;
+            shape.radius = Mathf.Max(0.004f, radius * flame.shapeRadiusScale);
+            shape.radiusThickness = 1f;
+
+            var velocity = flameParticle.velocityOverLifetime;
+            velocity.enabled = true;
+            velocity.space = ParticleSystemSimulationSpace.Local;
+            velocity.x = new ParticleSystem.MinMaxCurve(-flame.sideDrift, flame.sideDrift);
+            velocity.y = new ParticleSystem.MinMaxCurve(flame.backwardSpeedMin, flame.backwardSpeedMax);
+            velocity.z = new ParticleSystem.MinMaxCurve(0f, 0f);
+
+            var colorOverLifetime = flameParticle.colorOverLifetime;
+            colorOverLifetime.enabled = true;
+            var gradient = new Gradient();
+            var coreColor = Color.Lerp(tailColor, Color.white, flame.coreToWhite);
+            gradient.SetKeys(
+                new[]
+                {
+                    new GradientColorKey(coreColor, 0f),
+                    new GradientColorKey(Color.Lerp(tailColor, flame.edgeColor, 0.55f), 0.45f),
+                    new GradientColorKey(flame.edgeColor, 1f)
+                },
+                new[]
+                {
+                    new GradientAlphaKey(flame.startAlpha, 0f),
+                    new GradientAlphaKey(flame.midAlpha, 0.45f),
+                    new GradientAlphaKey(0f, 1f)
+                });
+            colorOverLifetime.color = new ParticleSystem.MinMaxGradient(gradient);
+
+            var sizeOverLifetime = flameParticle.sizeOverLifetime;
+            sizeOverLifetime.enabled = true;
+            sizeOverLifetime.size = new ParticleSystem.MinMaxCurve(1f, new AnimationCurve(
+                new Keyframe(0f, flame.startSizeMultiplier),
+                new Keyframe(0.42f, flame.midSizeMultiplier),
+                new Keyframe(1f, flame.endSizeMultiplier)));
+
+            if (flameParticleRenderer != null)
+            {
+                flameParticleRenderer.enabled = enabled;
+                flameParticleRenderer.renderMode = ParticleSystemRenderMode.Billboard;
+                flameParticleRenderer.material = flame.material != null ? flame.material : GetSmokeMaterial();
+                flameParticleRenderer.sortingOrder = flame.sortingOrder;
+            }
+
+            if (!enabled)
+            {
+                flameParticle.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            }
+        }
 
         private void ConfigureLightTrail(bool enabled, Color tailColor, float radius)
         {
@@ -358,15 +484,103 @@ namespace LeiTing.Missiles
             }
         }
 
-        private void ConfigureTailGlow(Color tailColor, float radius, float time)
+        private void ConfigureSparkParticle(bool enabled, Color tailColor, float radius)
+        {
+            if (sparkParticle == null)
+            {
+                return;
+            }
+
+            sparkParticleRoot.localPosition = Vector3.down * Mathf.Max(0.01f, radius * spark.offsetRadiusScale);
+            sparkParticleRoot.localRotation = Quaternion.identity;
+            sparkParticleRoot.localScale = Vector3.one;
+
+            var main = sparkParticle.main;
+            main.loop = true;
+            main.playOnAwake = false;
+            main.prewarm = false;
+            main.duration = Mathf.Max(0.05f, spark.duration);
+            main.startDelay = 0f;
+            main.startLifetime = new ParticleSystem.MinMaxCurve(spark.lifetimeMin, spark.lifetimeMax);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(spark.startSpeedMin, spark.startSpeedMax);
+            main.startSize = new ParticleSystem.MinMaxCurve(
+                Mathf.Max(0.002f, radius * spark.sizeRadiusScaleMin),
+                Mathf.Max(0.002f, radius * spark.sizeRadiusScaleMax));
+            main.startRotation = new ParticleSystem.MinMaxCurve(0f, Mathf.PI * 2f);
+            main.startColor = new ParticleSystem.MinMaxGradient(
+                WithAlpha(Color.Lerp(tailColor, Color.white, spark.colorToWhite), spark.startAlpha),
+                WithAlpha(spark.edgeColor, spark.startAlpha * 0.8f));
+            main.simulationSpace = ParticleSystemSimulationSpace.World;
+            main.scalingMode = ParticleSystemScalingMode.Hierarchy;
+            main.maxParticles = Mathf.Max(1, spark.maxParticles);
+
+            var emission = sparkParticle.emission;
+            emission.enabled = enabled;
+            emission.rateOverTime = enabled
+                ? new ParticleSystem.MinMaxCurve(Mathf.Max(0f, spark.emissionRate))
+                : new ParticleSystem.MinMaxCurve(0f);
+
+            var shape = sparkParticle.shape;
+            shape.enabled = true;
+            shape.shapeType = ParticleSystemShapeType.Circle;
+            shape.radius = Mathf.Max(0.003f, radius * spark.shapeRadiusScale);
+            shape.radiusThickness = 1f;
+
+            var velocity = sparkParticle.velocityOverLifetime;
+            velocity.enabled = true;
+            velocity.space = ParticleSystemSimulationSpace.Local;
+            velocity.x = new ParticleSystem.MinMaxCurve(-spark.sideVelocity, spark.sideVelocity);
+            velocity.y = new ParticleSystem.MinMaxCurve(spark.backwardSpeedMin, spark.backwardSpeedMax);
+            velocity.z = new ParticleSystem.MinMaxCurve(0f, 0f);
+
+            var colorOverLifetime = sparkParticle.colorOverLifetime;
+            colorOverLifetime.enabled = true;
+            var gradient = new Gradient();
+            var startColor = Color.Lerp(tailColor, Color.white, spark.colorToWhite);
+            gradient.SetKeys(
+                new[]
+                {
+                    new GradientColorKey(startColor, 0f),
+                    new GradientColorKey(Color.Lerp(startColor, spark.edgeColor, 0.45f), 0.55f),
+                    new GradientColorKey(spark.edgeColor, 1f)
+                },
+                new[]
+                {
+                    new GradientAlphaKey(spark.startAlpha, 0f),
+                    new GradientAlphaKey(spark.midAlpha, 0.45f),
+                    new GradientAlphaKey(0f, 1f)
+                });
+            colorOverLifetime.color = new ParticleSystem.MinMaxGradient(gradient);
+
+            var sizeOverLifetime = sparkParticle.sizeOverLifetime;
+            sizeOverLifetime.enabled = true;
+            sizeOverLifetime.size = new ParticleSystem.MinMaxCurve(1f, new AnimationCurve(
+                new Keyframe(0f, 1f),
+                new Keyframe(1f, spark.endSizeMultiplier)));
+
+            if (sparkParticleRenderer != null)
+            {
+                sparkParticleRenderer.enabled = enabled;
+                sparkParticleRenderer.renderMode = ParticleSystemRenderMode.Billboard;
+                sparkParticleRenderer.material = spark.material != null ? spark.material : GetSmokeMaterial();
+                sparkParticleRenderer.sortingOrder = spark.sortingOrder;
+            }
+
+            if (!enabled)
+            {
+                sparkParticle.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            }
+        }
+
+        private void ConfigureTailGlow(bool modeEnabled, Color tailColor, float radius, float time)
         {
             if (tailGlowRenderer == null)
             {
                 return;
             }
 
-            tailGlowRenderer.enabled = tailGlow.enabled;
-            if (!tailGlow.enabled)
+            tailGlowRenderer.enabled = modeEnabled && tailGlow.enabled;
+            if (!tailGlowRenderer.enabled)
             {
                 return;
             }
@@ -418,7 +632,11 @@ namespace LeiTing.Missiles
                 case "smoke":
                 case "exhaust":
                     return MissileVisualTrailMode.Smoke;
+                case "fire":
+                case "flame":
+                case "spark":
                 case "fire_smoke":
+                case "all":
                 case "smoke_light":
                 case "light_smoke":
                     return MissileVisualTrailMode.LightAndSmoke;
@@ -433,16 +651,36 @@ namespace LeiTing.Missiles
             return circle != null ? Mathf.Max(0.04f, circle.radius) : 0.16f;
         }
 
-        private Transform EnsureChild(Transform cached, string childName)
+        private string ResolveEditorTailType()
+        {
+            var editorMode = trailMode == MissileVisualTrailMode.UseConfig ? MissileVisualTrailMode.LightAndSmoke : trailMode;
+            return TrailModeToTailType(editorMode);
+        }
+
+        private Transform EnsureChild(Transform cached, string childName, params string[] legacyChildNames)
         {
             if (cached != null)
             {
                 cached.SetParent(transform, false);
+                cached.name = childName;
                 cached.gameObject.layer = gameObject.layer;
                 return cached;
             }
 
             var child = transform.Find(childName);
+            if (child == null && legacyChildNames != null)
+            {
+                for (var index = 0; index < legacyChildNames.Length; index++)
+                {
+                    child = transform.Find(legacyChildNames[index]);
+                    if (child != null)
+                    {
+                        child.name = childName;
+                        break;
+                    }
+                }
+            }
+
             if (child == null)
             {
                 child = new GameObject(childName).transform;
@@ -456,10 +694,68 @@ namespace LeiTing.Missiles
             return child;
         }
 
+        private void EnsureSettings()
+        {
+            if (flame == null)
+            {
+                flame = new FlameParticleSettings();
+            }
+
+            if (smoke == null)
+            {
+                smoke = new SmokeTrailSettings();
+            }
+
+            if (spark == null)
+            {
+                spark = new SparkParticleSettings();
+            }
+
+            if (lightTrail == null)
+            {
+                lightTrail = new LightTrailSettings();
+            }
+
+            if (tailGlow == null)
+            {
+                tailGlow = new TailGlowSettings();
+            }
+        }
+
         private static T EnsureComponent<T>(GameObject target) where T : Component
         {
             var component = target.GetComponent<T>();
             return component != null ? component : target.AddComponent<T>();
+        }
+
+        private static void PlayParticleIfEmitting(ParticleSystem particle, ParticleSystemRenderer renderer)
+        {
+            if (particle == null)
+            {
+                return;
+            }
+
+            var emission = particle.emission;
+            if (renderer != null && renderer.enabled && emission.enabled)
+            {
+                particle.Play(true);
+                return;
+            }
+
+            particle.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+        }
+
+        private static void StopParticle(ParticleSystem particle)
+        {
+            if (particle != null)
+            {
+                particle.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            }
+        }
+
+        private static bool UsesFlameParticle(MissileVisualTrailMode mode)
+        {
+            return mode == MissileVisualTrailMode.Light || mode == MissileVisualTrailMode.LightAndSmoke;
         }
 
         private static bool UsesLightTrail(MissileVisualTrailMode mode)
@@ -470,6 +766,11 @@ namespace LeiTing.Missiles
         private static bool UsesSmokeTrail(MissileVisualTrailMode mode)
         {
             return mode == MissileVisualTrailMode.Smoke || mode == MissileVisualTrailMode.LightAndSmoke;
+        }
+
+        private static bool UsesSparkParticle(MissileVisualTrailMode mode)
+        {
+            return mode == MissileVisualTrailMode.Light || mode == MissileVisualTrailMode.LightAndSmoke;
         }
 
         private static string TrailModeToTailType(MissileVisualTrailMode mode)
@@ -602,6 +903,34 @@ namespace LeiTing.Missiles
         }
 
         [Serializable]
+        private class FlameParticleSettings
+        {
+            [Min(0.05f)] public float duration = 0.45f;
+            [Min(0f)] public float lifetimeMin = 0.08f;
+            [Min(0f)] public float lifetimeMax = 0.22f;
+            [Min(0f)] public float startSpeedMin = 0.02f;
+            [Min(0f)] public float startSpeedMax = 0.08f;
+            [Min(0f)] public float sizeRadiusScaleMin = 0.65f;
+            [Min(0f)] public float sizeRadiusScaleMax = 1.85f;
+            [Min(0f)] public float emissionRate = 54f;
+            [Min(0f)] public float shapeRadiusScale = 0.32f;
+            [Min(0f)] public float offsetRadiusScale = 0.86f;
+            [Min(0f)] public float sideDrift = 0.05f;
+            public float backwardSpeedMin = -0.38f;
+            public float backwardSpeedMax = -0.12f;
+            [Range(0f, 1f)] public float startAlpha = 0.9f;
+            [Range(0f, 1f)] public float midAlpha = 0.62f;
+            [Range(0f, 1f)] public float coreToWhite = 0.55f;
+            [Range(0f, 2f)] public float startSizeMultiplier = 1f;
+            [Range(0f, 2f)] public float midSizeMultiplier = 0.72f;
+            [Range(0f, 2f)] public float endSizeMultiplier = 0.06f;
+            [Min(1f)] public int maxParticles = 96;
+            public int sortingOrder = 23;
+            public Color edgeColor = new Color(1f, 0.22f, 0.06f, 1f);
+            public Material material;
+        }
+
+        [Serializable]
         private class LightTrailSettings
         {
             [Min(0f)] public float duration = 0.32f;
@@ -643,6 +972,32 @@ namespace LeiTing.Missiles
             [Min(1f)] public int maxParticles = 72;
             public int sortingOrder = 20;
             public Color shadowColor = new Color(0.72f, 0.76f, 0.8f, 1f);
+            public Material material;
+        }
+
+        [Serializable]
+        private class SparkParticleSettings
+        {
+            [Min(0.05f)] public float duration = 0.65f;
+            [Min(0f)] public float lifetimeMin = 0.16f;
+            [Min(0f)] public float lifetimeMax = 0.42f;
+            [Min(0f)] public float startSpeedMin = 0.18f;
+            [Min(0f)] public float startSpeedMax = 0.72f;
+            [Min(0f)] public float sizeRadiusScaleMin = 0.08f;
+            [Min(0f)] public float sizeRadiusScaleMax = 0.22f;
+            [Min(0f)] public float emissionRate = 10f;
+            [Min(0f)] public float shapeRadiusScale = 0.28f;
+            [Min(0f)] public float offsetRadiusScale = 0.9f;
+            [Min(0f)] public float sideVelocity = 0.52f;
+            public float backwardSpeedMin = -0.68f;
+            public float backwardSpeedMax = -0.24f;
+            [Range(0f, 1f)] public float startAlpha = 0.95f;
+            [Range(0f, 1f)] public float midAlpha = 0.42f;
+            [Range(0f, 1f)] public float colorToWhite = 0.7f;
+            [Range(0f, 1f)] public float endSizeMultiplier = 0.08f;
+            [Min(1f)] public int maxParticles = 36;
+            public int sortingOrder = 24;
+            public Color edgeColor = new Color(1f, 0.44f, 0.08f, 1f);
             public Material material;
         }
 
