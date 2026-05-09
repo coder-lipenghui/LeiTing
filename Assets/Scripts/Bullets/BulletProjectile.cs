@@ -532,7 +532,7 @@ namespace LeiTing.Bullets
         {
             if (defaultSpriteMaterial == null)
             {
-                defaultSpriteMaterial = new Material(Shader.Find("Sprites/Default"));
+                defaultSpriteMaterial = SpriteMaterialUtility.CreateSpriteMaterial("Bullet Sprite Material");
             }
 
             return defaultSpriteMaterial;
@@ -542,7 +542,7 @@ namespace LeiTing.Bullets
         {
             if (laserMaterial == null)
             {
-                laserMaterial = new Material(Shader.Find("Sprites/Default"));
+                laserMaterial = SpriteMaterialUtility.CreateSpriteMaterial("Bullet Laser Material");
             }
 
             return laserMaterial;

@@ -1314,7 +1314,7 @@ namespace LeiTing.Missiles
         {
             if (defaultMaterial == null)
             {
-                defaultMaterial = new Material(Shader.Find("Sprites/Default"));
+                defaultMaterial = SpriteMaterialUtility.CreateSpriteMaterial("Missile Sprite Material");
             }
 
             return defaultMaterial;
@@ -1324,10 +1324,8 @@ namespace LeiTing.Missiles
         {
             if (smokeTrailMaterial == null)
             {
-                var shader = Shader.Find("Sprites/Default");
-                smokeTrailMaterial = new Material(shader);
-                smokeTrailMaterial.mainTexture = GetSmokeTrailTexture();
-                if (smokeTrailMaterial.HasProperty("_Color"))
+                smokeTrailMaterial = SpriteMaterialUtility.CreateSpriteMaterial("Missile Smoke Trail Material", GetSmokeTrailTexture());
+                if (smokeTrailMaterial != null && smokeTrailMaterial.HasProperty("_Color"))
                 {
                     smokeTrailMaterial.SetColor("_Color", Color.white);
                 }

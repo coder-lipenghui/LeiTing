@@ -286,7 +286,7 @@ namespace LeiTing.Missiles
         {
             if (warningMaterial == null)
             {
-                warningMaterial = new Material(Shader.Find("Sprites/Default"));
+                warningMaterial = SpriteMaterialUtility.CreateSpriteMaterial("Missile Warning Material");
             }
 
             return warningMaterial;

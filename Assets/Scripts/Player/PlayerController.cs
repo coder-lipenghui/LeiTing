@@ -466,6 +466,7 @@ namespace LeiTing.Player
 
             if (spriteRenderer != null)
             {
+                SpriteMaterialUtility.EnsureUsableSpriteMaterial(spriteRenderer);
                 spriteRenderer.sortingOrder = 10;
             }
         }
