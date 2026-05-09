@@ -55,16 +55,16 @@ namespace LeiTing.Missiles
         [SerializeField] private Transform tailGlowRoot;
         [SerializeField] private SpriteRenderer tailGlowRenderer;
 
-        [Header("Light Trail")]
+        [Header("TrailRenderer")]
         [SerializeField] private LightTrailSettings lightTrail = new LightTrailSettings();
 
-        [Header("Flame")]
+        [Header("Flame_Particle")]
         [SerializeField] private FlameTrailSettings flameTrail = new FlameTrailSettings();
 
-        [Header("Smoke Trail")]
+        [Header("Smoke_Particle")]
         [SerializeField] private SmokeTrailSettings smoke = new SmokeTrailSettings();
 
-        [Header("Sparks")]
+        [Header("Spark_Particle")]
         [SerializeField] private SparkTrailSettings sparkTrail = new SparkTrailSettings();
 
         [Header("Tail Glow")]
@@ -710,7 +710,10 @@ namespace LeiTing.Missiles
                 case "smoke":
                 case "exhaust":
                     return MissileVisualTrailMode.Smoke;
+                case "fire":
+                case "flame":
                 case "fire_smoke":
+                case "all":
                 case "smoke_light":
                 case "light_smoke":
                 case "heavy":

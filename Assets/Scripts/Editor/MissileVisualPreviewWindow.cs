@@ -18,6 +18,7 @@ namespace LeiTing.EditorTools
         private float previewTime;
         private float lastCycle;
         private double lastTimestamp;
+        private Vector2 scrollPosition;
 
         [MenuItem("LeiTing/Missiles/Visual Preview")]
         public static void Open()
@@ -55,6 +56,8 @@ namespace LeiTing.EditorTools
 
         private void OnGUI()
         {
+            scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
+
             EditorGUI.BeginChangeCheck();
             var nextPrefab = (GameObject)EditorGUILayout.ObjectField("Missile Prefab", selectedPrefab, typeof(GameObject), false);
             if (EditorGUI.EndChangeCheck())
@@ -82,7 +85,7 @@ namespace LeiTing.EditorTools
 
                 using (new EditorGUI.DisabledScope(selectedPrefab == null))
                 {
-                    if (GUILayout.Button("Add/Refresh Visuals On Prefab"))
+                    if (GUILayout.Button("Add/Refresh Effect Objects On Prefab"))
                     {
                         AddOrRefreshVisualsOnSelectedPrefab();
                     }
@@ -92,12 +95,59 @@ namespace LeiTing.EditorTools
             var assetEffects = selectedPrefab != null ? selectedPrefab.GetComponent<MissileVisualEffects>() : null;
             if (selectedPrefab != null && assetEffects == null)
             {
-                EditorGUILayout.HelpBox("This prefab does not have MissileVisualEffects yet. Use the button above to add editable light, smoke, and glow objects.", MessageType.Info);
+                EditorGUILayout.HelpBox("This prefab does not have MissileVisualEffects yet. Use the button above to add editable Flame_Particle, Smoke_Particle, Spark_Particle, and TrailRenderer objects.", MessageType.Info);
+            }
+            else if (assetEffects != null)
+            {
+                DrawEffectSettings(assetEffects);
             }
 
             GUILayout.Space(6f);
             var rect = GUILayoutUtility.GetRect(10f, 10000f, 240f, 10000f);
             DrawPreview(rect);
+
+            EditorGUILayout.EndScrollView();
+        }
+
+        private void DrawEffectSettings(MissileVisualEffects assetEffects)
+        {
+            GUILayout.Space(6f);
+            EditorGUILayout.LabelField("Editable Effect Parameters", EditorStyles.boldLabel);
+
+            var serializedEffects = new SerializedObject(assetEffects);
+            serializedEffects.Update();
+
+            var changed = false;
+            changed |= DrawProperty(serializedEffects, "trailMode", "Trail Mode");
+            changed |= DrawProperty(serializedEffects, "useConfigTailColor", "Use Config Tail Color");
+            changed |= DrawProperty(serializedEffects, "customTailColor", "Custom Tail Color");
+
+            GUILayout.Space(4f);
+            changed |= DrawProperty(serializedEffects, "flameTrail", "Flame_Particle");
+            changed |= DrawProperty(serializedEffects, "smoke", "Smoke_Particle");
+            changed |= DrawProperty(serializedEffects, "sparkTrail", "Spark_Particle");
+            changed |= DrawProperty(serializedEffects, "lightTrail", "TrailRenderer");
+            changed |= DrawProperty(serializedEffects, "tailGlow", "Tail Glow");
+
+            if (changed && serializedEffects.ApplyModifiedProperties())
+            {
+                EditorUtility.SetDirty(assetEffects);
+                AssetDatabase.SaveAssets();
+                ReloadPreview();
+            }
+        }
+
+        private static bool DrawProperty(SerializedObject serializedObject, string propertyPath, string label)
+        {
+            var property = serializedObject.FindProperty(propertyPath);
+            if (property == null)
+            {
+                return false;
+            }
+
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(property, new GUIContent(label), true);
+            return EditorGUI.EndChangeCheck();
         }
 
         private void DrawPreview(Rect rect)
