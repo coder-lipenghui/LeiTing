@@ -8,14 +8,24 @@ namespace LeiTing.UI
     {
         public static HangarPage Instance { get; private set; }
 
-        private RectTransform listContent;
+        [SerializeField] private RectTransform listContent;
         private readonly List<PlaneItem> planeItems = new List<PlaneItem>();
 
         public override void OnCreate()
         {
             Instance = this;
-            BuildDefaultView();
-            PlaneManager.GetOrCreate().OnPlaneDataChanged += RefreshList;
+
+            if (transform.childCount == 0)
+            {
+                BuildDefaultView();
+            }
+
+            BindPrefabView();
+
+            if (Application.isPlaying)
+            {
+                PlaneManager.GetOrCreate().OnPlaneDataChanged += RefreshList;
+            }
         }
 
         public override void OnShow()
@@ -39,6 +49,11 @@ namespace LeiTing.UI
 
         public void RefreshList()
         {
+            if (listContent == null)
+            {
+                BindPrefabView();
+            }
+
             if (listContent == null)
             {
                 return;
@@ -114,7 +129,13 @@ namespace LeiTing.UI
 
             scrollRect.viewport = viewport.rectTransform;
             scrollRect.content = listContent;
-            RefreshList();
+        }
+
+        private void BindPrefabView()
+        {
+            listContent = listContent != null
+                ? listContent
+                : UIFactory.FindComponentInChildren<RectTransform>(transform, "Content");
         }
     }
 }

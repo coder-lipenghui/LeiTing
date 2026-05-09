@@ -5,13 +5,20 @@ namespace LeiTing.UI
 {
     public class SettingPage : BasePage
     {
-        private Toggle musicToggle;
-        private Toggle soundToggle;
-        private Toggle vibrationToggle;
+        [SerializeField] private Toggle musicToggle;
+        [SerializeField] private Toggle soundToggle;
+        [SerializeField] private Toggle vibrationToggle;
 
         public override void OnCreate()
         {
-            BuildDefaultView();
+            if (transform.childCount == 0)
+            {
+                BuildDefaultView();
+            }
+
+            BindPrefabView();
+            BindEvents();
+            RefreshToggles();
         }
 
         public override void OnShow()
@@ -55,12 +62,40 @@ namespace LeiTing.UI
             musicToggle = UIFactory.CreateToggle("MusicToggle", panelRect, "音乐", out _);
             soundToggle = UIFactory.CreateToggle("SoundToggle", panelRect, "音效", out _);
             vibrationToggle = UIFactory.CreateToggle("VibrationToggle", panelRect, "震动", out _);
+        }
 
-            musicToggle.onValueChanged.AddListener(value => GameSettingManager.MusicEnabled = value);
-            soundToggle.onValueChanged.AddListener(value => GameSettingManager.SoundEnabled = value);
-            vibrationToggle.onValueChanged.AddListener(value => GameSettingManager.VibrationEnabled = value);
+        private void BindPrefabView()
+        {
+            musicToggle = musicToggle != null
+                ? musicToggle
+                : UIFactory.FindComponentInChildren<Toggle>(transform, "MusicToggle");
+            soundToggle = soundToggle != null
+                ? soundToggle
+                : UIFactory.FindComponentInChildren<Toggle>(transform, "SoundToggle");
+            vibrationToggle = vibrationToggle != null
+                ? vibrationToggle
+                : UIFactory.FindComponentInChildren<Toggle>(transform, "VibrationToggle");
+        }
 
-            RefreshToggles();
+        private void BindEvents()
+        {
+            if (musicToggle != null)
+            {
+                musicToggle.onValueChanged.RemoveListener(OnMusicToggleChanged);
+                musicToggle.onValueChanged.AddListener(OnMusicToggleChanged);
+            }
+
+            if (soundToggle != null)
+            {
+                soundToggle.onValueChanged.RemoveListener(OnSoundToggleChanged);
+                soundToggle.onValueChanged.AddListener(OnSoundToggleChanged);
+            }
+
+            if (vibrationToggle != null)
+            {
+                vibrationToggle.onValueChanged.RemoveListener(OnVibrationToggleChanged);
+                vibrationToggle.onValueChanged.AddListener(OnVibrationToggleChanged);
+            }
         }
 
         private void RefreshToggles()
@@ -68,6 +103,21 @@ namespace LeiTing.UI
             musicToggle?.SetIsOnWithoutNotify(GameSettingManager.MusicEnabled);
             soundToggle?.SetIsOnWithoutNotify(GameSettingManager.SoundEnabled);
             vibrationToggle?.SetIsOnWithoutNotify(GameSettingManager.VibrationEnabled);
+        }
+
+        private static void OnMusicToggleChanged(bool value)
+        {
+            GameSettingManager.MusicEnabled = value;
+        }
+
+        private static void OnSoundToggleChanged(bool value)
+        {
+            GameSettingManager.SoundEnabled = value;
+        }
+
+        private static void OnVibrationToggleChanged(bool value)
+        {
+            GameSettingManager.VibrationEnabled = value;
         }
     }
 }

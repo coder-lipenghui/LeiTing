@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -5,6 +6,8 @@ namespace LeiTing.UI
 {
     internal static class UIFactory
     {
+        private static Font defaultFont;
+
         public static readonly Color PanelColor = new Color(0.035f, 0.05f, 0.09f, 0.88f);
         public static readonly Color PanelAccentColor = new Color(0.1f, 0.68f, 1f, 0.95f);
         public static readonly Color TextColor = new Color(0.9f, 0.96f, 1f, 1f);
@@ -37,7 +40,7 @@ namespace LeiTing.UI
             var rect = CreateRect(name, parent);
             var label = rect.gameObject.AddComponent<Text>();
             label.text = text;
-            label.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            label.font = GetDefaultFont();
             label.fontSize = Mathf.RoundToInt(fontSize);
             label.fontStyle = FontStyle.Bold;
             label.alignment = alignment;
@@ -137,6 +140,47 @@ namespace LeiTing.UI
             colors.disabledColor = new Color(0.24f, 0.27f, 0.3f, 0.62f);
             colors.colorMultiplier = 1f;
             return colors;
+        }
+
+        private static Font GetDefaultFont()
+        {
+            if (defaultFont != null)
+            {
+                return defaultFont;
+            }
+
+            defaultFont = TryGetBuiltinFont("Arial.ttf") ?? TryGetBuiltinFont("LegacyRuntime.ttf");
+            return defaultFont;
+        }
+
+        private static Font TryGetBuiltinFont(string path)
+        {
+            try
+            {
+                return Resources.GetBuiltinResource<Font>(path);
+            }
+            catch (ArgumentException)
+            {
+                return null;
+            }
+        }
+
+        public static T FindComponentInChildren<T>(Transform root, string childName) where T : Component
+        {
+            if (root == null || string.IsNullOrEmpty(childName))
+            {
+                return null;
+            }
+
+            foreach (var component in root.GetComponentsInChildren<T>(true))
+            {
+                if (component != null && component.name == childName)
+                {
+                    return component;
+                }
+            }
+
+            return null;
         }
     }
 }
