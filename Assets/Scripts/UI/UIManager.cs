@@ -18,6 +18,7 @@ namespace LeiTing.UI
         private const float PageSwitchDuration = 0.25f;
         private const float MainTopBarHeight = 112f;
         private const float MainBottomBarHeight = 144f;
+        private const string BottomBarPrefabPath = "UI/Common/UIBottom";
         private const string SingleBulletId = "player_bullet_01";
         private const string DoubleBulletId = "player_bullet_double_01";
         private const string SpreadBulletId = "player_bullet_spread_01";
@@ -564,16 +565,40 @@ namespace LeiTing.UI
 
         private BottomBar CreateBottomBar(RectTransform parent)
         {
-            var rect = UIFactory.CreateRect("BottomBar", parent);
+            GameObject barObject = null;
+            var prefab = Resources.Load<GameObject>(BottomBarPrefabPath);
+            if (prefab != null)
+            {
+                barObject = Instantiate(prefab, parent);
+                barObject.name = "BottomBar";
+            }
+
+            var rect = barObject != null ? barObject.GetComponent<RectTransform>() : null;
+            if (rect == null)
+            {
+                if (barObject != null)
+                {
+                    Destroy(barObject);
+                }
+
+                rect = UIFactory.CreateRect("BottomBar", parent);
+                barObject = rect.gameObject;
+            }
+
+            ConfigureBottomBarRect(rect);
+
+            var bar = barObject.GetComponent<BottomBar>() ?? barObject.AddComponent<BottomBar>();
+            bar.BuildDefaultView();
+            return bar;
+        }
+
+        private static void ConfigureBottomBarRect(RectTransform rect)
+        {
             rect.anchorMin = new Vector2(0f, 0f);
             rect.anchorMax = new Vector2(1f, 0f);
             rect.pivot = new Vector2(0.5f, 0f);
             rect.anchoredPosition = Vector2.zero;
             rect.sizeDelta = new Vector2(0f, MainBottomBarHeight);
-
-            var bar = rect.gameObject.AddComponent<BottomBar>();
-            bar.BuildDefaultView();
-            return bar;
         }
 
         private void CreatePopupLayer(RectTransform parent)

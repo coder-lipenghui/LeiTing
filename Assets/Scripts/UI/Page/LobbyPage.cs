@@ -7,13 +7,23 @@ namespace LeiTing.UI
     public class LobbyPage : BasePage
     {
         [SerializeField] private Button startGameButton;
-
-        private Text planeNameText;
-        private Text planeStatsText;
+        [SerializeField] private Text planeNameText;
+        [SerializeField] private Text planeStatsText;
 
         public override void OnCreate()
         {
-            BuildDefaultView();
+            if (transform.childCount == 0)
+            {
+                BuildDefaultView();
+            }
+
+            BindPrefabView();
+            BindEvents();
+
+            if (Application.isPlaying)
+            {
+                RefreshSelectedPlane();
+            }
         }
 
         public override void OnShow()
@@ -86,9 +96,30 @@ namespace LeiTing.UI
             buttonRect.pivot = new Vector2(0.5f, 0f);
             buttonRect.anchoredPosition = new Vector2(0f, 250f);
             buttonRect.sizeDelta = new Vector2(500f, 112f);
-            startGameButton.onClick.AddListener(OnClickStartGame);
+        }
 
-            RefreshSelectedPlane();
+        private void BindPrefabView()
+        {
+            startGameButton = startGameButton != null
+                ? startGameButton
+                : UIFactory.FindComponentInChildren<Button>(transform, "StartGameButton");
+            planeNameText = planeNameText != null
+                ? planeNameText
+                : UIFactory.FindComponentInChildren<Text>(transform, "PlaneName");
+            planeStatsText = planeStatsText != null
+                ? planeStatsText
+                : UIFactory.FindComponentInChildren<Text>(transform, "PlaneStats");
+        }
+
+        private void BindEvents()
+        {
+            if (startGameButton == null)
+            {
+                return;
+            }
+
+            startGameButton.onClick.RemoveListener(OnClickStartGame);
+            startGameButton.onClick.AddListener(OnClickStartGame);
         }
 
         private void RefreshSelectedPlane()

@@ -24,6 +24,16 @@ namespace LeiTing.UI
 
             built = true;
 
+            BindPrefabReferences();
+            if (HasPrefabButtons())
+            {
+                CacheNavButton(UIPageType.Hangar, hangarButton);
+                CacheNavButton(UIPageType.Lobby, lobbyButton);
+                CacheNavButton(UIPageType.Setting, settingButton);
+                BindButtons();
+                return;
+            }
+
             var background = gameObject.GetComponent<Image>() ?? gameObject.AddComponent<Image>();
             background.color = new Color(0.015f, 0.025f, 0.05f, 0.94f);
 
@@ -36,8 +46,8 @@ namespace LeiTing.UI
             layout.childForceExpandWidth = true;
             layout.childForceExpandHeight = true;
 
-            hangarButton = CreateNavButton(UIPageType.Hangar, "机库");
             lobbyButton = CreateNavButton(UIPageType.Lobby, "大厅");
+            hangarButton = CreateNavButton(UIPageType.Hangar, "机库");
             settingButton = CreateNavButton(UIPageType.Setting, "设置");
             BindButtons();
         }
@@ -70,6 +80,44 @@ namespace LeiTing.UI
             layoutElement.minHeight = 94f;
             layoutElement.preferredHeight = 94f;
             return button;
+        }
+
+        private void BindPrefabReferences()
+        {
+            hangarButton = hangarButton != null
+                ? hangarButton
+                : UIFactory.FindComponentInChildren<Button>(transform, "Hangar");
+            lobbyButton = lobbyButton != null
+                ? lobbyButton
+                : UIFactory.FindComponentInChildren<Button>(transform, "Lobby");
+            settingButton = settingButton != null
+                ? settingButton
+                : UIFactory.FindComponentInChildren<Button>(transform, "Setting");
+        }
+
+        private bool HasPrefabButtons()
+        {
+            return hangarButton != null && lobbyButton != null && settingButton != null;
+        }
+
+        private void CacheNavButton(UIPageType pageType, Button button)
+        {
+            if (button == null)
+            {
+                return;
+            }
+
+            var image = button.GetComponent<Image>();
+            if (image != null)
+            {
+                buttonImages[pageType] = image;
+            }
+
+            var label = button.GetComponentInChildren<Text>(true);
+            if (label != null)
+            {
+                buttonLabels[pageType] = label;
+            }
         }
 
         private void BindButtons()
