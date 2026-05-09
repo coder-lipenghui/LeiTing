@@ -12,7 +12,6 @@ namespace LeiTing.Editor
 {
     public sealed class RuntimeAssetCatalogBuilder : IPreprocessBuildWithReport
     {
-        private const string ConfigPath = "Assets/Resources/Configs/GameConfig.json";
         private const string CatalogPath = "Assets/Resources/RuntimeAssetCatalog.asset";
 
         public int callbackOrder => -1000;
@@ -25,17 +24,8 @@ namespace LeiTing.Editor
         [MenuItem("LeiTing/Build/Rebuild Runtime Asset Catalog")]
         public static void RebuildCatalog()
         {
-            var configAsset = AssetDatabase.LoadAssetAtPath<TextAsset>(ConfigPath);
-            if (configAsset == null)
+            if (!TryLoadBuildConfig(out var config))
             {
-                Debug.LogError($"Runtime asset catalog build failed. Config not found: {ConfigPath}");
-                return;
-            }
-
-            var config = JsonUtility.FromJson<GameConfig>(configAsset.text);
-            if (config == null)
-            {
-                Debug.LogError($"Runtime asset catalog build failed. Config parse failed: {ConfigPath}");
                 return;
             }
 
@@ -70,6 +60,17 @@ namespace LeiTing.Editor
             AssetDatabase.SaveAssets();
 
             Debug.Log($"Runtime asset catalog rebuilt: {prefabEntries.Count} prefabs, {spriteEntries.Count} sprites.");
+        }
+
+        private static bool TryLoadBuildConfig(out GameConfig config)
+        {
+            if (LubanConfigLoader.TryLoad(out config))
+            {
+                return true;
+            }
+
+            Debug.LogError("Runtime asset catalog build failed. Luban config could not be loaded.");
+            return false;
         }
 
         private static void CollectConfiguredPaths(GameConfig config, HashSet<string> prefabPaths, HashSet<string> spritePaths)

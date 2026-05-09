@@ -803,19 +803,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 57af648de32654657a3e16476ce150d2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  configJson: {fileID: 0}
-  config:
-    player:
-      id: 
-      hp: 0
-      moveSpeed: 0
-      invincibleTime: 0
-      defaultBulletId: 
-      fireInterval: 0
-    enemies: []
-    bullets: []
-    waves: []
-    bossSkills: []
 --- !u!114 &1949508815
 MonoBehaviour:
   m_ObjectHideFlags: 0

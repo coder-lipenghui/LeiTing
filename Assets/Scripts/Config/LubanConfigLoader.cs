@@ -27,7 +27,7 @@ namespace LeiTing.Config
             }
             catch (Exception exception)
             {
-                Debug.LogWarning($"Luban config load failed, falling back to legacy GameConfig.json. {exception.Message}");
+                Debug.LogWarning($"Luban config load failed. {exception.Message}");
                 gameConfig = null;
                 return false;
             }

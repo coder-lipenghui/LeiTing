@@ -8,8 +8,6 @@ namespace LeiTing.EditorTools
 {
     public sealed class LevelSelectorWindow : EditorWindow
     {
-        private const string ConfigPath = "Assets/Resources/Configs/GameConfig.json";
-        private const int FallbackLevelCount = 12;
         private const int ButtonColumns = 3;
 
         private GameConfig config;
@@ -55,7 +53,14 @@ namespace LeiTing.EditorTools
 
         private void DrawStatus()
         {
-            var requestedLevel = Mathf.Clamp(GameManager.RequestedLevelNumber, 1, GetLevelCount());
+            var levelCount = GetLevelCount();
+            if (levelCount <= 0)
+            {
+                EditorGUILayout.HelpBox("未加载到 Luban 关卡配置。请运行 Luban/gen.sh 后刷新。", MessageType.Error);
+                return;
+            }
+
+            var requestedLevel = Mathf.Clamp(GameManager.RequestedLevelNumber, 1, levelCount);
             EditorGUILayout.Space(10f);
             EditorGUILayout.LabelField("下一次 Play 进入", FormatLevelTitle(requestedLevel), EditorStyles.boldLabel);
 
@@ -83,6 +88,11 @@ namespace LeiTing.EditorTools
             EditorGUILayout.LabelField("选择关卡", EditorStyles.boldLabel);
 
             var levelCount = GetLevelCount();
+            if (levelCount <= 0)
+            {
+                return;
+            }
+
             for (var index = 0; index < levelCount; index += ButtonColumns)
             {
                 using (new EditorGUILayout.HorizontalScope())
@@ -123,8 +133,7 @@ namespace LeiTing.EditorTools
 
         private void RefreshConfig()
         {
-            var configAsset = AssetDatabase.LoadAssetAtPath<TextAsset>(ConfigPath);
-            config = configAsset != null ? JsonUtility.FromJson<GameConfig>(configAsset.text) : null;
+            config = LubanConfigLoader.TryLoad(out var lubanConfig) ? lubanConfig : null;
             Repaint();
         }
 
@@ -132,7 +141,7 @@ namespace LeiTing.EditorTools
         {
             return config != null && config.levels != null && config.levels.Count > 0
                 ? config.levels.Count
-                : FallbackLevelCount;
+                : 0;
         }
 
         private string FormatButtonLabel(int levelNumber)
