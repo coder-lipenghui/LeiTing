@@ -464,7 +464,7 @@ namespace LeiTing.Pickups
         {
             if (defaultSpriteMaterial == null)
             {
-                defaultSpriteMaterial = new Material(Shader.Find("Sprites/Default"));
+                defaultSpriteMaterial = SpriteMaterialUtility.CreateSpriteMaterial("Pickup Sprite Material");
             }
 
             return defaultSpriteMaterial;

@@ -1,4 +1,5 @@
 using System;
+using LeiTing.Core;
 using UnityEngine;
 
 namespace LeiTing.Missiles
@@ -505,11 +506,7 @@ namespace LeiTing.Missiles
         {
             if (defaultSpriteMaterial == null)
             {
-                var shader = Shader.Find("Sprites/Default");
-                if (shader != null)
-                {
-                    defaultSpriteMaterial = new Material(shader);
-                }
+                defaultSpriteMaterial = SpriteMaterialUtility.CreateSpriteMaterial("Missile Trail Sprite Material");
             }
 
             return defaultSpriteMaterial;
@@ -519,14 +516,10 @@ namespace LeiTing.Missiles
         {
             if (smokeMaterial == null)
             {
-                var shader = Shader.Find("Sprites/Default");
-                if (shader != null)
-                {
-                    smokeMaterial = new Material(shader)
-                    {
-                        mainTexture = GetSmokeTexture()
-                    };
+                smokeMaterial = SpriteMaterialUtility.CreateSpriteMaterial("Missile Smoke Material", GetSmokeTexture());
 
+                if (smokeMaterial != null)
+                {
                     if (smokeMaterial.HasProperty("_Color"))
                     {
                         smokeMaterial.SetColor("_Color", Color.white);

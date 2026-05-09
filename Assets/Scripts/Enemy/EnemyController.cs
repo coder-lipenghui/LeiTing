@@ -176,6 +176,7 @@ namespace LeiTing.Enemy
             spriteRenderer.sprite = spriteRenderer.sprite != null ? spriteRenderer.sprite : LoadEnemySprite() ?? CreateFallbackEnemySprite();
             spriteRenderer.flipY = false;
             spriteRenderer.sortingOrder = 15;
+            SpriteMaterialUtility.EnsureUsableSpriteMaterial(spriteRenderer);
             originalColor = Color.white;
             spriteRenderer.color = originalColor;
 
