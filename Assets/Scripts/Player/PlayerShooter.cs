@@ -8,7 +8,7 @@ namespace LeiTing.Player
     [DisallowMultipleComponent]
     public class PlayerShooter : MonoBehaviour
     {
-        private const string DefaultBulletId = "player_laser_01";
+        private const string DefaultBulletId = "player_bullet_double_01";
 
         [SerializeField] private PlayerConfig config;
         [SerializeField] private Transform firePoint;
@@ -17,7 +17,6 @@ namespace LeiTing.Player
         [SerializeField] private string fallbackBulletId = DefaultBulletId;
         [SerializeField] private Vector2 firePointOffset = new Vector2(0f, 0.45f);
 
-        private string selectedBulletId;
         private float nextFireTime;
 
         public string CurrentBulletId => GetBulletId();
@@ -31,17 +30,6 @@ namespace LeiTing.Player
         public void ApplyConfig(PlayerConfig playerConfig)
         {
             config = playerConfig;
-        }
-
-        public void SetBulletId(string bulletId)
-        {
-            if (string.IsNullOrEmpty(bulletId))
-            {
-                return;
-            }
-
-            selectedBulletId = bulletId;
-            nextFireTime = Time.time;
         }
 
         public bool TryFire()
@@ -137,11 +125,6 @@ namespace LeiTing.Player
 
         private string GetBulletId()
         {
-            if (!string.IsNullOrEmpty(selectedBulletId))
-            {
-                return selectedBulletId;
-            }
-
             if (config != null && !string.IsNullOrEmpty(config.defaultBulletId))
             {
                 return config.defaultBulletId;

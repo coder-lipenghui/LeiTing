@@ -47,6 +47,16 @@ namespace LeiTing.Missiles
                 return;
             }
 
+            missile.RecycleToPool();
+        }
+
+        public void CompleteRecycle(MissileController missile)
+        {
+            if (missile == null)
+            {
+                return;
+            }
+
             missile.DeactivateForPool();
             missile.transform.SetParent(transform, false);
 

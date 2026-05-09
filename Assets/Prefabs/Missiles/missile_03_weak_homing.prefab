@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 100003}
   - component: {fileID: 100004}
   - component: {fileID: 1005709114826455847}
+  - component: {fileID: 9041649102491590400}
   m_Layer: 14
   m_Name: missile_03_weak_homing
   m_TagString: Untagged
@@ -36,6 +37,7 @@ Transform:
   - {fileID: 5826815320593341398}
   - {fileID: 6828447783813823940}
   - {fileID: 8365106759812499433}
+  - {fileID: 7219436000000000002}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -103,11 +105,19 @@ MonoBehaviour:
   trailMode: 2
   useConfigTailColor: 0
   customTailColor: {r: 1, g: 0.36133856, b: 0.21960783, a: 1}
+  tailPoint: {fileID: 7219436000000000002}
+  trailController: {fileID: 9041649102491590400}
   lightTrailRoot: {fileID: 5826815320593341398}
   lightTrailRenderer: {fileID: 237837699384006937}
+  flameRoot: {fileID: 0}
+  flame: {fileID: 0}
+  flameRenderer: {fileID: 0}
   smokeTrailRoot: {fileID: 6828447783813823940}
   smokeTrail: {fileID: 2466134585201804727}
   smokeTrailRenderer: {fileID: 967027548588304026}
+  sparkRoot: {fileID: 0}
+  sparks: {fileID: 0}
+  sparksRenderer: {fileID: 0}
   tailGlowRoot: {fileID: 8365106759812499433}
   tailGlowRenderer: {fileID: 896515372998907939}
   lightTrail:
@@ -118,8 +128,28 @@ MonoBehaviour:
     startAlpha: 0.72
     endAlpha: 0
     offsetRadiusScale: 0.9
+    minVertexDistanceRadiusScale: 0.45
     capVertices: 4
     sortingOrder: 21
+    material: {fileID: 0}
+  flameTrail:
+    duration: 1
+    lifetimeMin: 0.08
+    lifetimeMax: 0.16
+    startSpeedMin: 0.45
+    startSpeedMax: 1.65
+    sizeRadiusScaleMin: 0.75
+    sizeRadiusScaleMax: 1.65
+    emissionRate: 80
+    coneAngle: 18
+    shapeRadiusScale: 0.24
+    sideSpread: 0.03
+    backwardSpeedMin: -1.35
+    backwardSpeedMax: -0.45
+    startAlpha: 0.95
+    midAlpha: 0.72
+    maxParticles: 64
+    sortingOrder: 23
     material: {fileID: 0}
   smoke:
     duration: 1
@@ -147,6 +177,25 @@ MonoBehaviour:
     sortingOrder: 20
     shadowColor: {r: 0.72, g: 0.76, b: 0.8, a: 1}
     material: {fileID: 0}
+  sparkTrail:
+    duration: 1
+    lifetimeMin: 0.14
+    lifetimeMax: 0.34
+    startSpeedMin: 1
+    startSpeedMax: 2.6
+    sizeRadiusScaleMin: 0.16
+    sizeRadiusScaleMax: 0.34
+    emissionRate: 10
+    coneAngle: 34
+    shapeRadiusScale: 0.16
+    sideSpread: 0.22
+    backwardSpeedMin: -1.8
+    backwardSpeedMax: -0.45
+    startAlpha: 0.9
+    midAlpha: 0.46
+    maxParticles: 48
+    sortingOrder: 24
+    material: {fileID: 0}
   tailGlow:
     enabled: 1
     offsetRadiusScale: 0.88
@@ -156,6 +205,22 @@ MonoBehaviour:
     pulseSpeed: 8
     sortingOrder: 21
     material: {fileID: 0}
+--- !u!114 &9041649102491590400
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 100000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4737ccbfa124c7686e7261bc9b41f9f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  flame: {fileID: 0}
+  smoke: {fileID: 2466134585201804727}
+  sparks: {fileID: 0}
+  trail: {fileID: 237837699384006937}
 --- !u!1 &100005
 GameObject:
   m_ObjectHideFlags: 0
@@ -252,7 +317,7 @@ GameObject:
   - component: {fileID: 2466134585201804727}
   - component: {fileID: 967027548588304026}
   m_Layer: 14
-  m_Name: SmokeTrail
+  m_Name: Smoke_Particle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -266,7 +331,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1806599610893531033}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.1326, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1844,7 +1909,7 @@ ParticleSystem:
         m_RotationOrder: 4
     z:
       serializedVersion: 2
-      minMaxState: 0
+      minMaxState: 3
       scalar: 0
       minScalar: 0
       maxCurve:
@@ -5061,6 +5126,37 @@ ParticleSystemRenderer:
   m_MeshWeighting2: 1
   m_MeshWeighting3: 1
   m_MaskInteraction: 0
+--- !u!1 &7219436000000000001
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7219436000000000002}
+  m_Layer: 14
+  m_Name: TailPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7219436000000000002
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7219436000000000001}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: -0.153, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 100001}
+  m_RootOrder: 4
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &8650648761430690428
 GameObject:
   m_ObjectHideFlags: 0
@@ -5086,7 +5182,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8650648761430690428}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.1496, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0.5445312, y: 0.5445312, z: 0.5445312}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -5156,7 +5252,7 @@ GameObject:
   - component: {fileID: 5826815320593341398}
   - component: {fileID: 237837699384006937}
   m_Layer: 14
-  m_Name: LightTrail
+  m_Name: TrailRenderer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5170,7 +5266,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8961771823653654005}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.153, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -5282,6 +5378,6 @@ TrailRenderer:
     textureMode: 0
     shadowBias: 0.5
     generateLightingData: 0
-  m_MinVertexDistance: 0.1
+  m_MinVertexDistance: 0.0765
   m_Autodestruct: 0
-  m_Emitting: 1
+  m_Emitting: 0

@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using LeiTing.Bullets;
 using LeiTing.Config;
@@ -57,9 +58,11 @@ namespace LeiTing.Missiles
         private float releaseTimer;
         private int currentHp;
         private bool isActiveMissile;
+        private bool isWaitingForPool;
         private bool hasSplit;
         private bool hasReturned;
         private bool hasExploded;
+        private Coroutine recycleCoroutine;
 
         public int Damage => Mathf.Max(1, config != null ? config.damage : 1);
         public bool CanBeDestroyed => config != null && config.canBeDestroyed;
@@ -73,6 +76,12 @@ namespace LeiTing.Missiles
             }
 
             EnsureComponents();
+
+            if (recycleCoroutine != null)
+            {
+                StopCoroutine(recycleCoroutine);
+                recycleCoroutine = null;
+            }
 
             config = missileConfig;
             manager = owningManager;
@@ -96,6 +105,7 @@ namespace LeiTing.Missiles
             hasSplit = false;
             hasReturned = false;
             hasExploded = false;
+            isWaitingForPool = false;
             isActiveMissile = true;
 
             ApplyLayer();
@@ -112,9 +122,26 @@ namespace LeiTing.Missiles
 
         public void DeactivateForPool()
         {
+            if (recycleCoroutine != null)
+            {
+                StopCoroutine(recycleCoroutine);
+                recycleCoroutine = null;
+            }
+
             isActiveMissile = false;
+            isWaitingForPool = false;
             state = MissileState.Dead;
             HideWarnings();
+
+            if (hitbox != null)
+            {
+                hitbox.enabled = false;
+            }
+
+            if (bodyRenderer != null)
+            {
+                bodyRenderer.enabled = false;
+            }
 
             if (visualEffects != null)
             {
@@ -373,6 +400,7 @@ namespace LeiTing.Missiles
         private void ApplyVisual()
         {
             bodyRenderer.sprite = LoadConfiguredSprite(config.bodyRes) ?? GetFallbackSprite();
+            bodyRenderer.enabled = true;
             baseColor = Color.white;
             bodyRenderer.color = Color.white;
             bodyRenderer.sortingOrder = CanBeDestroyed ? 24 : 22;
@@ -1099,20 +1127,86 @@ namespace LeiTing.Missiles
             return viewport.x < -0.2f || viewport.x > 1.2f || viewport.y < -0.2f || viewport.y > 1.2f;
         }
 
-        private void Recycle()
+        public void RecycleToPool()
         {
-            if (!isActiveMissile)
+            if (!isActiveMissile || isWaitingForPool)
             {
                 return;
             }
 
+            isActiveMissile = false;
+            isWaitingForPool = true;
+            state = MissileState.Dead;
+            HideWarnings();
+
+            if (hitbox != null)
+            {
+                hitbox.enabled = false;
+            }
+
+            if (bodyRenderer != null)
+            {
+                bodyRenderer.enabled = false;
+            }
+
+            StopTrailForRecycle();
+
+            var releaseDuration = visualEffects != null ? visualEffects.ReleaseDuration : 0f;
+            if (gameObject.activeInHierarchy && releaseDuration > 0.01f)
+            {
+                recycleCoroutine = StartCoroutine(CompleteRecycleAfterDelay(releaseDuration));
+                return;
+            }
+
+            CompleteRecycleNow();
+        }
+
+        private IEnumerator CompleteRecycleAfterDelay(float delay)
+        {
+            yield return new WaitForSeconds(delay);
+            recycleCoroutine = null;
+            CompleteRecycleNow();
+        }
+
+        private void CompleteRecycleNow()
+        {
+            isWaitingForPool = false;
+
             if (manager != null)
             {
-                manager.Recycle(this);
+                manager.CompleteRecycle(this);
                 return;
             }
 
             DeactivateForPool();
+        }
+
+        private void StopTrailForRecycle()
+        {
+            if (visualEffects != null)
+            {
+                visualEffects.StopTrail();
+            }
+
+            if (rootTrailRenderer != null)
+            {
+                rootTrailRenderer.emitting = false;
+            }
+
+            if (trailRenderer != null)
+            {
+                trailRenderer.emitting = false;
+            }
+
+            if (smokeTrail != null && visualEffects == null)
+            {
+                smokeTrail.Stop(true, ParticleSystemStopBehavior.StopEmitting);
+            }
+        }
+
+        private void Recycle()
+        {
+            RecycleToPool();
         }
 
         private Color ResolveTrailColor()

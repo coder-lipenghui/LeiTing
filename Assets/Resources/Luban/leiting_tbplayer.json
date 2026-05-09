@@ -16,7 +16,7 @@
     "hitboxRadius": 0.18,
     "hitboxOffsetX": 0,
     "hitboxOffsetY": -0.08,
-    "defaultBulletId": "player_laser_01",
+    "defaultBulletId": "player_bullet_double_01",
     "fireInterval": 0.16
   }
 ]

@@ -17,7 +17,7 @@
       "x": 0,
       "y": -0.08
     },
-    "defaultBulletId": "player_laser_01",
+    "defaultBulletId": "player_bullet_double_01",
     "fireInterval": 0.16
   },
   "enemies": [
