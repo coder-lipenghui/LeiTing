@@ -302,13 +302,26 @@
     "index": 24,
     "id": "enemy_resource",
     "displayName": "资源敌机",
-    "prefabPath": "Assets/Prefabs/Enemies/enemy_01.prefab",
-    "hp": 3,
+    "prefabPath": "Assets/Prefabs/Enemies/smll_helicopter_01.prefab",
+    "hp": 6,
     "moveSpeed": 2.4,
     "attackInterval": 999,
     "bulletId": "",
     "bulletPatternId": "",
     "hitScaleFeedback": false,
     "score": 50
+  },
+  {
+    "index": 25,
+    "id": "enemy_ucav",
+    "displayName": "无人侦察机",
+    "prefabPath": "Assets/Prefabs/Enemies/enemy_04.prefab",
+    "hp": 50,
+    "moveSpeed": 1.2,
+    "attackInterval": 1.2,
+    "bulletId": "enemy_bullet_01",
+    "bulletPatternId": "enemy_spiral_windmill",
+    "hitScaleFeedback": false,
+    "score": 500
   }
 ]
