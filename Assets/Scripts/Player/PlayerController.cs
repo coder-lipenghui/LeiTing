@@ -31,6 +31,10 @@ namespace LeiTing.Player
         private Rigidbody2D body;
         private SpriteRenderer spriteRenderer;
         private Vector3 targetPosition;
+        private Vector3 dragPointerStartWorldPosition;
+        private Vector3 dragPlayerStartPosition;
+        private bool isPointerDragging;
+        private int activeTouchFingerId = -1;
         private int currentHp;
         private int maxHp;
         private int currentShield;
@@ -194,13 +198,14 @@ namespace LeiTing.Player
         {
             if (GameManager.Instance != null && GameManager.Instance.CurrentState != GameState.Playing)
             {
+                EndPointerDrag();
                 UpdateInvincibleVisual();
                 return;
             }
 
-            if (TryGetPointerWorldPosition(out var pointerWorldPosition))
+            if (TryGetDragTargetPosition(out var dragTargetPosition))
             {
-                targetPosition = ClampToCameraBounds(pointerWorldPosition);
+                targetPosition = ClampToCameraBounds(dragTargetPosition);
             }
 
             SetPosition(targetPosition);
@@ -209,6 +214,8 @@ namespace LeiTing.Player
 
         private void OnDisable()
         {
+            EndPointerDrag();
+
             if (spriteRenderer != null)
             {
                 spriteRenderer.color = originalColor;
@@ -245,35 +252,145 @@ namespace LeiTing.Player
             gameObject.SetActive(false);
         }
 
-        private bool TryGetPointerWorldPosition(out Vector3 worldPosition)
+        private bool TryGetDragTargetPosition(out Vector3 worldPosition)
         {
-            var screenPosition = Vector3.zero;
-            var hasPointer = false;
+            worldPosition = targetPosition;
 
-            if (Input.touchCount > 0)
+            if (gameplayCamera == null)
             {
-                var touch = Input.GetTouch(0);
-                hasPointer = touch.phase != TouchPhase.Canceled
-                    && touch.phase != TouchPhase.Ended
-                    && !IsPointerOverUi(touch.fingerId);
-                screenPosition = touch.position;
-            }
-            else
-            {
-                hasPointer = Input.mousePresent && Input.GetMouseButton(0) && !IsPointerOverUi();
-                screenPosition = Input.mousePosition;
-            }
-
-            if (!hasPointer || gameplayCamera == null)
-            {
-                worldPosition = targetPosition;
+                EndPointerDrag();
                 return false;
             }
 
-            screenPosition.z = Mathf.Abs(gameplayCamera.transform.position.z - transform.position.z);
-            worldPosition = gameplayCamera.ScreenToWorldPoint(screenPosition);
+            if (Input.touchCount > 0)
+            {
+                return TryGetTouchDragTargetPosition(out worldPosition);
+            }
+
+            if (isPointerDragging && activeTouchFingerId >= 0)
+            {
+                EndPointerDrag();
+                return false;
+            }
+
+            return TryGetMouseDragTargetPosition(out worldPosition);
+        }
+
+        private bool TryGetTouchDragTargetPosition(out Vector3 worldPosition)
+        {
+            worldPosition = targetPosition;
+
+            if (isPointerDragging && activeTouchFingerId >= 0)
+            {
+                for (var i = 0; i < Input.touchCount; i++)
+                {
+                    var activeTouch = Input.GetTouch(i);
+                    if (activeTouch.fingerId != activeTouchFingerId)
+                    {
+                        continue;
+                    }
+
+                    if (activeTouch.phase == TouchPhase.Canceled || activeTouch.phase == TouchPhase.Ended)
+                    {
+                        EndPointerDrag();
+                        return false;
+                    }
+
+                    var activePointerPosition = ScreenToWorldPosition(activeTouch.position);
+                    worldPosition = dragPlayerStartPosition + (activePointerPosition - dragPointerStartWorldPosition);
+                    worldPosition.z = transform.position.z;
+                    return true;
+                }
+
+                EndPointerDrag();
+                return false;
+            }
+
+            for (var i = 0; i < Input.touchCount; i++)
+            {
+                var touch = Input.GetTouch(i);
+                if (touch.phase != TouchPhase.Began || IsPointerOverUi(touch.fingerId))
+                {
+                    continue;
+                }
+
+                BeginPointerDrag(touch.position, touch.fingerId);
+                worldPosition = dragPlayerStartPosition;
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool TryGetMouseDragTargetPosition(out Vector3 worldPosition)
+        {
+            worldPosition = targetPosition;
+
+            if (!Input.mousePresent)
+            {
+                EndPointerDrag();
+                return false;
+            }
+
+            if (Input.GetMouseButtonDown(0) && !IsPointerOverUi())
+            {
+                BeginPointerDrag(Input.mousePosition, -1);
+                worldPosition = dragPlayerStartPosition;
+                return true;
+            }
+
+            if (!Input.GetMouseButton(0))
+            {
+                if (isPointerDragging && activeTouchFingerId == -1)
+                {
+                    EndPointerDrag();
+                }
+
+                return false;
+            }
+
+            if (!isPointerDragging || activeTouchFingerId != -1)
+            {
+                return false;
+            }
+
+            var pointerPosition = ScreenToWorldPosition(Input.mousePosition);
+            worldPosition = dragPlayerStartPosition + (pointerPosition - dragPointerStartWorldPosition);
             worldPosition.z = transform.position.z;
             return true;
+        }
+
+        private void BeginPointerDrag(Vector3 screenPosition, int touchFingerId)
+        {
+            dragPointerStartWorldPosition = ScreenToWorldPosition(screenPosition);
+            dragPlayerStartPosition = GetCurrentPosition();
+            targetPosition = dragPlayerStartPosition;
+            activeTouchFingerId = touchFingerId;
+            isPointerDragging = true;
+        }
+
+        private void EndPointerDrag()
+        {
+            isPointerDragging = false;
+            activeTouchFingerId = -1;
+        }
+
+        private Vector3 ScreenToWorldPosition(Vector3 screenPosition)
+        {
+            screenPosition.z = Mathf.Abs(gameplayCamera.transform.position.z - transform.position.z);
+            var worldPosition = gameplayCamera.ScreenToWorldPoint(screenPosition);
+            worldPosition.z = transform.position.z;
+            return worldPosition;
+        }
+
+        private Vector3 GetCurrentPosition()
+        {
+            if (body != null)
+            {
+                return new Vector3(body.position.x, body.position.y, transform.position.z);
+            }
+
+            return transform.position;
         }
 
         private bool IsPointerOverUi(int pointerId = -1)
