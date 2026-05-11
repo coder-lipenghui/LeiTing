@@ -51,6 +51,7 @@ namespace LeiTing.Pickups
         }
 
         public bool IsStarPickup => IsItemType("Star") || IsItemId("star");
+        public bool IsCollected => isCollected;
 
         public void BeginForcedAttract(PlayerController player)
         {

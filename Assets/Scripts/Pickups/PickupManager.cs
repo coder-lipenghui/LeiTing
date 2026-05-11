@@ -91,6 +91,37 @@ namespace LeiTing.Pickups
             }
         }
 
+        public void AttractAllPickupsToPlayer(PlayerController player)
+        {
+            if (player == null)
+            {
+                return;
+            }
+
+            var pickups = FindObjectsOfType<PickupItemController>();
+            foreach (var pickup in pickups)
+            {
+                if (pickup != null && !pickup.IsCollected)
+                {
+                    pickup.BeginForcedAttract(player);
+                }
+            }
+        }
+
+        public bool HasActivePickups()
+        {
+            var pickups = FindObjectsOfType<PickupItemController>();
+            foreach (var pickup in pickups)
+            {
+                if (pickup != null && !pickup.IsCollected)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         public void KillAllMinions()
         {
             var enemies = FindObjectsOfType<EnemyController>();
