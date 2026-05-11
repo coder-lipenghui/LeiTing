@@ -27,6 +27,8 @@ namespace LeiTing.Effects
         [SerializeField] private int sortingOrder = 14;
         [SerializeField] private Material material = null;
 
+        private bool pendingStartEmission;
+
         private void Awake()
         {
             EnsureConfigured();
@@ -35,14 +37,26 @@ namespace LeiTing.Effects
         private void OnEnable()
         {
             EnsureConfigured();
-            ClearTrails();
-            SetEmitting(trailEnabled);
+            ResetTrailsForTeleport();
         }
 
         private void OnDisable()
         {
+            pendingStartEmission = false;
             SetEmitting(false);
             ClearTrails();
+        }
+
+        private void LateUpdate()
+        {
+            if (!pendingStartEmission)
+            {
+                return;
+            }
+
+            pendingStartEmission = false;
+            ClearTrails();
+            SetEmitting(trailEnabled);
         }
 
         private void Reset()
@@ -62,6 +76,14 @@ namespace LeiTing.Effects
         {
             EnsureConfigured();
             ClearTrails();
+        }
+
+        public void ResetTrailsForTeleport()
+        {
+            EnsureConfigured();
+            SetEmitting(false);
+            ClearTrails();
+            pendingStartEmission = true;
         }
 
         public void SetEmitting(bool emitting)
@@ -201,7 +223,6 @@ namespace LeiTing.Effects
             mount.gameObject.layer = gameObject.layer;
 
             trailRenderer.enabled = trailEnabled;
-            trailRenderer.emitting = trailEnabled && isActiveAndEnabled;
             trailRenderer.time = Mathf.Max(0.01f, duration);
             trailRenderer.startWidth = Mathf.Max(0f, startWidth);
             trailRenderer.endWidth = Mathf.Max(0f, endWidth);

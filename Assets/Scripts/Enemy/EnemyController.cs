@@ -31,6 +31,7 @@ namespace LeiTing.Enemy
         private CircleCollider2D hitbox;
         private SpriteRenderer spriteRenderer;
         private SpriteRenderer flashRenderer;
+        private AircraftWingTrailEffect wingTrailEffect;
         private ActorMounts mounts;
         private Color originalColor = Color.white;
         private Vector3 spawnPosition;
@@ -73,6 +74,7 @@ namespace LeiTing.Enemy
             holdDuration = spawnConfig != null ? spawnConfig.holdDuration : 0f;
             holdStartedAt = -1f;
             transform.position = position;
+            wingTrailEffect?.ResetTrailsForTeleport();
             aliveTime = 0f;
             nextAttackTime = Time.time + GetAttackInterval();
             flashUntil = 0f;
@@ -160,6 +162,8 @@ namespace LeiTing.Enemy
             {
                 mounts = gameObject.AddComponent<ActorMounts>();
             }
+
+            wingTrailEffect = wingTrailEffect != null ? wingTrailEffect : GetComponent<AircraftWingTrailEffect>();
         }
 
         private void ApplyLayer()
