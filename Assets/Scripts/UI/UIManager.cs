@@ -6,6 +6,9 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace LeiTing.UI
 {
@@ -13,8 +16,9 @@ namespace LeiTing.UI
     {
         private const float PageSwitchDuration = 0.25f;
         private const float MainTopBarHeight = 112f;
-        private const float MainBottomBarHeight = 144f;
-        private const string BottomBarPrefabPath = "UI/Common/UIBottom";
+        private const float MainBottomBarHeight = 268f;
+        private const string BottomBarPrefabAssetPath = "Assets/Prefabs/UI/UIBottom.prefab";
+        private const string BottomBarPrefabResourcesPath = "UI/Common/UIBottom";
 
         private readonly Dictionary<UIPageType, BasePage> pageInstances = new Dictionary<UIPageType, BasePage>();
         private readonly Stack<BasePopup> popupStack = new Stack<BasePopup>();
@@ -480,6 +484,9 @@ namespace LeiTing.UI
             topBar = CreateTopBar(commonLayer);
             bottomBar = CreateBottomBar(commonLayer);
             CreatePopupLayer(popupLayer);
+
+            commonLayer.SetAsLastSibling();
+            popupLayer.SetAsLastSibling();
         }
 
         private RectTransform CreateLayer(string layerName, Transform parent)
@@ -522,7 +529,7 @@ namespace LeiTing.UI
         private BottomBar CreateBottomBar(RectTransform parent)
         {
             GameObject barObject = null;
-            var prefab = Resources.Load<GameObject>(BottomBarPrefabPath);
+            var prefab = LoadBottomBarPrefab();
             if (prefab != null)
             {
                 barObject = Instantiate(prefab, parent);
@@ -542,10 +549,27 @@ namespace LeiTing.UI
             }
 
             ConfigureBottomBarRect(rect);
+            rect.SetAsLastSibling();
 
             var bar = barObject.GetComponent<BottomBar>() ?? barObject.AddComponent<BottomBar>();
             bar.BuildDefaultView();
             return bar;
+        }
+
+        private static GameObject LoadBottomBarPrefab()
+        {
+#if UNITY_EDITOR
+            var editorPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(BottomBarPrefabAssetPath);
+            if (editorPrefab != null)
+            {
+                return editorPrefab;
+            }
+#endif
+
+            var catalogPrefab = RuntimeAssetCatalog.LoadPrefab(BottomBarPrefabAssetPath);
+            return catalogPrefab != null
+                ? catalogPrefab
+                : Resources.Load<GameObject>(BottomBarPrefabResourcesPath);
         }
 
         private static void ConfigureBottomBarRect(RectTransform rect)

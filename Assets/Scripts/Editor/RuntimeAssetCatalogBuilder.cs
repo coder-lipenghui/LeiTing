@@ -13,6 +13,7 @@ namespace LeiTing.Editor
     public sealed class RuntimeAssetCatalogBuilder : IPreprocessBuildWithReport
     {
         private const string CatalogPath = "Assets/Resources/RuntimeAssetCatalog.asset";
+        private const string BottomBarPrefabPath = "Assets/Prefabs/UI/UIBottom.prefab";
 
         public int callbackOrder => -1000;
 
@@ -76,6 +77,7 @@ namespace LeiTing.Editor
         private static void CollectConfiguredPaths(GameConfig config, HashSet<string> prefabPaths, HashSet<string> spritePaths)
         {
             AddPath(prefabPaths, config.player?.prefabPath);
+            AddPath(prefabPaths, BottomBarPrefabPath);
 
             AddPath(spritePaths, "Assets/Art/Animations/Enemies/enemy-01.png");
             AddPath(spritePaths, "Assets/Art/Animations/Enemies/BOSS-1.png");

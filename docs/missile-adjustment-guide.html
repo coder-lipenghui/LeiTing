@@ -1,0 +1,541 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>导弹调整说明</title>
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --panel: #ffffff;
+      --text: #18202f;
+      --muted: #617087;
+      --line: #dfe5ef;
+      --accent: #1f7a8c;
+      --accent-2: #d95d39;
+      --code-bg: #eef3f7;
+      --ok: #247a4a;
+      --warn: #a15c00;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.68;
+    }
+
+    header {
+      background: #152238;
+      color: #ffffff;
+      padding: 32px 28px;
+      border-bottom: 4px solid var(--accent);
+    }
+
+    header h1 {
+      margin: 0 0 8px;
+      font-size: 30px;
+      letter-spacing: 0;
+    }
+
+    header p {
+      margin: 0;
+      color: #c9d5e6;
+      max-width: 980px;
+    }
+
+    main {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 26px 20px 48px;
+    }
+
+    section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 22px;
+      margin: 18px 0;
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      font-size: 22px;
+    }
+
+    h3 {
+      margin: 22px 0 8px;
+      font-size: 17px;
+    }
+
+    p {
+      margin: 8px 0;
+    }
+
+    ul,
+    ol {
+      margin: 8px 0 0 22px;
+      padding: 0;
+    }
+
+    li {
+      margin: 5px 0;
+    }
+
+    code {
+      background: var(--code-bg);
+      border: 1px solid #d7e0ea;
+      border-radius: 5px;
+      padding: 1px 5px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.94em;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid var(--line);
+      padding: 10px 12px;
+      vertical-align: top;
+      text-align: left;
+    }
+
+    th {
+      background: #edf3f8;
+      color: #253348;
+      font-weight: 700;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .note,
+    .warning,
+    .success {
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-top: 12px;
+    }
+
+    .note {
+      background: #edf7fa;
+      border: 1px solid #b9dfe8;
+    }
+
+    .warning {
+      background: #fff5e6;
+      border: 1px solid #f0c47c;
+      color: #503300;
+    }
+
+    .success {
+      background: #ecf8f0;
+      border: 1px solid #b9dfc8;
+      color: #173f29;
+    }
+
+    .step {
+      border-left: 4px solid var(--accent);
+      padding-left: 12px;
+      margin: 14px 0;
+    }
+
+    .tag {
+      display: inline-block;
+      margin: 2px 4px 2px 0;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #e9eff6;
+      color: #34445c;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .accent {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .danger {
+      color: var(--accent-2);
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>导弹调整说明</h1>
+    <p>用于调整雷霆战机项目中的导弹行为、发射模式、Prefab 视觉和拖尾效果。适合策划、美术、程序在 Unity 编辑器中协作使用。</p>
+  </header>
+
+  <main>
+    <section>
+      <h2>一、先判断你要调什么</h2>
+      <div class="grid">
+        <div class="note">
+          <strong>导弹飞行逻辑</strong>
+          <p>调速度、追踪、锁定、爆炸、分裂、生命时间等，主要改 <code>Luban/Datas/Missile.xlsx</code>。</p>
+        </div>
+        <div class="note">
+          <strong>发射方式</strong>
+          <p>调一次发几颗、角度、散射、是否瞄准玩家、连发等，主要改 <code>Luban/Datas/MissilePattern.xlsx</code>。</p>
+        </div>
+        <div class="note">
+          <strong>外观资源</strong>
+          <p>调导弹图片、碰撞半径、Prefab 结构，主要看 <code>Assets/Prefabs/Missiles/</code>。</p>
+        </div>
+        <div class="note">
+          <strong>拖尾效果</strong>
+          <p>调 <code>Flame_Particle</code>、<code>Smoke_Particle</code>、<code>Spark_Particle</code>、<code>TrailRenderer</code>，使用 Unity 菜单 <code>LeiTing/Missiles/Visual Preview</code>。</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>二、常用文件位置</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>文件或目录</th>
+            <th>用途</th>
+            <th>什么时候改</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>Luban/Datas/Missile.xlsx</code></td>
+            <td>导弹本体配置，控制行为类型、速度、生命、追踪、爆炸、尾焰颜色等。</td>
+            <td>要新增导弹，或调某种导弹自身手感时。</td>
+          </tr>
+          <tr>
+            <td><code>Luban/Datas/MissilePattern.xlsx</code></td>
+            <td>导弹发射模式，控制数量、角度、散射、连发、瞄准玩家等。</td>
+            <td>要改变敌机或 Boss 怎么发射导弹时。</td>
+          </tr>
+          <tr>
+            <td><code>Luban/Datas/WaveSpawn.xlsx</code></td>
+            <td>波次刷怪里可用 <code>attackPatternId</code> 覆盖敌机攻击模式。</td>
+            <td>只想让某一波敌人用某个导弹模式时。</td>
+          </tr>
+          <tr>
+            <td><code>Luban/Datas/BossPhasePattern.xlsx</code></td>
+            <td>Boss 阶段里挂子弹或导弹模式。</td>
+            <td>要给 Boss 某个血量阶段加导弹攻击时。</td>
+          </tr>
+          <tr>
+            <td><code>Assets/Prefabs/Missiles/</code></td>
+            <td>导弹 Prefab，包含碰撞体、主体图片、拖尾效果组件。</td>
+            <td>要调视觉、碰撞半径、拖尾挂点或特效参数时。</td>
+          </tr>
+          <tr>
+            <td><code>Assets/Art/Sprites/Bullets/</code></td>
+            <td>导弹图片资源，例如 <code>missile_01.png</code>。</td>
+            <td>要替换导弹主体图时。</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>三、调整导弹本体</h2>
+      <p>打开 <code>Luban/Datas/Missile.xlsx</code> 的 <code>Missile</code> sheet。每一行是一种导弹。</p>
+      <table>
+        <thead>
+          <tr>
+            <th>字段</th>
+            <th>说明</th>
+            <th>调整建议</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>id</code></td>
+            <td>导弹配置 ID，被 <code>MissilePattern.missileId</code> 引用。</td>
+            <td>新增时必须唯一，推荐类似 <code>missile_weak_homing_1002</code>。</td>
+          </tr>
+          <tr>
+            <td><code>behaviorType</code></td>
+            <td>导弹行为类型。</td>
+            <td>直线用 1，弱追踪用 3，锁定冲刺用 5，分裂用 8，爆炸用 9。</td>
+          </tr>
+          <tr>
+            <td><code>speed</code> / <code>maxSpeed</code> / <code>acceleration</code></td>
+            <td>基础速度、最大速度、加速度。</td>
+            <td>速度越高越难躲。追踪导弹建议先降低速度，再提高转向。</td>
+          </tr>
+          <tr>
+            <td><code>lifeTime</code></td>
+            <td>导弹存活时间。</td>
+            <td>太短会半路消失，太长会残留屏幕外；一般 4 到 8 秒。</td>
+          </tr>
+          <tr>
+            <td><code>damage</code> / <code>radius</code></td>
+            <td>伤害和碰撞半径。</td>
+            <td>大导弹半径可以略大，但不要超过图片视觉太多。</td>
+          </tr>
+          <tr>
+            <td><code>turnSpeed</code> / <code>trackTime</code> / <code>isLoopTrack</code></td>
+            <td>追踪转向速度、追踪时长、是否持续追踪。</td>
+            <td>弱追踪优先调 <code>turnSpeed</code>，强追踪再考虑 <code>isLoopTrack</code>。</td>
+          </tr>
+          <tr>
+            <td><code>lockDelay</code> / <code>warningTime</code></td>
+            <td>锁定冲刺前的等待和预警。</td>
+            <td>冲刺导弹必须给玩家反应时间，建议至少 0.3 秒。</td>
+          </tr>
+          <tr>
+            <td><code>explodeTime</code> / <code>explodeRadius</code></td>
+            <td>爆炸时间和爆炸范围。</td>
+            <td>范围越大越需要明显预警或较慢速度。</td>
+          </tr>
+          <tr>
+            <td><code>splitTime</code> / <code>splitCount</code> / <code>splitAngle</code> / <code>childMissileId</code></td>
+            <td>分裂时间、数量、角度、子导弹 ID。</td>
+            <td>先用 2 到 4 颗测试，再逐步增加密度。</td>
+          </tr>
+          <tr>
+            <td><code>prefabPath</code> / <code>bodyRes</code></td>
+            <td>Prefab 路径和主体图路径。</td>
+            <td>Prefab 控制结构，<code>bodyRes</code> 控制运行时主体图片。</td>
+          </tr>
+          <tr>
+            <td><code>tailType</code> / <code>tailColor</code></td>
+            <td>尾焰类型和颜色。</td>
+            <td>常用 <code>light</code>、<code>smoke</code>、<code>fire_smoke</code>、<code>spark</code>、<code>heavy</code>。</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>行为类型速查</h3>
+      <p>
+        <span class="tag">1 Straight 直线</span>
+        <span class="tag">2 Accelerate 加速</span>
+        <span class="tag">3 WeakHoming 弱追踪</span>
+        <span class="tag">4 StrongHoming 强追踪</span>
+        <span class="tag">5 LockAndDash 锁定冲刺</span>
+        <span class="tag">6 Curve 曲线</span>
+        <span class="tag">7 Wave 波形</span>
+        <span class="tag">8 Split 分裂</span>
+        <span class="tag">9 Explode 爆炸</span>
+        <span class="tag">10 Carrier 载体释放</span>
+        <span class="tag">11 Mine 地雷</span>
+        <span class="tag">12 Return 返回</span>
+      </p>
+    </section>
+
+    <section>
+      <h2>四、调整导弹发射模式</h2>
+      <p>打开 <code>Luban/Datas/MissilePattern.xlsx</code>。这里决定“怎么把导弹发出去”。</p>
+      <table>
+        <thead>
+          <tr>
+            <th>字段</th>
+            <th>说明</th>
+            <th>调整建议</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>id</code></td>
+            <td>发射模式 ID，被敌机、波次、Boss 阶段引用。</td>
+            <td>推荐带场景语义，例如 <code>boss_missile_explode_03</code>。</td>
+          </tr>
+          <tr>
+            <td><code>missileId</code></td>
+            <td>引用 <code>Missile.id</code>。</td>
+            <td>换导弹种类时改这里。</td>
+          </tr>
+          <tr>
+            <td><code>firePointGroup</code></td>
+            <td>发射挂点组。</td>
+            <td>必须和敌机或 Boss Prefab 的 <code>FirePoints</code> 子节点名称对应。</td>
+          </tr>
+          <tr>
+            <td><code>baseAngle</code></td>
+            <td>基础角度。</td>
+            <td>竖版向下通常用 180 或按现有配置复制。</td>
+          </tr>
+          <tr>
+            <td><code>missileCount</code> / <code>angleStep</code> / <code>spreadAngle</code></td>
+            <td>每轮数量、角度步进、总散射角。</td>
+            <td>扇形导弹先调 <code>spreadAngle</code>，再调数量。</td>
+          </tr>
+          <tr>
+            <td><code>missileSpeed</code> / <code>missileLifetime</code></td>
+            <td>覆盖导弹本体速度和生命周期。</td>
+            <td>填 0 或空值时使用 Missile 本体配置；只想某个模式变快时填这里。</td>
+          </tr>
+          <tr>
+            <td><code>aimAtPlayer</code></td>
+            <td>是否朝玩家方向发射。</td>
+            <td>追踪导弹不一定需要瞄准，直线导弹瞄准会更有压迫。</td>
+          </tr>
+          <tr>
+            <td><code>burstCount</code> / <code>fireInterval</code></td>
+            <td>连发轮数和间隔。</td>
+            <td>做 Boss 压制时常用，注意不要让屏幕密度过高。</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>五、编辑和预览拖尾效果</h2>
+      <div class="step">
+        <strong>打开窗口</strong>
+        <p>在 Unity 菜单选择 <code>LeiTing/Missiles/Visual Preview</code>。</p>
+      </div>
+      <div class="step">
+        <strong>选择 Prefab</strong>
+        <p>把 <code>Assets/Prefabs/Missiles/*.prefab</code> 拖到 <code>Missile Prefab</code>，或在 Project 面板选中导弹 Prefab。</p>
+      </div>
+      <div class="step">
+        <strong>生成或刷新效果对象</strong>
+        <p>点击 <code>Add/Refresh Effect Objects On Prefab</code>。Prefab 会补齐可编辑效果对象。</p>
+      </div>
+      <div class="step">
+        <strong>调整参数并看预览</strong>
+        <p>在窗口里展开 <code>Flame_Particle</code>、<code>Smoke_Particle</code>、<code>Spark_Particle</code>、<code>TrailRenderer</code>，修改参数后预览会刷新。</p>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>效果块</th>
+            <th>主要控制</th>
+            <th>视觉结果</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>Flame_Particle</code></td>
+            <td>火焰粒子数量、寿命、速度、大小、颜色、排序层级。</td>
+            <td>决定尾焰核心亮度和喷射感。</td>
+          </tr>
+          <tr>
+            <td><code>Smoke_Particle</code></td>
+            <td>烟雾寿命、扩散大小、透明度、漂移、噪声、最大粒子数。</td>
+            <td>决定尾烟厚度、残留时间和柔和程度。</td>
+          </tr>
+          <tr>
+            <td><code>Spark_Particle</code></td>
+            <td>火星发射率、速度、散开角、大小、寿命。</td>
+            <td>用于重型导弹、Boss 导弹、可摧毁导弹的金属火星感。</td>
+          </tr>
+          <tr>
+            <td><code>TrailRenderer</code></td>
+            <td>拖尾持续时间、起止宽度、透明度、端点、材质、排序层级。</td>
+            <td>决定连续光带长度和粗细。</td>
+          </tr>
+          <tr>
+            <td><code>Tail Glow</code></td>
+            <td>尾部光晕开关、直径、透明度、脉冲速度。</td>
+            <td>让尾部更亮，不属于四个核心拖尾对象，但常一起调。</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="warning">
+        <strong>注意：</strong>不要手动删除 <code>MissileVisualEffects</code> 组件。需要重建效果对象时，优先使用预览窗口的刷新按钮。
+      </div>
+    </section>
+
+    <section>
+      <h2>六、推荐调参流程</h2>
+      <ol>
+        <li>先复制一个现有导弹配置和发射模式，确认能在游戏中发射。</li>
+        <li>只改 <code>Missile.xlsx</code> 的速度、生命、行为参数，跑一遍手感。</li>
+        <li>再改 <code>MissilePattern.xlsx</code> 的数量、角度、连发，确认屏幕密度。</li>
+        <li>最后打开 <code>LeiTing/Missiles/Visual Preview</code> 调拖尾效果。</li>
+        <li>配置表改完后运行 <code>bash Luban/gen.sh</code> 生成数据。</li>
+        <li>进 Unity 播放测试，看是否有导弹过快、预警不足、拖尾遮挡的问题。</li>
+      </ol>
+      <div class="success">
+        <strong>小原则：</strong>先调玩法数值，再调视觉。视觉很好看但导弹太难躲，会让问题更难定位。
+      </div>
+    </section>
+
+    <section>
+      <h2>七、常见目标怎么调</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>目标</th>
+            <th>主要改哪里</th>
+            <th>建议</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>导弹更快</td>
+            <td><code>Missile.speed</code> 或 <code>MissilePattern.missileSpeed</code></td>
+            <td>如果只想某个敌人的模式更快，优先改 Pattern 的覆盖速度。</td>
+          </tr>
+          <tr>
+            <td>追踪更强</td>
+            <td><code>turnSpeed</code>、<code>trackTime</code>、<code>isLoopTrack</code></td>
+            <td>先增加 <code>turnSpeed</code>，再考虑延长追踪时间。</td>
+          </tr>
+          <tr>
+            <td>冲刺更有预警</td>
+            <td><code>lockDelay</code>、<code>warningTime</code>、预警资源</td>
+            <td>冲刺速度越快，锁定等待越需要明显。</td>
+          </tr>
+          <tr>
+            <td>Boss 导弹更华丽</td>
+            <td><code>tailType</code>、<code>tailColor</code>、<code>Spark_Particle</code>、<code>Smoke_Particle</code></td>
+            <td>使用 <code>fire_smoke</code> 或 <code>heavy</code>，增加烟雾和火星，但注意不要遮住玩家。</td>
+          </tr>
+          <tr>
+            <td>减少屏幕压力</td>
+            <td><code>missileCount</code>、<code>burstCount</code>、<code>fireInterval</code>、<code>lifeTime</code></td>
+            <td>优先减少连发轮数或延长间隔，比单纯降低伤害更直观。</td>
+          </tr>
+          <tr>
+            <td>导弹更容易被打掉</td>
+            <td><code>canBeDestroyed</code>、<code>hp</code>、<code>radius</code></td>
+            <td>可摧毁导弹建议配更明显的烟雾或火星，玩家更容易识别。</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>八、检查清单</h2>
+      <ul>
+        <li><code>MissilePattern.missileId</code> 是否能找到对应的 <code>Missile.id</code>。</li>
+        <li><code>prefabPath</code> 是否指向存在的导弹 Prefab。</li>
+        <li><code>bodyRes</code> 是否指向存在的导弹图片。</li>
+        <li><code>firePointGroup</code> 是否和敌机或 Boss Prefab 上的 <code>FirePoints</code> 名称一致。</li>
+        <li>修改 Luban 表后是否执行了 <code>bash Luban/gen.sh</code>。</li>
+        <li>拖尾效果是否已经通过 <code>LeiTing/Missiles/Visual Preview</code> 预览过。</li>
+        <li>烟雾和光带排序层级是否没有盖住玩家或关键预警。</li>
+      </ul>
+      <div class="warning">
+        <strong>如果游戏里没有变化：</strong>先确认改的是 Luban 源表，不是生成的 JSON；再确认已经重新生成并让 Unity 重新加载资源。
+      </div>
+    </section>
+  </main>
+</body>
+</html>

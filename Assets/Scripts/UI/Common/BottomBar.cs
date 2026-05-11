@@ -6,6 +6,11 @@ namespace LeiTing.UI
 {
     public class BottomBar : MonoBehaviour
     {
+        private const string HallButtonName = "btnHall";
+        private const string ShopButtonName = "btnShop";
+        private const string GiftButtonName = "btnGift";
+        private const string SpriteArtLayerName = "SpriteArtLayer";
+
         [SerializeField] private Button hangarButton;
         [SerializeField] private Button lobbyButton;
         [SerializeField] private Button settingButton;
@@ -25,11 +30,17 @@ namespace LeiTing.UI
             built = true;
 
             BindPrefabReferences();
-            if (HasPrefabButtons())
+            if (HasCanvasPrefabButtons())
             {
                 CacheNavButton(UIPageType.Hangar, hangarButton);
                 CacheNavButton(UIPageType.Lobby, lobbyButton);
                 CacheNavButton(UIPageType.Setting, settingButton);
+                BindButtons();
+                return;
+            }
+
+            if (TryBuildSpritePrefabView())
+            {
                 BindButtons();
                 return;
             }
@@ -84,20 +95,181 @@ namespace LeiTing.UI
 
         private void BindPrefabReferences()
         {
-            hangarButton = hangarButton != null
-                ? hangarButton
-                : UIFactory.FindComponentInChildren<Button>(transform, "Hangar");
-            lobbyButton = lobbyButton != null
-                ? lobbyButton
-                : UIFactory.FindComponentInChildren<Button>(transform, "Lobby");
-            settingButton = settingButton != null
-                ? settingButton
-                : UIFactory.FindComponentInChildren<Button>(transform, "Setting");
+            lobbyButton = FindButton(lobbyButton, HallButtonName, "Lobby");
+            hangarButton = FindButton(hangarButton, ShopButtonName, "Hangar");
+            settingButton = FindButton(settingButton, GiftButtonName, "Setting");
         }
 
-        private bool HasPrefabButtons()
+        private bool HasCanvasPrefabButtons()
         {
-            return hangarButton != null && lobbyButton != null && settingButton != null;
+            return IsCanvasButton(hangarButton)
+                && IsCanvasButton(lobbyButton)
+                && IsCanvasButton(settingButton);
+        }
+
+        private static bool IsCanvasButton(Button button)
+        {
+            return button != null && button.targetGraphic != null;
+        }
+
+        private bool TryBuildSpritePrefabView()
+        {
+            var spriteRenderers = GetComponentsInChildren<SpriteRenderer>(true);
+            if (spriteRenderers.Length == 0)
+            {
+                return false;
+            }
+
+            var backgroundRenderer = FindSpriteRenderer(spriteRenderers, "imgBottomBg") ?? FindLargestSpriteRenderer(spriteRenderers);
+            if (backgroundRenderer == null || backgroundRenderer.sprite == null)
+            {
+                return false;
+            }
+
+            var backgroundSize = GetSpriteRendererPixelSize(backgroundRenderer);
+            var pixelsPerUnit = backgroundRenderer.sprite.pixelsPerUnit;
+            var artLayer = UIFactory.CreateRect(SpriteArtLayerName, transform);
+            artLayer.anchorMin = new Vector2(0.5f, 0f);
+            artLayer.anchorMax = new Vector2(0.5f, 0f);
+            artLayer.pivot = new Vector2(0.5f, 0f);
+            artLayer.anchoredPosition = Vector2.zero;
+            artLayer.sizeDelta = backgroundSize;
+
+            foreach (var button in GetComponentsInChildren<Button>(true))
+            {
+                if (button.targetGraphic == null)
+                {
+                    button.enabled = false;
+                }
+            }
+
+            foreach (var spriteRenderer in spriteRenderers)
+            {
+                CreateSpriteImage(spriteRenderer, backgroundRenderer.transform, artLayer, backgroundSize, pixelsPerUnit);
+                spriteRenderer.enabled = false;
+            }
+
+            return true;
+        }
+
+        private void CreateSpriteImage(
+            SpriteRenderer spriteRenderer,
+            Transform backgroundTransform,
+            RectTransform parent,
+            Vector2 backgroundSize,
+            float pixelsPerUnit)
+        {
+            if (spriteRenderer == null || spriteRenderer.sprite == null)
+            {
+                return;
+            }
+
+            var rect = UIFactory.CreateRect(spriteRenderer.name + "Image", parent);
+            rect.anchorMin = new Vector2(0.5f, 0f);
+            rect.anchorMax = new Vector2(0.5f, 0f);
+            rect.pivot = new Vector2(0.5f, 0.5f);
+            rect.anchoredPosition = GetSpriteAnchoredPosition(spriteRenderer.transform, backgroundTransform, backgroundSize, pixelsPerUnit);
+            rect.sizeDelta = GetSpriteRendererPixelSize(spriteRenderer);
+
+            var image = rect.gameObject.AddComponent<Image>();
+            image.sprite = spriteRenderer.sprite;
+            image.color = spriteRenderer.color;
+            image.preserveAspect = true;
+            image.raycastTarget = spriteRenderer.GetComponent<Button>() != null;
+
+            var sourceButton = spriteRenderer.GetComponent<Button>();
+            if (sourceButton == null)
+            {
+                return;
+            }
+
+            var uiButton = rect.gameObject.AddComponent<Button>();
+            uiButton.targetGraphic = image;
+            uiButton.transition = Selectable.Transition.ColorTint;
+            uiButton.colors = UIFactory.CreateButtonColors(Color.white);
+
+            BindSpriteButton(spriteRenderer.name, uiButton);
+        }
+
+        private static Vector2 GetSpriteAnchoredPosition(
+            Transform spriteTransform,
+            Transform backgroundTransform,
+            Vector2 backgroundSize,
+            float pixelsPerUnit)
+        {
+            var localPosition = backgroundTransform.InverseTransformPoint(spriteTransform.position);
+            return new Vector2(
+                localPosition.x * pixelsPerUnit,
+                backgroundSize.y * 0.5f + localPosition.y * pixelsPerUnit);
+        }
+
+        private static Vector2 GetSpriteRendererPixelSize(SpriteRenderer spriteRenderer)
+        {
+            var sprite = spriteRenderer.sprite;
+            if (sprite == null)
+            {
+                return Vector2.zero;
+            }
+
+            if (spriteRenderer.drawMode == SpriteDrawMode.Simple)
+            {
+                return sprite.rect.size;
+            }
+
+            return spriteRenderer.size * sprite.pixelsPerUnit;
+        }
+
+        private void BindSpriteButton(string buttonName, Button button)
+        {
+            switch (buttonName)
+            {
+                case HallButtonName:
+                    lobbyButton = button;
+                    break;
+                case ShopButtonName:
+                    hangarButton = button;
+                    break;
+                case GiftButtonName:
+                    settingButton = button;
+                    break;
+            }
+        }
+
+        private static SpriteRenderer FindSpriteRenderer(SpriteRenderer[] renderers, string objectName)
+        {
+            foreach (var renderer in renderers)
+            {
+                if (renderer != null && renderer.name == objectName)
+                {
+                    return renderer;
+                }
+            }
+
+            return null;
+        }
+
+        private static SpriteRenderer FindLargestSpriteRenderer(SpriteRenderer[] renderers)
+        {
+            SpriteRenderer largest = null;
+            var largestArea = 0f;
+
+            foreach (var renderer in renderers)
+            {
+                if (renderer == null || renderer.sprite == null)
+                {
+                    continue;
+                }
+
+                var size = GetSpriteRendererPixelSize(renderer);
+                var area = size.x * size.y;
+                if (area > largestArea)
+                {
+                    largestArea = area;
+                    largest = renderer;
+                }
+            }
+
+            return largest;
         }
 
         private void CacheNavButton(UIPageType pageType, Button button)
@@ -118,6 +290,25 @@ namespace LeiTing.UI
             {
                 buttonLabels[pageType] = label;
             }
+        }
+
+        private Button FindButton(Button current, params string[] childNames)
+        {
+            if (current != null)
+            {
+                return current;
+            }
+
+            foreach (var childName in childNames)
+            {
+                var button = UIFactory.FindComponentInChildren<Button>(transform, childName);
+                if (button != null)
+                {
+                    return button;
+                }
+            }
+
+            return null;
         }
 
         private void BindButtons()
