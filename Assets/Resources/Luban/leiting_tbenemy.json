@@ -302,7 +302,7 @@
     "index": 24,
     "id": "enemy_resource",
     "displayName": "资源敌机",
-    "prefabPath": "Assets/Prefabs/Enemies/smll_helicopter_01.prefab",
+    "prefabPath": "Assets/Prefabs/Enemies/small_helicopter_01.prefab",
     "hp": 6,
     "moveSpeed": 2.4,
     "attackInterval": 999,
