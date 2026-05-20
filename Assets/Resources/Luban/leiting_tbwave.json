@@ -178,5 +178,11 @@
     "id": "wave_level_01_spiral_030",
     "levelId": "level_01",
     "startTime": 30
+  },
+  {
+    "index": 31,
+    "id": "wave_level_01_spiral_045_sides",
+    "levelId": "level_01",
+    "startTime": 45
   }
 ]

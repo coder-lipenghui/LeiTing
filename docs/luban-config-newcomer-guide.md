@@ -72,6 +72,8 @@ bash Luban/gen.sh
 
 4. 生成的 JSON 会落到 `Assets/Resources/Luban`，生成的 C# 表代码会落到 `Assets/Scripts/Config/LubanGenerated`，进入 Unity 后运行时会自动优先读取这些表。
 
+项目限制：`Assets/Resources/Luban/*.json` 是 Luban 生成目录，不允许手工修改、脚本直改或单独格式化。任何配置变更都必须先改 `Luban/Datas/*.xlsx` 源表，再通过 `bash Luban/gen.sh` 导出 JSON；提交里的 JSON 变化必须能由源表重新生成。
+
 `gen.sh` 可以在项目根目录执行，也可以在 `Luban` 目录里执行。它会自动定位本项目内置的 `Luban/Luban/Luban.dll`，不需要再手动设置 `LUBAN_DLL`。
 
 脚本当前使用 Luban 官方 `Csharp_Unity_json` 示例里的 `-c cs-simple-json -d json` 组合，Unity 运行时依赖 `Packages/manifest.json` 里的 `com.code-philosophy.luban` 包提供 `Luban.SimpleJSON`。不要手改 `Assets/Scripts/Config/LubanGenerated` 下的文件；这些文件每次生成都会被覆盖。

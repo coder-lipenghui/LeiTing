@@ -38,13 +38,13 @@ Do not directly edit Luban generated code or generated JSON:
 - `Assets/Scripts/Config/LubanGenerated/**`
 - `Assets/Resources/Luban/**`
 
-For config changes, edit the corresponding source workbook under `Luban/Datas/*.xlsx`, then run:
+`Assets/Resources/Luban/*.json` is a generated output directory. Do not patch, script-edit, or hand-format these JSON files directly. For every config change, edit the corresponding source workbook under `Luban/Datas/*.xlsx`, then run:
 
 ```bash
 bash Luban/gen.sh
 ```
 
-Generated code and generated JSON should only change as output from Luban generation.
+Generated code and generated JSON should only change as output from Luban generation. If JSON diffs appear, they must be reproducible by rerunning `bash Luban/gen.sh` from the committed workbook changes.
 
 ## Architecture
 

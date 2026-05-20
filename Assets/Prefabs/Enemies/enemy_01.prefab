@@ -124,8 +124,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 20e973d220b84f0c812eb6df27ced082, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   autoCreateMounts: 1
   trailRootName: WingTrails
   trails:
@@ -746,8 +746,8 @@ TrailRenderer:
       m_RotationOrder: 4
     colorGradient:
       serializedVersion: 2
-      key0: {r: 0.56, g: 0.9, b: 1, a: 0.78}
-      key1: {r: 0.56, g: 0.9, b: 1, a: 0}
+      key0: {r: 0.56078434, g: 0.9019608, b: 1, a: 0.78039217}
+      key1: {r: 0.56078434, g: 0.9019608, b: 1, a: 0}
       key2: {r: 0, g: 0, b: 0, a: 0}
       key3: {r: 0, g: 0, b: 0, a: 0}
       key4: {r: 0, g: 0, b: 0, a: 0}
@@ -886,8 +886,8 @@ TrailRenderer:
       m_RotationOrder: 4
     colorGradient:
       serializedVersion: 2
-      key0: {r: 0.56, g: 0.9, b: 1, a: 0.78}
-      key1: {r: 0.56, g: 0.9, b: 1, a: 0}
+      key0: {r: 0.56078434, g: 0.9019608, b: 1, a: 0.78039217}
+      key1: {r: 0.56078434, g: 0.9019608, b: 1, a: 0}
       key2: {r: 0, g: 0, b: 0, a: 0}
       key3: {r: 0, g: 0, b: 0, a: 0}
       key4: {r: 0, g: 0, b: 0, a: 0}

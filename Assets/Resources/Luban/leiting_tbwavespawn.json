@@ -1006,5 +1006,37 @@
     "pathAmplitude": 0,
     "pathSpeed": 0,
     "holdDuration": 5.2
+  },
+  {
+    "index": 82,
+    "id": "wave_spawn_wave_level_01_spiral_045_left",
+    "waveId": "wave_level_01_spiral_045_sides",
+    "sort": 1,
+    "enemyId": "enemy_ucav",
+    "count": 1,
+    "interval": 0.1,
+    "startPositionX": -4,
+    "startPositionY": 7,
+    "attackPatternId": "enemy_spiral_windmill",
+    "movementPath": "StopAndLeave",
+    "pathAmplitude": 0,
+    "pathSpeed": 0,
+    "holdDuration": 5.2
+  },
+  {
+    "index": 83,
+    "id": "wave_spawn_wave_level_01_spiral_045_right",
+    "waveId": "wave_level_01_spiral_045_sides",
+    "sort": 2,
+    "enemyId": "enemy_ucav",
+    "count": 1,
+    "interval": 0.1,
+    "startPositionX": 4,
+    "startPositionY": 7,
+    "attackPatternId": "enemy_spiral_windmill",
+    "movementPath": "StopAndLeave",
+    "pathAmplitude": 0,
+    "pathSpeed": 0,
+    "holdDuration": 5.2
   }
 ]

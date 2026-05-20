@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using LeiTing.Core;
 using LeiTing.Player;
+using LeiTing.Stage;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
@@ -39,6 +40,7 @@ namespace LeiTing.UI
 
         private RectTransform canvasRoot;
         private Text hudText;
+        private Text stageTimerText;
         private GameObject settlementRoot;
         private Text settlementText;
         private GameObject restartChallengeRoot;
@@ -82,6 +84,7 @@ namespace LeiTing.UI
             }
 
             UpdateHud();
+            UpdateStageTimer();
             UpdateSettlement();
         }
 
@@ -790,6 +793,7 @@ namespace LeiTing.UI
             canvasRoot = canvasObject.GetComponent<RectTransform>();
 
             CreateHud(canvasObject.transform);
+            CreateStageTimer(canvasObject.transform);
             CreateBossHud(canvasObject.transform);
             CreateBossNotice(canvasObject.transform);
             CreateSettlementText(canvasObject.transform);
@@ -816,6 +820,28 @@ namespace LeiTing.UI
             hudText.alignment = TextAnchor.UpperLeft;
             hudText.color = Color.white;
             hudText.raycastTarget = false;
+        }
+
+        private void CreateStageTimer(Transform parent)
+        {
+            var timerObject = new GameObject("StageTimer", typeof(RectTransform));
+            timerObject.transform.SetParent(parent, false);
+
+            var rect = timerObject.GetComponent<RectTransform>();
+            rect.anchorMin = new Vector2(0.5f, 1f);
+            rect.anchorMax = new Vector2(0.5f, 1f);
+            rect.pivot = new Vector2(0.5f, 1f);
+            rect.anchoredPosition = new Vector2(0f, -36f);
+            rect.sizeDelta = new Vector2(360f, 64f);
+
+            stageTimerText = timerObject.AddComponent<Text>();
+            stageTimerText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            stageTimerText.fontSize = 34;
+            stageTimerText.fontStyle = FontStyle.Bold;
+            stageTimerText.alignment = TextAnchor.MiddleCenter;
+            stageTimerText.color = new Color(0.78f, 0.96f, 1f, 1f);
+            stageTimerText.raycastTarget = false;
+            stageTimerText.text = "TIME 00:00";
         }
 
         private void CreateSettlementText(Transform parent)
@@ -1108,6 +1134,29 @@ namespace LeiTing.UI
                 ? $"LEVEL {GameManager.Instance.CurrentLevelNumber}/{GameManager.Instance.MaxLevelCount}"
                 : "LEVEL -";
             hudText.text = $"{levelText}\nHP {hp}  SH {shield}  STAR {stars}  COIN {coins}\nSCORE {score}";
+        }
+
+        private void UpdateStageTimer()
+        {
+            if (stageTimerText == null)
+            {
+                return;
+            }
+
+            var stageTime = StageManager.Instance != null ? StageManager.Instance.StageTime : 0f;
+            stageTimerText.text = "TIME " + FormatStageTime(stageTime);
+        }
+
+        private static string FormatStageTime(float time)
+        {
+            var totalSeconds = Mathf.Max(0, Mathf.FloorToInt(time));
+            var hours = totalSeconds / 3600;
+            var minutes = totalSeconds / 60 % 60;
+            var seconds = totalSeconds % 60;
+
+            return hours > 0
+                ? $"{hours:00}:{minutes:00}:{seconds:00}"
+                : $"{minutes:00}:{seconds:00}";
         }
 
         private void UpdateSettlement()
