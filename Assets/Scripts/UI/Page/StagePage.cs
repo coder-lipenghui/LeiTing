@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using LeiTing.Config;
 using LeiTing.Core;
-using TMPro;
+using Luban.SimpleJSON;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -9,16 +9,33 @@ namespace LeiTing.UI
 {
     public class StagePage : BasePage
     {
-        private const int ColumnCount = 2;
-        private const float DefaultCellWidth = 360f;
-        private const float DefaultCellHeight = 300f;
+        private const int ColumnCount = 3;
+        private const int VisibleRowCount = 3;
+        private const float CellWidth = 280f;
+        private const float CellHeight = 230f;
+        private const float GridSpacingX = 28f;
+        private const float GridSpacingY = 28f;
+        private const int GridPaddingLeft = 22;
+        private const int GridPaddingRight = 22;
+        private const int GridPaddingTop = 18;
+        private const int GridPaddingBottom = 18;
+        private const float ScrollViewportWidth = 960f;
+        private const float StartButtonWidth = 520f;
+        private const float StartButtonHeight = 118f;
 
         [SerializeField] private Button startButton;
         [SerializeField] private Button backButton;
         [SerializeField] private ScrollRect scrollRect;
         [SerializeField] private RectTransform contentRoot;
-        [SerializeField] private RectTransform levelItemTemplate;
-        [SerializeField] private TMP_Text selectedStageText;
+        [SerializeField] private Text selectedStageText;
+        [Header("Replaceable Sprites")]
+        [SerializeField] private Sprite pageBackgroundSprite;
+        [SerializeField] private Sprite scrollBackgroundSprite;
+        [SerializeField] private Sprite levelNormalSprite;
+        [SerializeField] private Sprite levelSelectedSprite;
+        [SerializeField] private Sprite levelLockedSprite;
+        [SerializeField] private Sprite startButtonSprite;
+        [SerializeField] private Sprite backButtonSprite;
 
         private readonly List<LevelItemView> levelItems = new List<LevelItemView>();
         private int selectedLevelNumber = 1;
@@ -27,96 +44,113 @@ namespace LeiTing.UI
 
         public override void OnCreate()
         {
-            if (transform.childCount == 0)
-            {
-                BuildDefaultView();
-            }
-
-            BindPrefabView();
+            BuildView();
             BindEvents();
             RefreshLevelList(true);
-            Debug.Log($"[UIStage] OnCreate complete. startButton={startButton != null}, backButton={backButton != null}, scrollRect={scrollRect != null}, contentRoot={contentRoot != null}, levelTemplate={levelItemTemplate != null}");
+            Debug.Log($"[UIStage] OnCreate complete. levelCount={levelCount}, selectedLevel={selectedLevelNumber}");
         }
 
         public override void OnShow()
         {
             battleStartRequested = false;
+            if (startButton != null)
+            {
+                startButton.interactable = true;
+            }
+
             RefreshLevelList(true);
             Debug.Log($"[UIStage] OnShow. selectedLevel={selectedLevelNumber}, levelCount={levelCount}");
         }
 
         public override void OnHide()
         {
+            battleStartRequested = false;
             if (startButton != null)
             {
                 startButton.interactable = true;
             }
-
-            battleStartRequested = false;
         }
 
-        private void Update()
+        private void BuildView()
         {
-            if (battleStartRequested || startButton == null || !startButton.gameObject.activeInHierarchy)
-            {
-                return;
-            }
-
-            if (TryGetStartPointerDownPosition(out var pointerPosition)
-                && IsPointerInsideStartButton(pointerPosition))
-            {
-                Debug.Log($"[UIStage] BtnStart pointer fallback hit at {pointerPosition}. interactable={startButton.interactable}, selectedLevel={selectedLevelNumber}, latestUnlocked={GetLatestUnlockedLevel()}");
-
-                if (!startButton.interactable)
-                {
-                    return;
-                }
-
-                OnClickStart();
-            }
-        }
-
-        private void BuildDefaultView()
-        {
+            ClearChildren();
             UIFactory.Stretch(RectTransform);
 
-            var backdrop = UIFactory.CreatePanel("StageBackdrop", transform, new Color(0.015f, 0.025f, 0.055f, 0.98f));
+            var backdrop = UIFactory.CreatePanel("StageBackdrop", transform, new Color(0.018f, 0.026f, 0.055f, 0.98f));
             UIFactory.Stretch(backdrop.rectTransform);
+            ApplySprite(backdrop, pageBackgroundSprite, Image.Type.Simple);
+            backdrop.raycastTarget = true;
 
-            var title = UIFactory.CreateText("Title", transform, "选择关卡", 56f, TextAnchor.MiddleCenter, Color.white);
+            var title = UIFactory.CreateText("Title", transform, "选择关卡", 54f, TextAnchor.MiddleCenter, Color.white);
             var titleRect = title.rectTransform;
             titleRect.anchorMin = new Vector2(0f, 1f);
             titleRect.anchorMax = new Vector2(1f, 1f);
             titleRect.pivot = new Vector2(0.5f, 1f);
-            titleRect.anchoredPosition = new Vector2(0f, -128f);
-            titleRect.sizeDelta = new Vector2(0f, 92f);
+            titleRect.anchoredPosition = new Vector2(0f, -86f);
+            titleRect.sizeDelta = new Vector2(0f, 76f);
 
-            backButton = UIFactory.CreateButton("BtnBack", transform, "返回", new Color(0.12f, 0.18f, 0.26f, 0.92f), out _, out _);
+            backButton = UIFactory.CreateButton("BtnBack", transform, "返回", new Color(0.12f, 0.18f, 0.28f, 0.96f), out _, out _);
+            ApplySprite(backButton.targetGraphic as Image, backButtonSprite, Image.Type.Sliced);
             var backRect = backButton.GetComponent<RectTransform>();
             backRect.anchorMin = new Vector2(0f, 1f);
             backRect.anchorMax = new Vector2(0f, 1f);
             backRect.pivot = new Vector2(0f, 1f);
-            backRect.anchoredPosition = new Vector2(42f, -48f);
-            backRect.sizeDelta = new Vector2(168f, 72f);
+            backRect.anchoredPosition = new Vector2(40f, -42f);
+            backRect.sizeDelta = new Vector2(170f, 76f);
 
+            selectedStageText = UIFactory.CreateText("TxtSelectedStage", transform, string.Empty, 34f, TextAnchor.MiddleCenter, new Color(0.72f, 0.88f, 1f, 1f));
+            var selectedRect = selectedStageText.rectTransform;
+            selectedRect.anchorMin = new Vector2(0.5f, 1f);
+            selectedRect.anchorMax = new Vector2(0.5f, 1f);
+            selectedRect.pivot = new Vector2(0.5f, 1f);
+            selectedRect.anchoredPosition = new Vector2(0f, -162f);
+            selectedRect.sizeDelta = new Vector2(600f, 52f);
+
+            BuildScrollView();
+
+            startButton = UIFactory.CreateButton("BtnStart", transform, "开始", new Color(1f, 0.72f, 0.18f, 0.98f), out _, out _);
+            ApplySprite(startButton.targetGraphic as Image, startButtonSprite, Image.Type.Sliced);
+            var startRect = startButton.GetComponent<RectTransform>();
+            startRect.anchorMin = new Vector2(0.5f, 0f);
+            startRect.anchorMax = new Vector2(0.5f, 0f);
+            startRect.pivot = new Vector2(0.5f, 0f);
+            startRect.anchoredPosition = new Vector2(0f, 76f);
+            startRect.sizeDelta = new Vector2(StartButtonWidth, StartButtonHeight);
+        }
+
+        private void BuildScrollView()
+        {
             var scrollRoot = UIFactory.CreateRect("Scroll View", transform);
             scrollRoot.anchorMin = new Vector2(0.5f, 0.5f);
             scrollRoot.anchorMax = new Vector2(0.5f, 0.5f);
             scrollRoot.pivot = new Vector2(0.5f, 0.5f);
-            scrollRoot.anchoredPosition = new Vector2(0f, 60f);
-            scrollRoot.sizeDelta = new Vector2(860f, 1180f);
+            scrollRoot.anchoredPosition = new Vector2(0f, 80f);
+            scrollRoot.sizeDelta = new Vector2(ScrollViewportWidth, CalculateVisibleContentHeight());
 
-            var viewport = UIFactory.CreatePanel("Viewport", scrollRoot, new Color(0f, 0f, 0f, 0f));
+            var background = scrollRoot.gameObject.AddComponent<Image>();
+            background.color = new Color(0.035f, 0.052f, 0.095f, 0.58f);
+            ApplySprite(background, scrollBackgroundSprite, Image.Type.Sliced);
+            background.raycastTarget = true;
+
+            var viewport = UIFactory.CreatePanel("Viewport", scrollRoot, new Color(1f, 1f, 1f, 0.001f));
             UIFactory.Stretch(viewport.rectTransform);
-            var mask = viewport.gameObject.AddComponent<Mask>();
-            mask.showMaskGraphic = false;
+            viewport.raycastTarget = true;
+            viewport.gameObject.AddComponent<RectMask2D>();
 
             contentRoot = UIFactory.CreateRect("Content", viewport.rectTransform);
             contentRoot.anchorMin = new Vector2(0f, 1f);
             contentRoot.anchorMax = new Vector2(1f, 1f);
             contentRoot.pivot = new Vector2(0.5f, 1f);
             contentRoot.anchoredPosition = Vector2.zero;
-            contentRoot.sizeDelta = new Vector2(0f, 300f);
+            contentRoot.sizeDelta = new Vector2(0f, CalculateVisibleContentHeight());
+
+            var grid = contentRoot.gameObject.AddComponent<GridLayoutGroup>();
+            grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+            grid.constraintCount = ColumnCount;
+            grid.childAlignment = TextAnchor.UpperCenter;
+            grid.spacing = new Vector2(GridSpacingX, GridSpacingY);
+            grid.padding = CreateGridPadding();
+            grid.cellSize = new Vector2(CellWidth, CellHeight);
 
             scrollRect = scrollRoot.gameObject.AddComponent<ScrollRect>();
             scrollRect.content = contentRoot;
@@ -124,46 +158,8 @@ namespace LeiTing.UI
             scrollRect.horizontal = false;
             scrollRect.vertical = true;
             scrollRect.movementType = ScrollRect.MovementType.Clamped;
-
-            startButton = UIFactory.CreateButton("BtnStart", transform, "开始", new Color(1f, 0.72f, 0.18f, 0.96f), out _, out _);
-            var startRect = startButton.GetComponent<RectTransform>();
-            startRect.anchorMin = new Vector2(0.5f, 0f);
-            startRect.anchorMax = new Vector2(0.5f, 0f);
-            startRect.pivot = new Vector2(0.5f, 0f);
-            startRect.anchoredPosition = new Vector2(0f, 74f);
-            startRect.sizeDelta = new Vector2(536f, 128f);
-        }
-
-        private void BindPrefabView()
-        {
-            UIFactory.Stretch(RectTransform);
-
-            startButton = startButton != null
-                ? startButton
-                : UIFactory.FindComponentInChildren<Button>(transform, "BtnStart");
-            backButton = backButton != null
-                ? backButton
-                : UIFactory.FindComponentInChildren<Button>(transform, "BtnBack");
-            scrollRect = scrollRect != null
-                ? scrollRect
-                : GetComponentInChildren<ScrollRect>(true);
-            contentRoot = contentRoot != null
-                ? contentRoot
-                : scrollRect != null
-                    ? scrollRect.content
-                    : UIFactory.FindComponentInChildren<RectTransform>(transform, "Content");
-            levelItemTemplate = levelItemTemplate != null
-                ? levelItemTemplate
-                : UIFactory.FindComponentInChildren<RectTransform>(transform, "RenderItem");
-            selectedStageText = selectedStageText != null
-                ? selectedStageText
-                : UIFactory.FindComponentInChildren<TMP_Text>(transform, "TxtStage");
-
-            UIFactory.ApplyButtonTextFont(startButton);
-            UIFactory.ApplyButtonTextFont(backButton);
-            SetButtonLabel(startButton, "开始");
-            SetButtonLabel(backButton, "返回");
-            ConfigureContentLayout();
+            scrollRect.inertia = true;
+            scrollRect.scrollSensitivity = 36f;
         }
 
         private void BindEvents()
@@ -172,22 +168,12 @@ namespace LeiTing.UI
             {
                 startButton.onClick.RemoveListener(OnClickStart);
                 startButton.onClick.AddListener(OnClickStart);
-                Debug.Log($"[UIStage] BtnStart bound. activeInHierarchy={startButton.gameObject.activeInHierarchy}, interactable={startButton.interactable}, targetGraphic={startButton.targetGraphic != null}");
-            }
-            else
-            {
-                Debug.LogWarning("[UIStage] BtnStart not found, cannot bind start battle button.");
             }
 
             if (backButton != null)
             {
                 backButton.onClick.RemoveListener(OnClickBack);
                 backButton.onClick.AddListener(OnClickBack);
-                Debug.Log($"[UIStage] BtnBack bound. activeInHierarchy={backButton.gameObject.activeInHierarchy}, interactable={backButton.interactable}, targetGraphic={backButton.targetGraphic != null}");
-            }
-            else
-            {
-                Debug.LogWarning("[UIStage] BtnBack not found, cannot bind return button.");
             }
         }
 
@@ -199,14 +185,14 @@ namespace LeiTing.UI
             if (levelCount <= 0)
             {
                 ClearGeneratedLevelItems();
+                selectedLevelNumber = 0;
+                UpdateSelectedStageText();
                 SetStartButtonState(false);
+                RebuildScrollContent();
                 return;
             }
 
-            if (levelItems.Count != levelCount)
-            {
-                BuildLevelItems(levels);
-            }
+            BuildLevelItems(levels);
 
             var latestUnlocked = GetLatestUnlockedLevel();
             if (selectLatestProgress || selectedLevelNumber < 1 || selectedLevelNumber > levelCount || selectedLevelNumber > latestUnlocked)
@@ -216,6 +202,7 @@ namespace LeiTing.UI
 
             GameManager.RequestLevel(selectedLevelNumber);
             RefreshLevelItemStates();
+            ScrollToSelectedLevel();
         }
 
         private List<LevelConfig> ResolveLevels()
@@ -235,147 +222,142 @@ namespace LeiTing.UI
                 levels = fallbackConfig.levels;
             }
 
-            return levels != null ? levels : new List<LevelConfig>();
+            if (levels == null || levels.Count == 0)
+            {
+                levels = LoadLevelsDirectlyFromResources();
+            }
+
+            if (levels == null || levels.Count == 0)
+            {
+                Debug.LogWarning("[UIStage] No level data found. Expected Resources/Luban/leiting_tblevel.json.");
+                return new List<LevelConfig>();
+            }
+
+            Debug.Log($"[UIStage] Loaded {levels.Count} levels for stage selection.");
+            return levels;
+        }
+
+        private static List<LevelConfig> LoadLevelsDirectlyFromResources()
+        {
+            var source = Resources.Load<TextAsset>("Luban/leiting_tblevel");
+            if (source == null)
+            {
+                return null;
+            }
+
+            var node = JSON.Parse(source.text);
+            if (node == null || !node.IsArray)
+            {
+                return null;
+            }
+
+            var levels = new List<LevelConfig>(node.Count);
+            foreach (JSONNode row in node.Children)
+            {
+                if (row == null || !row.IsObject)
+                {
+                    continue;
+                }
+
+                levels.Add(new LevelConfig
+                {
+                    id = row["id"],
+                    displayName = row["displayName"],
+                    backgroundSpritePath = row["backgroundSpritePath"],
+                    backgroundScrollSpeed = row["backgroundScrollSpeed"].IsNumber ? row["backgroundScrollSpeed"].AsFloat : 0f,
+                    bgmPath = row["bgmPath"]
+                });
+            }
+
+            return levels;
         }
 
         private void BuildLevelItems(IReadOnlyList<LevelConfig> levels)
         {
             ClearGeneratedLevelItems();
-            ConfigureContentLayout();
-
-            if (levelItemTemplate != null)
-            {
-                levelItemTemplate.gameObject.SetActive(false);
-            }
 
             for (var index = 0; index < levels.Count; index++)
             {
                 var levelNumber = index + 1;
-                var itemObject = levelItemTemplate != null
-                    ? Instantiate(levelItemTemplate.gameObject, contentRoot)
-                    : CreateFallbackLevelItem(contentRoot);
-
-                itemObject.name = $"Level_{levelNumber:00}";
-                itemObject.SetActive(true);
-
-                var itemView = CreateLevelItemView(itemObject, levelNumber, levels[index]);
+                var itemView = CreateLevelItem(levelNumber, levels[index]);
                 var capturedLevelNumber = levelNumber;
-                foreach (var button in itemView.buttons)
-                {
-                    if (button == null)
-                    {
-                        continue;
-                    }
-
-                    button.onClick.RemoveAllListeners();
-                    button.onClick.AddListener(() => SelectLevel(capturedLevelNumber));
-                }
-
+                itemView.button.onClick.AddListener(() => SelectLevel(capturedLevelNumber));
                 levelItems.Add(itemView);
             }
+
+            RebuildScrollContent();
         }
 
-        private GameObject CreateFallbackLevelItem(Transform parent)
+        private LevelItemView CreateLevelItem(int levelNumber, LevelConfig levelConfig)
         {
-            var button = UIFactory.CreateButton("LevelItem", parent, string.Empty, new Color(0.08f, 0.13f, 0.2f, 0.9f), out _, out _);
+            var button = UIFactory.CreateButton($"Level_{levelNumber:00}", contentRoot, string.Empty, Color.white, out var label, out var image);
             var rect = button.GetComponent<RectTransform>();
-            rect.sizeDelta = new Vector2(DefaultCellWidth, DefaultCellHeight);
-            return button.gameObject;
-        }
+            rect.sizeDelta = new Vector2(CellWidth, CellHeight);
 
-        private LevelItemView CreateLevelItemView(GameObject itemObject, int levelNumber, LevelConfig levelConfig)
-        {
-            var root = itemObject.GetComponent<RectTransform>();
-            var rootImage = itemObject.GetComponent<Image>() ?? itemObject.AddComponent<Image>();
-            var rootButton = itemObject.GetComponent<Button>() ?? itemObject.AddComponent<Button>();
-            rootButton.targetGraphic = rootImage;
-            rootButton.transition = Selectable.Transition.ColorTint;
-            rootButton.colors = UIFactory.CreateButtonColors(Color.white);
+            ApplyLevelImage(image, levelNormalSprite, new Color(0.09f, 0.14f, 0.24f, 0.96f));
+            button.colors = CreateLevelButtonColors();
 
-            var outline = itemObject.GetComponent<Outline>() ?? itemObject.AddComponent<Outline>();
-            outline.effectColor = new Color(1f, 0.82f, 0.18f, 0.95f);
+            if (label != null)
+            {
+                label.raycastTarget = false;
+                label.fontSize = 28;
+                label.fontStyle = FontStyle.Bold;
+                label.alignment = TextAnchor.MiddleCenter;
+                label.text = FormatLevelLabel(levelNumber, levelConfig);
+                label.color = Color.white;
+            }
+
+            var numberText = UIFactory.CreateText("TxtStageNumber", rect, levelNumber.ToString("00"), 52f, TextAnchor.MiddleCenter, Color.white);
+            var numberRect = numberText.rectTransform;
+            numberRect.anchorMin = new Vector2(0f, 0.48f);
+            numberRect.anchorMax = new Vector2(1f, 1f);
+            numberRect.offsetMin = Vector2.zero;
+            numberRect.offsetMax = new Vector2(0f, -16f);
+            numberText.raycastTarget = false;
+
+            if (label != null)
+            {
+                var labelRect = label.rectTransform;
+                labelRect.anchorMin = new Vector2(0f, 0f);
+                labelRect.anchorMax = new Vector2(1f, 0.48f);
+                labelRect.offsetMin = new Vector2(12f, 18f);
+                labelRect.offsetMax = new Vector2(-12f, 0f);
+            }
+
+            var lockOverlay = UIFactory.CreatePanel("LockedOverlay", rect, new Color(0f, 0f, 0f, 0.48f));
+            UIFactory.Stretch(lockOverlay.rectTransform);
+            lockOverlay.raycastTarget = false;
+
+            var lockText = UIFactory.CreateText("TxtLocked", lockOverlay.rectTransform, "未解锁", 30f, TextAnchor.MiddleCenter, new Color(0.85f, 0.9f, 1f, 1f));
+            UIFactory.Stretch(lockText.rectTransform);
+            lockText.raycastTarget = false;
+
+            var outline = button.gameObject.AddComponent<Outline>();
+            outline.effectColor = new Color(1f, 0.78f, 0.12f, 1f);
             outline.effectDistance = new Vector2(5f, -5f);
             outline.enabled = false;
 
-            var canvasGroup = itemObject.GetComponent<CanvasGroup>() ?? itemObject.AddComponent<CanvasGroup>();
-            UIFactory.ApplyFontsInChildren(itemObject.transform);
-
-            var view = new LevelItemView
+            return new LevelItemView
             {
-                root = root,
-                rootImage = rootImage,
+                root = rect,
+                button = button,
+                image = image,
+                titleText = label,
+                numberText = numberText,
+                lockOverlay = lockOverlay.gameObject,
                 outline = outline,
-                canvasGroup = canvasGroup,
-                buttons = itemObject.GetComponentsInChildren<Button>(true),
-                tmpTexts = itemObject.GetComponentsInChildren<TMP_Text>(true),
-                texts = itemObject.GetComponentsInChildren<Text>(true),
-                lockObject = FindChild(itemObject.transform, "img_lock") ?? FindChild(itemObject.transform, "level_lock"),
                 levelNumber = levelNumber
             };
-
-            SetLevelItemText(view, levelConfig);
-            return view;
         }
 
-        private void SetLevelItemText(LevelItemView view, LevelConfig levelConfig)
+        private static string FormatLevelLabel(int levelNumber, LevelConfig levelConfig)
         {
-            var levelName = levelConfig != null && !string.IsNullOrEmpty(levelConfig.displayName)
-                ? levelConfig.displayName
-                : $"第 {view.levelNumber} 关";
-            var stageNumber = view.levelNumber.ToString("00");
-            var assignedStageText = false;
-
-            foreach (var text in view.tmpTexts)
+            if (levelConfig != null && !string.IsNullOrEmpty(levelConfig.displayName))
             {
-                if (text == null)
-                {
-                    continue;
-                }
-
-                if (text.name == "TxtStage" || !assignedStageText && ShouldUseAsStageText(text.text))
-                {
-                    text.text = stageNumber;
-                    assignedStageText = true;
-                }
-                else if (ContainsSlash(text.text))
-                {
-                    text.text = $"{view.levelNumber}/{levelCount}";
-                }
-                else if (string.IsNullOrEmpty(text.text))
-                {
-                    text.text = levelName;
-                }
+                return levelConfig.displayName;
             }
 
-            foreach (var text in view.texts)
-            {
-                if (text == null)
-                {
-                    continue;
-                }
-
-                if (string.IsNullOrEmpty(text.text))
-                {
-                    text.text = levelName;
-                }
-                else if (ContainsSlash(text.text))
-                {
-                    text.text = $"{view.levelNumber}/{levelCount}";
-                }
-            }
-        }
-
-        private static bool ShouldUseAsStageText(string text)
-        {
-            return string.IsNullOrEmpty(text)
-                || text.Contains("STAGE")
-                || text == "01"
-                || text == "1";
-        }
-
-        private static bool ContainsSlash(string text)
-        {
-            return !string.IsNullOrEmpty(text) && text.Contains("/");
+            return $"第 {levelNumber} 关";
         }
 
         private void SelectLevel(int levelNumber)
@@ -399,44 +381,30 @@ namespace LeiTing.UI
                 var unlocked = item.levelNumber <= latestUnlocked;
                 var selected = item.levelNumber == selectedLevelNumber;
 
-                if (item.canvasGroup != null)
-                {
-                    item.canvasGroup.alpha = unlocked ? 1f : 0.42f;
-                }
+                item.button.interactable = unlocked;
+                ApplyLevelItemVisual(item, unlocked, selected);
+                item.outline.enabled = selected && unlocked;
+                item.lockOverlay.SetActive(!unlocked);
 
-                if (item.rootImage != null)
-                {
-                    item.rootImage.color = unlocked
-                        ? selected ? new Color(1f, 0.96f, 0.68f, 1f) : Color.white
-                        : new Color(0.48f, 0.48f, 0.48f, 1f);
-                }
-
-                if (item.outline != null)
-                {
-                    item.outline.enabled = selected && unlocked;
-                }
-
-                if (item.lockObject != null)
-                {
-                    item.lockObject.gameObject.SetActive(!unlocked);
-                }
-
-                foreach (var button in item.buttons)
-                {
-                    if (button != null)
-                    {
-                        button.interactable = unlocked;
-                    }
-                }
+                var textColor = unlocked ? Color.white : new Color(0.68f, 0.72f, 0.78f, 1f);
+                item.titleText.color = textColor;
+                item.numberText.color = textColor;
             }
 
-            if (selectedStageText != null)
+            UpdateSelectedStageText();
+            SetStartButtonState(selectedLevelNumber >= 1 && selectedLevelNumber <= latestUnlocked);
+        }
+
+        private void UpdateSelectedStageText()
+        {
+            if (selectedStageText == null)
             {
-                selectedStageText.text = selectedLevelNumber.ToString("00");
-                UIFactory.ApplyTextFont(selectedStageText);
+                return;
             }
 
-            SetStartButtonState(selectedLevelNumber <= latestUnlocked);
+            selectedStageText.text = selectedLevelNumber > 0
+                ? $"当前选择：第 {selectedLevelNumber} 关"
+                : "暂无关卡";
         }
 
         private void SetStartButtonState(bool interactable)
@@ -444,7 +412,6 @@ namespace LeiTing.UI
             if (startButton != null)
             {
                 startButton.interactable = interactable;
-                Debug.Log($"[UIStage] BtnStart interactable={interactable}, selectedLevel={selectedLevelNumber}, latestUnlocked={GetLatestUnlockedLevel()}, levelCount={levelCount}");
             }
         }
 
@@ -457,11 +424,8 @@ namespace LeiTing.UI
         {
             if (battleStartRequested)
             {
-                Debug.Log("[UIStage] BtnStart click ignored because battle start was already requested.");
                 return;
             }
-
-            Debug.Log($"[UIStage] BtnStart clicked. selectedLevel={selectedLevelNumber}, latestUnlocked={GetLatestUnlockedLevel()}");
 
             if (selectedLevelNumber < 1 || selectedLevelNumber > GetLatestUnlockedLevel())
             {
@@ -470,7 +434,6 @@ namespace LeiTing.UI
             }
 
             battleStartRequested = true;
-
             if (startButton != null)
             {
                 startButton.interactable = false;
@@ -481,42 +444,123 @@ namespace LeiTing.UI
 
         private static void OnClickBack()
         {
-            Debug.Log("[UIStage] BtnBack clicked, return to UIHall.");
             UIManager.Instance?.ReturnStageToHall();
         }
 
-        private void ConfigureContentLayout()
+        private void RebuildScrollContent()
         {
             if (contentRoot == null)
             {
                 return;
             }
 
-            var grid = contentRoot.GetComponent<GridLayoutGroup>() ?? contentRoot.gameObject.AddComponent<GridLayoutGroup>();
-            grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
-            grid.constraintCount = ColumnCount;
-            grid.childAlignment = TextAnchor.UpperCenter;
-            grid.spacing = new Vector2(42f, 42f);
-            grid.padding = new RectOffset(12, 12, 12, 80);
-            grid.cellSize = ResolveCellSize();
-
-            var fitter = contentRoot.GetComponent<ContentSizeFitter>() ?? contentRoot.gameObject.AddComponent<ContentSizeFitter>();
-            fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
-            fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            var height = Mathf.Max(CalculateContentHeight(levelItems.Count), CalculateVisibleContentHeight());
+            contentRoot.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
+            Canvas.ForceUpdateCanvases();
+            LayoutRebuilder.ForceRebuildLayoutImmediate(contentRoot);
         }
 
-        private Vector2 ResolveCellSize()
+        private void ScrollToSelectedLevel()
         {
-            if (levelItemTemplate != null)
+            if (scrollRect == null || levelItems.Count <= ColumnCount * VisibleRowCount)
             {
-                var size = levelItemTemplate.rect.size;
-                if (size.x > 0f && size.y > 0f)
+                if (scrollRect != null)
                 {
-                    return size;
+                    scrollRect.verticalNormalizedPosition = 1f;
                 }
+
+                return;
             }
 
-            return new Vector2(DefaultCellWidth, DefaultCellHeight);
+            var selectedIndex = Mathf.Clamp(selectedLevelNumber - 1, 0, levelItems.Count - 1);
+            var selectedRow = selectedIndex / ColumnCount;
+            var rows = Mathf.Max(1, Mathf.CeilToInt(levelItems.Count / (float)ColumnCount));
+            var maxFirstVisibleRow = Mathf.Max(0, rows - VisibleRowCount);
+            var firstVisibleRow = Mathf.Clamp(selectedRow - VisibleRowCount / 2, 0, maxFirstVisibleRow);
+
+            scrollRect.verticalNormalizedPosition = maxFirstVisibleRow > 0
+                ? 1f - firstVisibleRow / (float)maxFirstVisibleRow
+                : 1f;
+        }
+
+        private static float CalculateVisibleContentHeight()
+        {
+            return GridPaddingTop
+                + GridPaddingBottom
+                + VisibleRowCount * CellHeight
+                + (VisibleRowCount - 1) * GridSpacingY;
+        }
+
+        private static float CalculateContentHeight(int itemCount)
+        {
+            var rows = Mathf.Max(1, Mathf.CeilToInt(itemCount / (float)ColumnCount));
+            return GridPaddingTop
+                + GridPaddingBottom
+                + rows * CellHeight
+                + Mathf.Max(0, rows - 1) * GridSpacingY;
+        }
+
+        private static RectOffset CreateGridPadding()
+        {
+            return new RectOffset(GridPaddingLeft, GridPaddingRight, GridPaddingTop, GridPaddingBottom);
+        }
+
+        private static ColorBlock CreateLevelButtonColors()
+        {
+            var colors = ColorBlock.defaultColorBlock;
+            colors.normalColor = Color.white;
+            colors.highlightedColor = new Color(1f, 0.9f, 0.48f, 1f);
+            colors.pressedColor = new Color(0.8f, 0.56f, 0.12f, 1f);
+            colors.selectedColor = colors.highlightedColor;
+            colors.disabledColor = Color.white;
+            colors.colorMultiplier = 1f;
+            return colors;
+        }
+
+        private void ApplyLevelItemVisual(LevelItemView item, bool unlocked, bool selected)
+        {
+            if (item == null || item.image == null)
+            {
+                return;
+            }
+
+            var sprite = unlocked
+                ? selected && levelSelectedSprite != null ? levelSelectedSprite : levelNormalSprite
+                : levelLockedSprite != null ? levelLockedSprite : levelNormalSprite;
+
+            ApplyLevelImage(item.image, sprite, unlocked
+                ? selected ? new Color(1f, 0.78f, 0.18f, 0.98f) : new Color(0.09f, 0.14f, 0.24f, 0.96f)
+                : new Color(0.13f, 0.15f, 0.18f, 0.78f));
+        }
+
+        private static void ApplySprite(Image image, Sprite sprite, Image.Type imageType)
+        {
+            if (image == null || sprite == null)
+            {
+                return;
+            }
+
+            image.sprite = sprite;
+            image.type = imageType;
+        }
+
+        private static void ApplyLevelImage(Image image, Sprite sprite, Color fallbackColor)
+        {
+            if (image == null)
+            {
+                return;
+            }
+
+            if (sprite == null)
+            {
+                image.sprite = null;
+                image.color = fallbackColor;
+                return;
+            }
+
+            image.sprite = sprite;
+            image.type = Image.Type.Sliced;
+            image.color = Color.white;
         }
 
         private void ClearGeneratedLevelItems()
@@ -532,12 +576,29 @@ namespace LeiTing.UI
             levelItems.Clear();
         }
 
+        private void ClearChildren()
+        {
+            for (var index = transform.childCount - 1; index >= 0; index--)
+            {
+                DestroyLevelItem(transform.GetChild(index).gameObject);
+            }
+
+            levelItems.Clear();
+            startButton = null;
+            backButton = null;
+            scrollRect = null;
+            contentRoot = null;
+            selectedStageText = null;
+        }
+
         private static void DestroyLevelItem(GameObject item)
         {
             if (item == null)
             {
                 return;
             }
+
+            item.SetActive(false);
 
             if (Application.isPlaying)
             {
@@ -549,90 +610,15 @@ namespace LeiTing.UI
             }
         }
 
-        private static Transform FindChild(Transform root, string childName)
-        {
-            if (root == null || string.IsNullOrEmpty(childName))
-            {
-                return null;
-            }
-
-            foreach (var child in root.GetComponentsInChildren<Transform>(true))
-            {
-                if (child != null && child.name == childName)
-                {
-                    return child;
-                }
-            }
-
-            return null;
-        }
-
-        private static void SetButtonLabel(Button button, string label)
-        {
-            if (button == null)
-            {
-                return;
-            }
-
-            var tmpText = button.GetComponentInChildren<TMP_Text>(true);
-            if (tmpText != null)
-            {
-                tmpText.text = label;
-                UIFactory.ApplyTextFont(tmpText);
-                return;
-            }
-
-            var text = button.GetComponentInChildren<Text>(true);
-            if (text != null)
-            {
-                text.text = label;
-                UIFactory.ApplyTextFont(text);
-            }
-        }
-
-        private static bool TryGetStartPointerDownPosition(out Vector2 pointerPosition)
-        {
-            if (Input.GetMouseButtonDown(0))
-            {
-                pointerPosition = Input.mousePosition;
-                return true;
-            }
-
-            for (var index = 0; index < Input.touchCount; index++)
-            {
-                var touch = Input.GetTouch(index);
-                if (touch.phase == TouchPhase.Began)
-                {
-                    pointerPosition = touch.position;
-                    return true;
-                }
-            }
-
-            pointerPosition = Vector2.zero;
-            return false;
-        }
-
-        private bool IsPointerInsideStartButton(Vector2 pointerPosition)
-        {
-            var buttonRect = startButton != null ? startButton.GetComponent<RectTransform>() : null;
-            if (buttonRect == null)
-            {
-                return false;
-            }
-
-            return RectTransformUtility.RectangleContainsScreenPoint(buttonRect, pointerPosition, null);
-        }
-
         private sealed class LevelItemView
         {
             public RectTransform root;
-            public Image rootImage;
+            public Button button;
+            public Image image;
+            public Text titleText;
+            public Text numberText;
+            public GameObject lockOverlay;
             public Outline outline;
-            public CanvasGroup canvasGroup;
-            public Button[] buttons;
-            public TMP_Text[] tmpTexts;
-            public Text[] texts;
-            public Transform lockObject;
             public int levelNumber;
         }
     }

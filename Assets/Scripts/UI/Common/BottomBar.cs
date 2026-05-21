@@ -76,17 +76,23 @@ namespace LeiTing.UI
             BuildDefaultView();
 
             suppressToggleCallbacks = true;
-            foreach (var pair in navToggles)
+            try
             {
-                var selected = pair.Key == pageType;
-                pair.Value.SetIsOnWithoutNotify(selected);
-
-                if (navLabels.TryGetValue(pair.Key, out var label))
+                foreach (var pair in navToggles)
                 {
-                    label.color = selected ? Color.white : UIFactory.MutedTextColor;
+                    var selected = pair.Key == pageType;
+                    pair.Value.SetIsOnWithoutNotify(selected);
+
+                    if (navLabels.TryGetValue(pair.Key, out var label))
+                    {
+                        label.color = selected ? Color.white : UIFactory.MutedTextColor;
+                    }
                 }
             }
-            suppressToggleCallbacks = false;
+            finally
+            {
+                suppressToggleCallbacks = false;
+            }
         }
 
         private Toggle CreateNavToggle(UIPageType pageType, string text, ToggleGroup group)

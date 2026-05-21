@@ -25,6 +25,11 @@ namespace LeiTing.UI
         public static RectTransform CreateRect(string name, Transform parent)
         {
             var gameObject = new GameObject(name, typeof(RectTransform));
+            if (parent != null)
+            {
+                gameObject.layer = parent.gameObject.layer;
+            }
+
             gameObject.transform.SetParent(parent, false);
             return gameObject.GetComponent<RectTransform>();
         }
@@ -151,6 +156,15 @@ namespace LeiTing.UI
                 Stretch(rect);
                 canvas.overrideSorting = false;
                 canvas.enabled = true;
+
+                var scaler = canvas.GetComponent<CanvasScaler>();
+                if (scaler != null)
+                {
+                    scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+                    scaler.referenceResolution = new Vector2(1080f, 1920f);
+                    scaler.matchWidthOrHeight = 0.5f;
+                }
+
                 Debug.Log($"[UIFactory] Normalized embedded canvas under {root.name}: {canvas.name}");
             }
 
@@ -158,7 +172,8 @@ namespace LeiTing.UI
             {
                 if (raycaster != null && raycaster.transform != root)
                 {
-                    raycaster.enabled = false;
+                    raycaster.enabled = true;
+                    raycaster.ignoreReversedGraphics = false;
                 }
             }
         }

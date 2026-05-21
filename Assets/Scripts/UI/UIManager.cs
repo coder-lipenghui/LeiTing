@@ -96,11 +96,16 @@ namespace LeiTing.UI
 
         public void Init()
         {
-            if (mainUiInitialized)
+            if (mainUiInitialized && IsMainUiReady())
             {
                 ShowMainUI(true);
                 EnsureLobbyPageVisible();
                 return;
+            }
+
+            if (mainUiInitialized)
+            {
+                ResetMainUiState();
             }
 
             EnsureEventSystem();
@@ -116,6 +121,48 @@ namespace LeiTing.UI
             });
 
             OpenPage(UIPageType.Lobby);
+        }
+
+        private bool IsMainUiReady()
+        {
+            return mainCanvasObject != null
+                && contentLayer != null
+                && popupLayer != null
+                && topBar != null
+                && bottomBar != null;
+        }
+
+        private void ResetMainUiState()
+        {
+            Debug.Log("[UIManager] Main UI state was incomplete, rebuilding main UI.");
+            if (mainCanvasObject != null)
+            {
+                if (Application.isPlaying)
+                {
+                    Destroy(mainCanvasObject);
+                }
+                else
+                {
+                    DestroyImmediate(mainCanvasObject);
+                }
+            }
+
+            mainUiInitialized = false;
+            pageInstances.Clear();
+            popupStack.Clear();
+            cachedPopups.Clear();
+            currentPageInstance = null;
+            currentPageType = default(UIPageType);
+            hasCurrentPage = false;
+            isSwitching = false;
+            hasPendingOpenPage = false;
+            mainCanvasObject = null;
+            contentLayer = null;
+            popupLayer = null;
+            popupContainer = null;
+            popupMask = null;
+            topBar = null;
+            bottomBar = null;
         }
 
         private void EnsureLobbyPageVisible()
