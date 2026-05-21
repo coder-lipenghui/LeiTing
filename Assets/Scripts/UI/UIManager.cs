@@ -99,6 +99,7 @@ namespace LeiTing.UI
             if (mainUiInitialized)
             {
                 ShowMainUI(true);
+                EnsureLobbyPageVisible();
                 return;
             }
 
@@ -115,6 +116,21 @@ namespace LeiTing.UI
             });
 
             OpenPage(UIPageType.Lobby);
+        }
+
+        private void EnsureLobbyPageVisible()
+        {
+            if (!hasCurrentPage || currentPageInstance == null || !currentPageInstance.gameObject.activeSelf || currentPageType != UIPageType.Lobby)
+            {
+                Debug.Log($"[UIManager] Init restoring UIHall. hasCurrent={hasCurrentPage}, current={currentPageType}, active={currentPageInstance != null && currentPageInstance.gameObject.activeSelf}");
+                OpenPage(UIPageType.Lobby);
+                return;
+            }
+
+            ApplyPageChrome(UIPageType.Lobby);
+            currentPageInstance.RectTransform.anchoredPosition = Vector2.zero;
+            bottomBar?.SetSelected(UIPageType.Lobby);
+            Debug.Log("[UIManager] Init verified UIHall is visible.");
         }
 
         public void OpenPage(UIPageType pageType)

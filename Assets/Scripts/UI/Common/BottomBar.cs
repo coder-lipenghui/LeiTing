@@ -22,6 +22,7 @@ namespace LeiTing.UI
         private readonly Dictionary<UIPageType, Toggle> navToggles = new Dictionary<UIPageType, Toggle>();
         private readonly Dictionary<UIPageType, Graphic> navLabels = new Dictionary<UIPageType, Graphic>();
         private bool built;
+        private bool suppressToggleCallbacks;
 
         public void BuildDefaultView()
         {
@@ -74,6 +75,7 @@ namespace LeiTing.UI
         {
             BuildDefaultView();
 
+            suppressToggleCallbacks = true;
             foreach (var pair in navToggles)
             {
                 var selected = pair.Key == pageType;
@@ -84,6 +86,7 @@ namespace LeiTing.UI
                     label.color = selected ? Color.white : UIFactory.MutedTextColor;
                 }
             }
+            suppressToggleCallbacks = false;
         }
 
         private Toggle CreateNavToggle(UIPageType pageType, string text, ToggleGroup group)
@@ -385,25 +388,25 @@ namespace LeiTing.UI
             settingToggle?.onValueChanged.AddListener(OnSettingToggleChanged);
         }
 
-        private static void OnHangarToggleChanged(bool isOn)
+        private void OnHangarToggleChanged(bool isOn)
         {
-            if (isOn)
+            if (isOn && !suppressToggleCallbacks)
             {
                 UIManager.Instance?.SwitchPage(UIPageType.Hangar);
             }
         }
 
-        private static void OnLobbyToggleChanged(bool isOn)
+        private void OnLobbyToggleChanged(bool isOn)
         {
-            if (isOn)
+            if (isOn && !suppressToggleCallbacks)
             {
                 UIManager.Instance?.SwitchPage(UIPageType.Lobby);
             }
         }
 
-        private static void OnSettingToggleChanged(bool isOn)
+        private void OnSettingToggleChanged(bool isOn)
         {
-            if (isOn)
+            if (isOn && !suppressToggleCallbacks)
             {
                 UIManager.Instance?.SwitchPage(UIPageType.Setting);
             }
