@@ -53,7 +53,7 @@ MonoBehaviour:
     prefab: {fileID: 100000, guid: 861c5dbe2db07a3f85e7ca0adefe9e3a, type: 3}
   - path: Assets/Prefabs/Enemies/enemy_04.prefab
     prefab: {fileID: 100000, guid: c909ea4459bc34daba2da1ba110fdb30, type: 3}
-  - path: Assets/Prefabs/Enemies/smll_helicopter_01.prefab
+  - path: Assets/Prefabs/Enemies/small_helicopter_01.prefab
     prefab: {fileID: 100000, guid: 26672fe7dd4fe481997e755590e0a058, type: 3}
   - path: Assets/Prefabs/Missiles/missile_01_straight.prefab
     prefab: {fileID: 100000, guid: 0b059b8e3c13cabb9aec2aff6ff0a0c0, type: 3}

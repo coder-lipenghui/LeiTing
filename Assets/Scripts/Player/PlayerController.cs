@@ -3,6 +3,8 @@ using LeiTing.Core;
 using LeiTing.Effects;
 using LeiTing.Audio;
 using LeiTing.Missiles;
+using LeiTing.UI;
+using TTSDK;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -43,6 +45,7 @@ namespace LeiTing.Player
         private float invincibleUntil;
         private bool isDead;
         private Color originalColor = Color.white;
+        private static bool hasLoggedDamageVibrationFailure;
 
         public int CurrentHp => currentHp;
         public int MaxHp => maxHp;
@@ -92,6 +95,7 @@ namespace LeiTing.Player
             }
 
             BeginInvincible();
+            PlayDamageVibration();
 
             if (currentHp <= 0)
             {
@@ -99,6 +103,27 @@ namespace LeiTing.Player
             }
 
             return true;
+        }
+
+        private static void PlayDamageVibration()
+        {
+            if (!GameSettingManager.VibrationEnabled)
+            {
+                return;
+            }
+
+            try
+            {
+                TT.VibrateShort(new VibrateShortParam());
+            }
+            catch (System.Exception exception)
+            {
+                if (!hasLoggedDamageVibrationFailure)
+                {
+                    hasLoggedDamageVibrationFailure = true;
+                    Debug.LogWarning($"Douyin vibration failed: {exception.Message}");
+                }
+            }
         }
 
         public void AddStars(int amount)
@@ -156,6 +181,8 @@ namespace LeiTing.Player
 
         private void Awake()
         {
+            Input.simulateMouseWithTouches = true;
+
             body = GetComponent<Rigidbody2D>();
             gameplayCamera = gameplayCamera != null ? gameplayCamera : Camera.main;
 
@@ -309,7 +336,7 @@ namespace LeiTing.Player
             for (var i = 0; i < Input.touchCount; i++)
             {
                 var touch = Input.GetTouch(i);
-                if (touch.phase != TouchPhase.Began || IsPointerOverUi(touch.fingerId))
+                if (touch.phase == TouchPhase.Canceled || touch.phase == TouchPhase.Ended || IsPointerOverUi(touch.fingerId))
                 {
                     continue;
                 }
@@ -325,12 +352,6 @@ namespace LeiTing.Player
         private bool TryGetMouseDragTargetPosition(out Vector3 worldPosition)
         {
             worldPosition = targetPosition;
-
-            if (!Input.mousePresent)
-            {
-                EndPointerDrag();
-                return false;
-            }
 
             if (Input.GetMouseButtonDown(0) && !IsPointerOverUi())
             {
@@ -349,9 +370,19 @@ namespace LeiTing.Player
                 return false;
             }
 
-            if (!isPointerDragging || activeTouchFingerId != -1)
+            if (activeTouchFingerId != -1)
             {
                 return false;
+            }
+
+            if (!isPointerDragging)
+            {
+                if (IsPointerOverUi())
+                {
+                    return false;
+                }
+
+                BeginPointerDrag(Input.mousePosition, -1);
             }
 
             var pointerPosition = ScreenToWorldPosition(Input.mousePosition);

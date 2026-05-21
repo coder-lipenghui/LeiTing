@@ -1,0 +1,23 @@
+{
+  "appid": "tt3aac4c11a4cbb7cf07",
+  "projectname": "LeiTing",
+  "unity": {
+    "build": {
+      "webgl": "/Users/lipenghui/LeanProject/LeiTing/tt-minigame/webgl_package-20260520_224948.zip",
+      "native": {
+        "il2cpp": "",
+        "apk": "",
+        "fullApk": ""
+      },
+      "instantGame": ""
+    },
+    "publishType": "2",
+    "starkSdkVersion": "Without StarkSDK",
+    "unityToolsVersion": null,
+    "unityEngineVersion": "2021.3.6f1c1",
+    "arch": "both"
+  },
+  "setting": {
+    "urlCheck": true
+  }
+}
