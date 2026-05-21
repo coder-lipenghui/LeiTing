@@ -151,12 +151,13 @@ namespace LeiTing.UI
         {
             if (startGameButton == null)
             {
-                Debug.LogWarning("UIHall BtnStart not found, cannot bind start game button.");
+                Debug.LogWarning("[UIHall] BtnStart not found, cannot bind start game button.");
                 return;
             }
 
             startGameButton.onClick.RemoveListener(OnClickStartGame);
             startGameButton.onClick.AddListener(OnClickStartGame);
+            Debug.Log($"[UIHall] BtnStart bound. activeInHierarchy={startGameButton.gameObject.activeInHierarchy}, interactable={startGameButton.interactable}, targetGraphic={startGameButton.targetGraphic != null}");
         }
 
         private void RefreshSelectedPlane()
@@ -194,6 +195,7 @@ namespace LeiTing.UI
 
         private void OnClickStartGame()
         {
+            Debug.Log("[UIHall] BtnStart clicked, request open UIStage.");
             OpenStagePage();
         }
 
@@ -201,11 +203,11 @@ namespace LeiTing.UI
         {
             if (UIManager.Instance != null)
             {
-                UIManager.Instance.OpenPage(UIPageType.Stage);
+                UIManager.Instance.OpenStageFromHall();
                 return;
             }
 
-            Debug.LogWarning("UIManager not found when opening stage page, entering battle directly.");
+            Debug.LogWarning("[UIHall] UIManager not found when opening stage page, entering battle directly.");
             GameSceneManager.GetOrCreate().EnterBattle();
         }
     }
