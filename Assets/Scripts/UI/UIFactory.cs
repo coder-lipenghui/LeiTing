@@ -150,8 +150,8 @@ namespace LeiTing.UI
                 rect.pivot = new Vector2(0.5f, 0.5f);
                 Stretch(rect);
                 canvas.overrideSorting = false;
-                canvas.enabled = false;
-                Debug.Log($"[UIFactory] Disabled embedded canvas under {root.name}: {canvas.name}");
+                canvas.enabled = true;
+                Debug.Log($"[UIFactory] Normalized embedded canvas under {root.name}: {canvas.name}");
             }
 
             foreach (var raycaster in root.GetComponentsInChildren<GraphicRaycaster>(true))
