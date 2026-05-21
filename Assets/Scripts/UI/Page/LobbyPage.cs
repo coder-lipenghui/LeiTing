@@ -15,6 +15,14 @@ namespace LeiTing.UI
         private TMP_Text planeNameTmpText;
         private TMP_Text planeStatsTmpText;
 
+        private void OnEnable()
+        {
+            if (startGameButton != null || transform.childCount > 0)
+            {
+                EnsureStartButtonBound();
+            }
+        }
+
         public override void OnCreate()
         {
             if (transform.childCount == 0)
@@ -22,8 +30,7 @@ namespace LeiTing.UI
                 BuildDefaultView();
             }
 
-            BindPrefabView();
-            BindEvents();
+            EnsureStartButtonBound();
 
             if (Application.isPlaying)
             {
@@ -103,6 +110,12 @@ namespace LeiTing.UI
             buttonRect.sizeDelta = new Vector2(500f, 112f);
         }
 
+        private void EnsureStartButtonBound()
+        {
+            BindPrefabView();
+            BindEvents();
+        }
+
         private void BindPrefabView()
         {
             startGameButton = startGameButton != null
@@ -138,6 +151,7 @@ namespace LeiTing.UI
         {
             if (startGameButton == null)
             {
+                Debug.LogWarning("UIHall BtnStart not found, cannot bind start game button.");
                 return;
             }
 
@@ -179,6 +193,11 @@ namespace LeiTing.UI
         }
 
         private void OnClickStartGame()
+        {
+            OpenStagePage();
+        }
+
+        public void OpenStagePage()
         {
             if (UIManager.Instance != null)
             {

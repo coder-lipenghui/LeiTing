@@ -968,6 +968,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 905339203420650922}
+  - component: {fileID: 5713050929263401001}
   m_Layer: 0
   m_Name: UIStage
   m_TagString: Untagged
@@ -996,6 +997,24 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 1080, y: 1920}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &5713050929263401001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2644241041284139834}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bcf783d4858041c09e33c884f83a16b1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  startButton: {fileID: 1421159920370017858}
+  backButton: {fileID: 2471267957396535349}
+  scrollRect: {fileID: 7180853259453425187}
+  contentRoot: {fileID: 8013527923151884164}
+  levelItemTemplate: {fileID: 6436897661560929071}
+  selectedStageText: {fileID: 2038800573228269715}
 --- !u!1 &3111455410238551828
 GameObject:
   m_ObjectHideFlags: 0

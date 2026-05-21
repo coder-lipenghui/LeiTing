@@ -35,8 +35,10 @@ namespace LeiTing.UI
         private BottomBar bottomBar;
         private BasePage currentPageInstance;
         private UIPageType currentPageType;
+        private UIPageType pendingOpenPageType;
         private bool hasCurrentPage;
         private bool isSwitching;
+        private bool hasPendingOpenPage;
         private bool mainUiInitialized;
 
         private RectTransform canvasRoot;
@@ -121,6 +123,7 @@ namespace LeiTing.UI
 
             if (isSwitching)
             {
+                QueueOpenPage(pageType);
                 return;
             }
 
@@ -377,6 +380,7 @@ namespace LeiTing.UI
             if (currentPage == null || targetPage == null)
             {
                 isSwitching = false;
+                FlushPendingOpenPage();
                 yield break;
             }
 
@@ -419,6 +423,25 @@ namespace LeiTing.UI
             hasCurrentPage = true;
             bottomBar?.SetSelected(targetPageType);
             isSwitching = false;
+            FlushPendingOpenPage();
+        }
+
+        private void QueueOpenPage(UIPageType pageType)
+        {
+            pendingOpenPageType = pageType;
+            hasPendingOpenPage = true;
+        }
+
+        private void FlushPendingOpenPage()
+        {
+            if (!hasPendingOpenPage || isSwitching)
+            {
+                return;
+            }
+
+            var pageType = pendingOpenPageType;
+            hasPendingOpenPage = false;
+            OpenPage(pageType);
         }
 
         private IEnumerator OpenPopupCoroutine(string popupName, object data)
