@@ -34,11 +34,13 @@ namespace LeiTing.UI
             BindPrefabView();
             BindEvents();
             RefreshLevelList(true);
+            Debug.Log($"[UIStage] OnCreate complete. startButton={startButton != null}, backButton={backButton != null}, scrollRect={scrollRect != null}, contentRoot={contentRoot != null}, levelTemplate={levelItemTemplate != null}");
         }
 
         public override void OnShow()
         {
             RefreshLevelList(true);
+            Debug.Log($"[UIStage] OnShow. selectedLevel={selectedLevelNumber}, levelCount={levelCount}");
         }
 
         public override void OnHide()
@@ -145,12 +147,22 @@ namespace LeiTing.UI
             {
                 startButton.onClick.RemoveListener(OnClickStart);
                 startButton.onClick.AddListener(OnClickStart);
+                Debug.Log($"[UIStage] BtnStart bound. activeInHierarchy={startButton.gameObject.activeInHierarchy}, interactable={startButton.interactable}, targetGraphic={startButton.targetGraphic != null}");
+            }
+            else
+            {
+                Debug.LogWarning("[UIStage] BtnStart not found, cannot bind start battle button.");
             }
 
             if (backButton != null)
             {
                 backButton.onClick.RemoveListener(OnClickBack);
                 backButton.onClick.AddListener(OnClickBack);
+                Debug.Log($"[UIStage] BtnBack bound. activeInHierarchy={backButton.gameObject.activeInHierarchy}, interactable={backButton.interactable}, targetGraphic={backButton.targetGraphic != null}");
+            }
+            else
+            {
+                Debug.LogWarning("[UIStage] BtnBack not found, cannot bind return button.");
             }
         }
 
@@ -417,8 +429,11 @@ namespace LeiTing.UI
 
         private void OnClickStart()
         {
+            Debug.Log($"[UIStage] BtnStart clicked. selectedLevel={selectedLevelNumber}, latestUnlocked={GetLatestUnlockedLevel()}");
+
             if (selectedLevelNumber < 1 || selectedLevelNumber > GetLatestUnlockedLevel())
             {
+                Debug.LogWarning($"[UIStage] Selected level is locked or invalid: {selectedLevelNumber}");
                 return;
             }
 
@@ -432,7 +447,8 @@ namespace LeiTing.UI
 
         private static void OnClickBack()
         {
-            UIManager.Instance?.OpenPage(UIPageType.Lobby);
+            Debug.Log("[UIStage] BtnBack clicked, return to UIHall.");
+            UIManager.Instance?.ReturnStageToHall();
         }
 
         private void ConfigureContentLayout()

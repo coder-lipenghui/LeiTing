@@ -130,10 +130,13 @@ namespace LeiTing.UI
             var targetPage = GetOrCreatePage(pageType);
             if (targetPage == null)
             {
+                Debug.LogWarning($"[UIManager] OpenPage failed, target page is null: {pageType}");
                 return;
             }
 
+            Debug.Log($"[UIManager] OpenPage request. target={pageType}, current={(hasCurrentPage ? currentPageType.ToString() : "None")}, pageObject={targetPage.name}");
             ApplyPageChrome(pageType);
+            HideOtherPages(targetPage, currentPageInstance);
 
             if (currentPageInstance != null && currentPageInstance != targetPage)
             {
@@ -150,6 +153,28 @@ namespace LeiTing.UI
             currentPageInstance = targetPage;
             hasCurrentPage = true;
             bottomBar?.SetSelected(pageType);
+            Debug.Log($"[UIManager] OpenPage complete. current={currentPageType}, bottomVisible={bottomBar != null && bottomBar.gameObject.activeSelf}");
+        }
+
+        public void OpenStageFromHall()
+        {
+            Debug.Log("[UIManager] OpenStageFromHall requested. Close popups, hide bottom/top, and open UIStage.");
+            CloseAllPopups();
+            OpenPage(UIPageType.Stage);
+        }
+
+        public void ReturnStageToHall()
+        {
+            Debug.Log("[UIManager] ReturnStageToHall requested. Close UIStage, show UIBottom, and switch to UIHall.");
+
+            if (pageInstances.TryGetValue(UIPageType.Stage, out var stagePage) && stagePage != null && stagePage.gameObject.activeSelf)
+            {
+                stagePage.OnHide();
+            }
+
+            ClosePage(UIPageType.Stage);
+            ShowBottomBar(true);
+            OpenPage(UIPageType.Lobby);
         }
 
         public void SwitchPage(UIPageType targetPageType)
@@ -266,6 +291,7 @@ namespace LeiTing.UI
             if (topBar != null)
             {
                 topBar.gameObject.SetActive(visible);
+                Debug.Log($"[UIManager] TopBar visible={visible}");
             }
         }
 
@@ -274,6 +300,11 @@ namespace LeiTing.UI
             if (bottomBar != null)
             {
                 bottomBar.gameObject.SetActive(visible);
+                var canvasGroup = bottomBar.GetComponent<CanvasGroup>() ?? bottomBar.gameObject.AddComponent<CanvasGroup>();
+                canvasGroup.alpha = visible ? 1f : 0f;
+                canvasGroup.interactable = visible;
+                canvasGroup.blocksRaycasts = visible;
+                Debug.Log($"[UIManager] UIBottom visible={visible}");
             }
         }
 
@@ -385,6 +416,7 @@ namespace LeiTing.UI
             }
 
             ApplyPageChrome(targetPageType);
+            HideOtherPages(targetPage, currentPage);
 
             var width = Mathf.Max(1f, contentLayer != null ? contentLayer.rect.width : Screen.width);
             var targetToRight = targetPage.PageIndex > currentPage.PageIndex;
@@ -430,6 +462,22 @@ namespace LeiTing.UI
         {
             pendingOpenPageType = pageType;
             hasPendingOpenPage = true;
+        }
+
+        private void HideOtherPages(BasePage targetPage, BasePage pageToKeep)
+        {
+            foreach (var pair in pageInstances)
+            {
+                var page = pair.Value;
+                if (page == null || page == targetPage || page == pageToKeep || !page.gameObject.activeSelf)
+                {
+                    continue;
+                }
+
+                Debug.Log($"[UIManager] Hide inactive page before open. page={pair.Key}, object={page.name}");
+                page.OnHide();
+                page.gameObject.SetActive(false);
+            }
         }
 
         private void FlushPendingOpenPage()
@@ -693,6 +741,7 @@ namespace LeiTing.UI
         {
             var stagePage = pageType == UIPageType.Stage;
             var fullContentPage = stagePage || pageType == UIPageType.Lobby;
+            Debug.Log($"[UIManager] ApplyPageChrome. page={pageType}, topVisible={!stagePage}, bottomVisible={!stagePage}, fullContent={fullContentPage}");
             ShowTopBar(!stagePage);
             ShowBottomBar(!stagePage);
 
@@ -730,12 +779,13 @@ namespace LeiTing.UI
         {
             if (pageInstances.TryGetValue(pageType, out var page) && page != null)
             {
+                Debug.Log($"[UIManager] Reuse cached page: {pageType}, active={page.gameObject.activeSelf}");
                 return page;
             }
 
             if (!UIConfig.PageConfigs.TryGetValue(pageType, out var config))
             {
-                Debug.LogWarning($"UI page config not found: {pageType}");
+                Debug.LogWarning($"[UIManager] UI page config not found: {pageType}");
                 return null;
             }
 
@@ -744,10 +794,12 @@ namespace LeiTing.UI
             if (prefab != null)
             {
                 pageObject = Instantiate(prefab, contentLayer);
+                Debug.Log($"[UIManager] Loaded page prefab. page={pageType}, path={config.prefabPath}");
             }
 
             if (pageObject == null)
             {
+                Debug.LogWarning($"[UIManager] Page prefab not found, create fallback page. page={pageType}, path={config.prefabPath}");
                 pageObject = CreateFallbackPage(config);
             }
 
@@ -768,6 +820,7 @@ namespace LeiTing.UI
             page.Configure(config.pageType, config.index);
             page.gameObject.SetActive(false);
             pageInstances[pageType] = page;
+            Debug.Log($"[UIManager] Page created. page={pageType}, object={pageObject.name}, component={page.GetType().Name}");
             return page;
         }
 
