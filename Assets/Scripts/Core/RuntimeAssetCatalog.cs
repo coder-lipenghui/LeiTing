@@ -11,10 +11,12 @@ namespace LeiTing.Core
 
         [SerializeField] private List<PrefabEntry> prefabs = new List<PrefabEntry>();
         [SerializeField] private List<SpriteEntry> sprites = new List<SpriteEntry>();
+        [SerializeField] private List<FontEntry> fonts = new List<FontEntry>();
 
         private static RuntimeAssetCatalog cachedCatalog;
         private Dictionary<string, GameObject> prefabLookup;
         private Dictionary<string, Sprite> spriteLookup;
+        private Dictionary<string, Font> fontLookup;
 
         [Serializable]
         public sealed class PrefabEntry
@@ -42,6 +44,19 @@ namespace LeiTing.Core
             }
         }
 
+        [Serializable]
+        public sealed class FontEntry
+        {
+            public string path;
+            public Font font;
+
+            public FontEntry(string path, Font font)
+            {
+                this.path = path;
+                this.font = font;
+            }
+        }
+
         public static GameObject LoadPrefab(string assetPath)
         {
             return string.IsNullOrEmpty(assetPath) || Catalog == null ? null : Catalog.GetPrefab(assetPath);
@@ -52,12 +67,24 @@ namespace LeiTing.Core
             return string.IsNullOrEmpty(assetPath) || Catalog == null ? null : Catalog.GetSprite(assetPath);
         }
 
+        public static Font LoadFont(string assetPath)
+        {
+            return string.IsNullOrEmpty(assetPath) || Catalog == null ? null : Catalog.GetFont(assetPath);
+        }
+
         public void SetEntries(List<PrefabEntry> prefabEntries, List<SpriteEntry> spriteEntries)
+        {
+            SetEntries(prefabEntries, spriteEntries, null);
+        }
+
+        public void SetEntries(List<PrefabEntry> prefabEntries, List<SpriteEntry> spriteEntries, List<FontEntry> fontEntries)
         {
             prefabs = prefabEntries ?? new List<PrefabEntry>();
             sprites = spriteEntries ?? new List<SpriteEntry>();
+            fonts = fontEntries ?? new List<FontEntry>();
             prefabLookup = null;
             spriteLookup = null;
+            fontLookup = null;
         }
 
         private static RuntimeAssetCatalog Catalog
@@ -87,15 +114,23 @@ namespace LeiTing.Core
             return sprite;
         }
 
+        private Font GetFont(string assetPath)
+        {
+            EnsureLookups();
+            fontLookup.TryGetValue(NormalizeKey(assetPath), out var font);
+            return font;
+        }
+
         private void EnsureLookups()
         {
-            if (prefabLookup != null && spriteLookup != null)
+            if (prefabLookup != null && spriteLookup != null && fontLookup != null)
             {
                 return;
             }
 
             prefabLookup = new Dictionary<string, GameObject>(StringComparer.OrdinalIgnoreCase);
             spriteLookup = new Dictionary<string, Sprite>(StringComparer.OrdinalIgnoreCase);
+            fontLookup = new Dictionary<string, Font>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var entry in prefabs)
             {
@@ -110,6 +145,14 @@ namespace LeiTing.Core
                 if (entry != null)
                 {
                     AddLookup(spriteLookup, entry.path, entry.sprite);
+                }
+            }
+
+            foreach (var entry in fonts)
+            {
+                if (entry != null)
+                {
+                    AddLookup(fontLookup, entry.path, entry.font);
                 }
             }
         }

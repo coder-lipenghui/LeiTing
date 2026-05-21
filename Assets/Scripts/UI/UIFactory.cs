@@ -1,12 +1,20 @@
 using System;
+using LeiTing.Core;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace LeiTing.UI
 {
     internal static class UIFactory
     {
+        private const string DefaultFontAssetPath = "Assets/Art/Font/simhei.ttf";
+
         private static Font defaultFont;
+        private static TMP_FontAsset defaultTmpFont;
 
         public static readonly Color PanelColor = new Color(0.035f, 0.05f, 0.09f, 0.88f);
         public static readonly Color PanelAccentColor = new Color(0.1f, 0.68f, 1f, 0.95f);
@@ -122,6 +130,29 @@ namespace LeiTing.UI
             rect.offsetMax = Vector2.zero;
         }
 
+        public static void NormalizeEmbeddedCanvases(Transform root)
+        {
+            if (root == null)
+            {
+                return;
+            }
+
+            foreach (var canvas in root.GetComponentsInChildren<Canvas>(true))
+            {
+                var rect = canvas.GetComponent<RectTransform>();
+                if (rect == null || rect.transform == root)
+                {
+                    continue;
+                }
+
+                rect.localScale = Vector3.one;
+                rect.localRotation = Quaternion.identity;
+                rect.pivot = new Vector2(0.5f, 0.5f);
+                Stretch(rect);
+                canvas.overrideSorting = false;
+            }
+        }
+
         public static void SetInset(RectTransform rect, float left, float top, float right, float bottom)
         {
             rect.anchorMin = Vector2.zero;
@@ -142,15 +173,104 @@ namespace LeiTing.UI
             return colors;
         }
 
-        private static Font GetDefaultFont()
+        public static void ApplyTextFont(Text text)
+        {
+            if (text != null)
+            {
+                text.font = GetDefaultFont();
+            }
+        }
+
+        public static void ApplyTextFont(TMP_Text text)
+        {
+            if (text == null)
+            {
+                return;
+            }
+
+            var font = GetDefaultTmpFont();
+            if (font != null)
+            {
+                text.font = font;
+            }
+        }
+
+        public static void ApplyFontsInChildren(Transform root)
+        {
+            if (root == null)
+            {
+                return;
+            }
+
+            foreach (var text in root.GetComponentsInChildren<Text>(true))
+            {
+                ApplyTextFont(text);
+            }
+
+            foreach (var text in root.GetComponentsInChildren<TMP_Text>(true))
+            {
+                ApplyTextFont(text);
+            }
+        }
+
+        public static void ApplyButtonTextFont(Button button)
+        {
+            if (button != null)
+            {
+                ApplyFontsInChildren(button.transform);
+            }
+        }
+
+        public static Font GetDefaultFont()
         {
             if (defaultFont != null)
             {
                 return defaultFont;
             }
 
-            defaultFont = TryGetBuiltinFont("Arial.ttf") ?? TryGetBuiltinFont("LegacyRuntime.ttf");
+            defaultFont = LoadProjectFont() ?? TryGetBuiltinFont("Arial.ttf") ?? TryGetBuiltinFont("LegacyRuntime.ttf");
             return defaultFont;
+        }
+
+        public static TMP_FontAsset GetDefaultTmpFont()
+        {
+            if (defaultTmpFont != null)
+            {
+                return defaultTmpFont;
+            }
+
+            var font = GetDefaultFont();
+            if (font == null)
+            {
+                return null;
+            }
+
+            defaultTmpFont = TMP_FontAsset.CreateFontAsset(font);
+            if (defaultTmpFont != null)
+            {
+                defaultTmpFont.atlasPopulationMode = AtlasPopulationMode.Dynamic;
+            }
+
+            return defaultTmpFont;
+        }
+
+        private static Font LoadProjectFont()
+        {
+#if UNITY_EDITOR
+            var editorFont = AssetDatabase.LoadAssetAtPath<Font>(DefaultFontAssetPath);
+            if (editorFont != null)
+            {
+                return editorFont;
+            }
+#endif
+
+            var catalogFont = RuntimeAssetCatalog.LoadFont(DefaultFontAssetPath);
+            if (catalogFont != null)
+            {
+                return catalogFont;
+            }
+
+            return Resources.Load<Font>("Font/simhei") ?? Resources.Load<Font>("simhei");
         }
 
         private static Font TryGetBuiltinFont(string path)

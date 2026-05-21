@@ -14,6 +14,7 @@ namespace LeiTing.Core
     public class GameManager : MonoSingleton<GameManager>
     {
         private const int DefaultMaxLevelCount = 12;
+        private const string LatestUnlockedLevelKey = "leiting_latest_unlocked_level";
 #if UNITY_EDITOR
         private const string EditorRequestedLevelKey = "LeiTing.Editor.RequestedLevelNumber";
 #endif
@@ -30,6 +31,7 @@ namespace LeiTing.Core
         public int Score => score;
         public int CurrentLevelNumber => currentLevelNumber;
         public int MaxLevelCount => ResolveMaxLevelCount();
+        public int MaxUnlockedLevelNumber => GetMaxUnlockedLevel(MaxLevelCount);
         public bool HasNextLevel => currentLevelNumber < MaxLevelCount;
         public string CurrentLevelDisplayName => ResolveCurrentLevelDisplayName();
         public string CurrentLevelBossId => ResolveCurrentLevelBossId();
@@ -73,6 +75,7 @@ namespace LeiTing.Core
             }
 
             currentState = GameState.Victory;
+            UnlockNextLevel();
         }
 
         public void LoseGame()
@@ -202,6 +205,7 @@ namespace LeiTing.Core
             if (currentState == GameState.Playing)
             {
                 currentState = GameState.Victory;
+                UnlockNextLevel();
             }
         }
 
@@ -214,6 +218,23 @@ namespace LeiTing.Core
 
             StopCoroutine(pendingVictoryRoutine);
             pendingVictoryRoutine = null;
+        }
+
+        public static int GetMaxUnlockedLevel(int maxLevelCount)
+        {
+            return Mathf.Clamp(PlayerPrefs.GetInt(LatestUnlockedLevelKey, 1), 1, Mathf.Max(1, maxLevelCount));
+        }
+
+        private void UnlockNextLevel()
+        {
+            var nextUnlockedLevel = Mathf.Min(currentLevelNumber + 1, MaxLevelCount);
+            if (nextUnlockedLevel <= MaxUnlockedLevelNumber)
+            {
+                return;
+            }
+
+            PlayerPrefs.SetInt(LatestUnlockedLevelKey, nextUnlockedLevel);
+            PlayerPrefs.Save();
         }
     }
 }

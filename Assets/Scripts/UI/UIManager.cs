@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using LeiTing.Core;
@@ -128,6 +129,8 @@ namespace LeiTing.UI
             {
                 return;
             }
+
+            ApplyPageChrome(pageType);
 
             if (currentPageInstance != null && currentPageInstance != targetPage)
             {
@@ -377,6 +380,8 @@ namespace LeiTing.UI
                 yield break;
             }
 
+            ApplyPageChrome(targetPageType);
+
             var width = Mathf.Max(1f, contentLayer != null ? contentLayer.rect.width : Screen.width);
             var targetToRight = targetPage.PageIndex > currentPage.PageIndex;
             var currentTargetX = targetToRight ? -width : width;
@@ -551,7 +556,17 @@ namespace LeiTing.UI
                 barObject = rect.gameObject;
             }
 
-            ConfigureBottomBarRect(rect);
+            var useFullScreenPrefabRect = HasEmbeddedCanvas(barObject);
+            if (useFullScreenPrefabRect)
+            {
+                UIFactory.Stretch(rect);
+            }
+            else
+            {
+                ConfigureBottomBarRect(rect);
+            }
+
+            UIFactory.NormalizeEmbeddedCanvases(barObject.transform);
             rect.SetAsLastSibling();
 
             var bar = barObject.GetComponent<BottomBar>() ?? barObject.AddComponent<BottomBar>();
@@ -575,6 +590,55 @@ namespace LeiTing.UI
                 : Resources.Load<GameObject>(BottomBarPrefabResourcesPath);
         }
 
+        private static GameObject LoadPagePrefab(string prefabPath)
+        {
+            if (string.IsNullOrEmpty(prefabPath))
+            {
+                return null;
+            }
+
+#if UNITY_EDITOR
+            var editorPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+            if (editorPrefab != null)
+            {
+                return editorPrefab;
+            }
+#endif
+
+            var catalogPrefab = RuntimeAssetCatalog.LoadPrefab(prefabPath);
+            if (catalogPrefab != null)
+            {
+                return catalogPrefab;
+            }
+
+            return Resources.Load<GameObject>(ToResourcesPath(prefabPath));
+        }
+
+        private static string ToResourcesPath(string prefabPath)
+        {
+            var normalized = prefabPath.Replace("\\", "/").Trim();
+            const string resourcesSegment = "/Resources/";
+            var resourcesIndex = normalized.IndexOf(resourcesSegment, StringComparison.OrdinalIgnoreCase);
+            if (resourcesIndex >= 0)
+            {
+                normalized = normalized.Substring(resourcesIndex + resourcesSegment.Length);
+            }
+
+            const string resourcesPrefix = "Assets/Resources/";
+            if (normalized.StartsWith(resourcesPrefix, StringComparison.OrdinalIgnoreCase))
+            {
+                normalized = normalized.Substring(resourcesPrefix.Length);
+            }
+
+            const string prefabExtension = ".prefab";
+            if (normalized.EndsWith(prefabExtension, StringComparison.OrdinalIgnoreCase))
+            {
+                normalized = normalized.Substring(0, normalized.Length - prefabExtension.Length);
+            }
+
+            return normalized;
+        }
+
         private static void ConfigureBottomBarRect(RectTransform rect)
         {
             rect.anchorMin = new Vector2(0f, 0f);
@@ -582,6 +646,45 @@ namespace LeiTing.UI
             rect.pivot = new Vector2(0.5f, 0f);
             rect.anchoredPosition = Vector2.zero;
             rect.sizeDelta = new Vector2(0f, MainBottomBarHeight);
+        }
+
+        private static bool HasEmbeddedCanvas(GameObject root)
+        {
+            if (root == null)
+            {
+                return false;
+            }
+
+            foreach (var canvas in root.GetComponentsInChildren<Canvas>(true))
+            {
+                if (canvas != null && canvas.transform != root.transform)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private void ApplyPageChrome(UIPageType pageType)
+        {
+            var stagePage = pageType == UIPageType.Stage;
+            var fullContentPage = stagePage || pageType == UIPageType.Lobby;
+            ShowTopBar(!stagePage);
+            ShowBottomBar(!stagePage);
+
+            if (contentLayer == null)
+            {
+                return;
+            }
+
+            if (fullContentPage)
+            {
+                UIFactory.Stretch(contentLayer);
+                return;
+            }
+
+            UIFactory.SetInset(contentLayer, 0f, MainTopBarHeight, 0f, MainBottomBarHeight);
         }
 
         private void CreatePopupLayer(RectTransform parent)
@@ -614,7 +717,7 @@ namespace LeiTing.UI
             }
 
             GameObject pageObject = null;
-            var prefab = Resources.Load<GameObject>(config.prefabPath);
+            var prefab = LoadPagePrefab(config.prefabPath);
             if (prefab != null)
             {
                 pageObject = Instantiate(prefab, contentLayer);
@@ -624,6 +727,14 @@ namespace LeiTing.UI
             {
                 pageObject = CreateFallbackPage(config);
             }
+
+            var rectTransform = pageObject.GetComponent<RectTransform>();
+            if (rectTransform != null)
+            {
+                UIFactory.Stretch(rectTransform);
+            }
+
+            UIFactory.NormalizeEmbeddedCanvases(pageObject.transform);
 
             page = pageObject.GetComponent<BasePage>();
             if (page == null)
@@ -653,6 +764,8 @@ namespace LeiTing.UI
                     return pageObject.AddComponent<HangarPage>();
                 case UIPageType.Setting:
                     return pageObject.AddComponent<SettingPage>();
+                case UIPageType.Stage:
+                    return pageObject.AddComponent<StagePage>();
                 default:
                     return pageObject.AddComponent<LobbyPage>();
             }

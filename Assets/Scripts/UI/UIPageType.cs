@@ -4,6 +4,7 @@ namespace LeiTing.UI
     {
         Hangar = 1,
         Lobby = 2,
-        Setting = 3
+        Setting = 3,
+        Stage = 4
     }
 }

@@ -45,7 +45,17 @@ namespace LeiTing.UI
                     {
                         pageType = UIPageType.Lobby,
                         index = 2,
-                        prefabPath = "UI/Page/LobbyPage",
+                        prefabPath = "Assets/Prefabs/UI/UIHall.prefab",
+                        cache = true
+                    }
+                },
+                {
+                    UIPageType.Stage,
+                    new UIPageConfig
+                    {
+                        pageType = UIPageType.Stage,
+                        index = 3,
+                        prefabPath = "Assets/Prefabs/UI/UIStage.prefab",
                         cache = true
                     }
                 },
@@ -54,7 +64,7 @@ namespace LeiTing.UI
                     new UIPageConfig
                     {
                         pageType = UIPageType.Setting,
-                        index = 3,
+                        index = 4,
                         prefabPath = "UI/Page/SettingPage",
                         cache = true
                     }

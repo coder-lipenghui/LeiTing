@@ -279,6 +279,8 @@ namespace LeiTing.UI
                 return;
             }
 
+            UIFactory.ApplyButtonTextFont(button);
+
             var image = button.GetComponent<Image>();
             if (image != null)
             {

@@ -14,6 +14,9 @@ namespace LeiTing.Editor
     {
         private const string CatalogPath = "Assets/Resources/RuntimeAssetCatalog.asset";
         private const string BottomBarPrefabPath = "Assets/Prefabs/UI/UIBottom.prefab";
+        private const string HallPrefabPath = "Assets/Prefabs/UI/UIHall.prefab";
+        private const string StagePrefabPath = "Assets/Prefabs/UI/UIStage.prefab";
+        private const string DefaultFontPath = "Assets/Art/Font/simhei.ttf";
 
         public int callbackOrder => -1000;
 
@@ -32,8 +35,9 @@ namespace LeiTing.Editor
 
             var prefabPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var spritePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var fontPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-            CollectConfiguredPaths(config, prefabPaths, spritePaths);
+            CollectConfiguredPaths(config, prefabPaths, spritePaths, fontPaths);
 
             var prefabEntries = prefabPaths
                 .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
@@ -46,6 +50,11 @@ namespace LeiTing.Editor
                 .Select(path => CreateSpriteEntry(path))
                 .Where(entry => entry != null)
                 .ToList();
+            var fontEntries = fontPaths
+                .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
+                .Select(path => CreateFontEntry(path))
+                .Where(entry => entry != null)
+                .ToList();
 
             EnsureResourcesFolder();
 
@@ -56,11 +65,11 @@ namespace LeiTing.Editor
                 AssetDatabase.CreateAsset(catalog, CatalogPath);
             }
 
-            catalog.SetEntries(prefabEntries, spriteEntries);
+            catalog.SetEntries(prefabEntries, spriteEntries, fontEntries);
             EditorUtility.SetDirty(catalog);
             AssetDatabase.SaveAssets();
 
-            Debug.Log($"Runtime asset catalog rebuilt: {prefabEntries.Count} prefabs, {spriteEntries.Count} sprites.");
+            Debug.Log($"Runtime asset catalog rebuilt: {prefabEntries.Count} prefabs, {spriteEntries.Count} sprites, {fontEntries.Count} fonts.");
         }
 
         private static bool TryLoadBuildConfig(out GameConfig config)
@@ -74,10 +83,17 @@ namespace LeiTing.Editor
             return false;
         }
 
-        private static void CollectConfiguredPaths(GameConfig config, HashSet<string> prefabPaths, HashSet<string> spritePaths)
+        private static void CollectConfiguredPaths(
+            GameConfig config,
+            HashSet<string> prefabPaths,
+            HashSet<string> spritePaths,
+            HashSet<string> fontPaths)
         {
             AddPath(prefabPaths, config.player?.prefabPath);
             AddPath(prefabPaths, BottomBarPrefabPath);
+            AddPath(prefabPaths, HallPrefabPath);
+            AddPath(prefabPaths, StagePrefabPath);
+            AddPath(fontPaths, DefaultFontPath);
 
             AddPath(spritePaths, "Assets/Art/Animations/Enemies/enemy-01.png");
             AddPath(spritePaths, "Assets/Art/Animations/Enemies/BOSS-1.png");
@@ -162,6 +178,18 @@ namespace LeiTing.Editor
             }
 
             return new RuntimeAssetCatalog.SpriteEntry(path, sprite);
+        }
+
+        private static RuntimeAssetCatalog.FontEntry CreateFontEntry(string path)
+        {
+            var font = AssetDatabase.LoadAssetAtPath<Font>(path);
+            if (font == null)
+            {
+                Debug.LogWarning($"Runtime asset catalog skipped missing font: {path}");
+                return null;
+            }
+
+            return new RuntimeAssetCatalog.FontEntry(path, font);
         }
 
         private static void EnsureResourcesFolder()

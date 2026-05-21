@@ -67,6 +67,10 @@ MonoBehaviour:
     prefab: {fileID: 100000, guid: 9a1d4e2b8a144d9589ae5a4f8e72404b, type: 3}
   - path: Assets/Prefabs/UI/UIBottom.prefab
     prefab: {fileID: 8285059673505338041, guid: 717901b75871846ba99febdc5e065b96, type: 3}
+  - path: Assets/Prefabs/UI/UIHall.prefab
+    prefab: {fileID: 2644241041284139834, guid: d3f645fa987974c4793c6cfe9fa09d9e, type: 3}
+  - path: Assets/Prefabs/UI/UIStage.prefab
+    prefab: {fileID: 2644241041284139834, guid: e90da74bc4d4e436881279fb327604cc, type: 3}
   sprites:
   - path: Assets/Art/Animations/Enemies/BOSS-1.png
     sprite: {fileID: 21300000, guid: 74f8cf9601d704a4d949b53656961b17, type: 3}
@@ -98,3 +102,6 @@ MonoBehaviour:
     sprite: {fileID: 21300000, guid: 0c239b385a642488982e36de47da2e62, type: 3}
   - path: Assets/Art/Sprites/Item/item_star.png
     sprite: {fileID: 21300000, guid: e7730ea40d6044b0f939ea9d3b66374a, type: 3}
+  fonts:
+  - path: Assets/Art/Font/simhei.ttf
+    font: {fileID: 12800000, guid: 9f94a9364d47346d88936c0fe26c71e0, type: 3}

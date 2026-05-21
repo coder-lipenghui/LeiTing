@@ -1,4 +1,5 @@
 using LeiTing.Core;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -9,6 +10,10 @@ namespace LeiTing.UI
         [SerializeField] private Button startGameButton;
         [SerializeField] private Text planeNameText;
         [SerializeField] private Text planeStatsText;
+
+        private TMP_Text startGameTmpText;
+        private TMP_Text planeNameTmpText;
+        private TMP_Text planeStatsTmpText;
 
         public override void OnCreate()
         {
@@ -102,13 +107,31 @@ namespace LeiTing.UI
         {
             startGameButton = startGameButton != null
                 ? startGameButton
-                : UIFactory.FindComponentInChildren<Button>(transform, "StartGameButton");
+                : UIFactory.FindComponentInChildren<Button>(transform, "BtnStart")
+                    ?? UIFactory.FindComponentInChildren<Button>(transform, "StartGameButton");
             planeNameText = planeNameText != null
                 ? planeNameText
                 : UIFactory.FindComponentInChildren<Text>(transform, "PlaneName");
             planeStatsText = planeStatsText != null
                 ? planeStatsText
                 : UIFactory.FindComponentInChildren<Text>(transform, "PlaneStats");
+            planeNameTmpText = planeNameTmpText != null
+                ? planeNameTmpText
+                : UIFactory.FindComponentInChildren<TMP_Text>(transform, "PlaneName");
+            planeStatsTmpText = planeStatsTmpText != null
+                ? planeStatsTmpText
+                : UIFactory.FindComponentInChildren<TMP_Text>(transform, "PlaneStats");
+
+            if (startGameButton != null)
+            {
+                startGameTmpText = startGameButton.GetComponentInChildren<TMP_Text>(true);
+                UIFactory.ApplyButtonTextFont(startGameButton);
+
+                if (startGameTmpText != null && string.IsNullOrEmpty(startGameTmpText.text))
+                {
+                    startGameTmpText.text = "开始游戏";
+                }
+            }
         }
 
         private void BindEvents()
@@ -139,19 +162,31 @@ namespace LeiTing.UI
                 planeNameText.text = plane.name;
             }
 
+            if (planeNameTmpText != null)
+            {
+                planeNameTmpText.text = plane.name;
+            }
+
             if (planeStatsText != null)
             {
                 planeStatsText.text = $"HP {plane.hp}   ATK {plane.attack}   RATE {plane.fireRate:0.0}   SPD {plane.moveSpeed:0.0}";
+            }
+
+            if (planeStatsTmpText != null)
+            {
+                planeStatsTmpText.text = $"HP {plane.hp}   ATK {plane.attack}   RATE {plane.fireRate:0.0}   SPD {plane.moveSpeed:0.0}";
             }
         }
 
         private void OnClickStartGame()
         {
-            if (startGameButton != null)
+            if (UIManager.Instance != null)
             {
-                startGameButton.interactable = false;
+                UIManager.Instance.OpenPage(UIPageType.Stage);
+                return;
             }
 
+            Debug.LogWarning("UIManager not found when opening stage page, entering battle directly.");
             GameSceneManager.GetOrCreate().EnterBattle();
         }
     }
