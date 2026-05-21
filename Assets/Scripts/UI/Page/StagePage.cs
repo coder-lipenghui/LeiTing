@@ -23,6 +23,7 @@ namespace LeiTing.UI
         private readonly List<LevelItemView> levelItems = new List<LevelItemView>();
         private int selectedLevelNumber = 1;
         private int levelCount;
+        private bool battleStartRequested;
 
         public override void OnCreate()
         {
@@ -39,6 +40,7 @@ namespace LeiTing.UI
 
         public override void OnShow()
         {
+            battleStartRequested = false;
             RefreshLevelList(true);
             Debug.Log($"[UIStage] OnShow. selectedLevel={selectedLevelNumber}, levelCount={levelCount}");
         }
@@ -48,6 +50,29 @@ namespace LeiTing.UI
             if (startButton != null)
             {
                 startButton.interactable = true;
+            }
+
+            battleStartRequested = false;
+        }
+
+        private void Update()
+        {
+            if (battleStartRequested || startButton == null || !startButton.gameObject.activeInHierarchy)
+            {
+                return;
+            }
+
+            if (TryGetStartPointerDownPosition(out var pointerPosition)
+                && IsPointerInsideStartButton(pointerPosition))
+            {
+                Debug.Log($"[UIStage] BtnStart pointer fallback hit at {pointerPosition}. interactable={startButton.interactable}, selectedLevel={selectedLevelNumber}, latestUnlocked={GetLatestUnlockedLevel()}");
+
+                if (!startButton.interactable)
+                {
+                    return;
+                }
+
+                OnClickStart();
             }
         }
 
@@ -309,7 +334,7 @@ namespace LeiTing.UI
 
                 if (text.name == "TxtStage" || !assignedStageText && ShouldUseAsStageText(text.text))
                 {
-                    text.text = $"STAGE\n{stageNumber}";
+                    text.text = stageNumber;
                     assignedStageText = true;
                 }
                 else if (ContainsSlash(text.text))
@@ -419,6 +444,7 @@ namespace LeiTing.UI
             if (startButton != null)
             {
                 startButton.interactable = interactable;
+                Debug.Log($"[UIStage] BtnStart interactable={interactable}, selectedLevel={selectedLevelNumber}, latestUnlocked={GetLatestUnlockedLevel()}, levelCount={levelCount}");
             }
         }
 
@@ -429,6 +455,12 @@ namespace LeiTing.UI
 
         private void OnClickStart()
         {
+            if (battleStartRequested)
+            {
+                Debug.Log("[UIStage] BtnStart click ignored because battle start was already requested.");
+                return;
+            }
+
             Debug.Log($"[UIStage] BtnStart clicked. selectedLevel={selectedLevelNumber}, latestUnlocked={GetLatestUnlockedLevel()}");
 
             if (selectedLevelNumber < 1 || selectedLevelNumber > GetLatestUnlockedLevel())
@@ -436,6 +468,8 @@ namespace LeiTing.UI
                 Debug.LogWarning($"[UIStage] Selected level is locked or invalid: {selectedLevelNumber}");
                 return;
             }
+
+            battleStartRequested = true;
 
             if (startButton != null)
             {
@@ -554,6 +588,39 @@ namespace LeiTing.UI
                 text.text = label;
                 UIFactory.ApplyTextFont(text);
             }
+        }
+
+        private static bool TryGetStartPointerDownPosition(out Vector2 pointerPosition)
+        {
+            if (Input.GetMouseButtonDown(0))
+            {
+                pointerPosition = Input.mousePosition;
+                return true;
+            }
+
+            for (var index = 0; index < Input.touchCount; index++)
+            {
+                var touch = Input.GetTouch(index);
+                if (touch.phase == TouchPhase.Began)
+                {
+                    pointerPosition = touch.position;
+                    return true;
+                }
+            }
+
+            pointerPosition = Vector2.zero;
+            return false;
+        }
+
+        private bool IsPointerInsideStartButton(Vector2 pointerPosition)
+        {
+            var buttonRect = startButton != null ? startButton.GetComponent<RectTransform>() : null;
+            if (buttonRect == null)
+            {
+                return false;
+            }
+
+            return RectTransformUtility.RectangleContainsScreenPoint(buttonRect, pointerPosition, null);
         }
 
         private sealed class LevelItemView
