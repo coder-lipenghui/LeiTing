@@ -25,6 +25,7 @@ namespace LeiTing.UI
         private readonly Dictionary<UIPageType, BasePage> pageInstances = new Dictionary<UIPageType, BasePage>();
         private readonly Stack<BasePopup> popupStack = new Stack<BasePopup>();
         private readonly Dictionary<string, BasePopup> cachedPopups = new Dictionary<string, BasePopup>();
+        private readonly List<RaycastResult> pointerRaycastResults = new List<RaycastResult>();
 
         private GameObject mainCanvasObject;
         private RectTransform contentLayer;
@@ -81,6 +82,8 @@ namespace LeiTing.UI
 
         private void Update()
         {
+            LogMainUiPointerRaycast();
+
             if (!battleHudInitialized)
             {
                 return;
@@ -456,6 +459,62 @@ namespace LeiTing.UI
             bottomBar?.SetSelected(targetPageType);
             isSwitching = false;
             FlushPendingOpenPage();
+        }
+
+        private void LogMainUiPointerRaycast()
+        {
+            if (!mainUiInitialized || EventSystem.current == null || !TryGetPointerDownPosition(out var pointerPosition))
+            {
+                return;
+            }
+
+            var pointerEventData = new PointerEventData(EventSystem.current)
+            {
+                position = pointerPosition
+            };
+
+            pointerRaycastResults.Clear();
+            EventSystem.current.RaycastAll(pointerEventData, pointerRaycastResults);
+
+            if (pointerRaycastResults.Count == 0)
+            {
+                Debug.Log($"[UIManager] PointerDown at {pointerPosition}, raycast hit nothing.");
+                return;
+            }
+
+            var hitSummary = string.Empty;
+            var count = Mathf.Min(pointerRaycastResults.Count, 8);
+            for (var index = 0; index < count; index++)
+            {
+                var result = pointerRaycastResults[index];
+                hitSummary += index == 0
+                    ? result.gameObject.name
+                    : " > " + result.gameObject.name;
+            }
+
+            Debug.Log($"[UIManager] PointerDown at {pointerPosition}, topHits={hitSummary}");
+        }
+
+        private static bool TryGetPointerDownPosition(out Vector2 pointerPosition)
+        {
+            if (Input.GetMouseButtonDown(0))
+            {
+                pointerPosition = Input.mousePosition;
+                return true;
+            }
+
+            for (var index = 0; index < Input.touchCount; index++)
+            {
+                var touch = Input.GetTouch(index);
+                if (touch.phase == TouchPhase.Began)
+                {
+                    pointerPosition = touch.position;
+                    return true;
+                }
+            }
+
+            pointerPosition = Vector2.zero;
+            return false;
         }
 
         private void QueueOpenPage(UIPageType pageType)

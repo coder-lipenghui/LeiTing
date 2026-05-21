@@ -14,6 +14,7 @@ namespace LeiTing.UI
         private TMP_Text startGameTmpText;
         private TMP_Text planeNameTmpText;
         private TMP_Text planeStatsTmpText;
+        private bool stageOpenRequested;
 
         private void OnEnable()
         {
@@ -40,11 +41,27 @@ namespace LeiTing.UI
 
         public override void OnShow()
         {
+            stageOpenRequested = false;
             RefreshSelectedPlane();
 
             if (startGameButton != null)
             {
                 startGameButton.interactable = true;
+            }
+        }
+
+        private void Update()
+        {
+            if (stageOpenRequested || startGameButton == null || !startGameButton.gameObject.activeInHierarchy)
+            {
+                return;
+            }
+
+            if (TryGetStartPointerDownPosition(out var pointerPosition)
+                && IsPointerInsideStartButton(pointerPosition))
+            {
+                Debug.Log($"[UIHall] BtnStart pointer fallback hit at {pointerPosition}, opening UIStage.");
+                OnClickStartGame();
             }
         }
 
@@ -195,6 +212,13 @@ namespace LeiTing.UI
 
         private void OnClickStartGame()
         {
+            if (stageOpenRequested)
+            {
+                Debug.Log("[UIHall] BtnStart click ignored because UIStage open was already requested.");
+                return;
+            }
+
+            stageOpenRequested = true;
             Debug.Log("[UIHall] BtnStart clicked, request open UIStage.");
             OpenStagePage();
         }
@@ -209,6 +233,39 @@ namespace LeiTing.UI
 
             Debug.LogWarning("[UIHall] UIManager not found when opening stage page, entering battle directly.");
             GameSceneManager.GetOrCreate().EnterBattle();
+        }
+
+        private static bool TryGetStartPointerDownPosition(out Vector2 pointerPosition)
+        {
+            if (Input.GetMouseButtonDown(0))
+            {
+                pointerPosition = Input.mousePosition;
+                return true;
+            }
+
+            for (var index = 0; index < Input.touchCount; index++)
+            {
+                var touch = Input.GetTouch(index);
+                if (touch.phase == TouchPhase.Began)
+                {
+                    pointerPosition = touch.position;
+                    return true;
+                }
+            }
+
+            pointerPosition = Vector2.zero;
+            return false;
+        }
+
+        private bool IsPointerInsideStartButton(Vector2 pointerPosition)
+        {
+            var buttonRect = startGameButton != null ? startGameButton.GetComponent<RectTransform>() : null;
+            if (buttonRect == null)
+            {
+                return false;
+            }
+
+            return RectTransformUtility.RectangleContainsScreenPoint(buttonRect, pointerPosition, null);
         }
     }
 }
