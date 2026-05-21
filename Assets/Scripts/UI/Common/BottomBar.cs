@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -6,45 +7,51 @@ namespace LeiTing.UI
 {
     public class BottomBar : MonoBehaviour
     {
-        private const string HallButtonName = "btnHall";
-        private const string ShopButtonName = "btnShop";
-        private const string GiftButtonName = "btnGift";
+        private const string HallToggleName = "tabHall";
+        private const string HangarToggleName = "tabHangar";
+        private const string SettingToggleName = "tabSetting";
+        private const string HallSpriteButtonName = "btnHall";
+        private const string ShopSpriteButtonName = "btnShop";
+        private const string GiftSpriteButtonName = "btnGift";
         private const string SpriteArtLayerName = "SpriteArtLayer";
 
-        [SerializeField] private Button hangarButton;
-        [SerializeField] private Button lobbyButton;
-        [SerializeField] private Button settingButton;
+        [SerializeField] private Toggle hangarToggle;
+        [SerializeField] private Toggle lobbyToggle;
+        [SerializeField] private Toggle settingToggle;
 
-        private readonly Dictionary<UIPageType, Image> buttonImages = new Dictionary<UIPageType, Image>();
-        private readonly Dictionary<UIPageType, Text> buttonLabels = new Dictionary<UIPageType, Text>();
+        private readonly Dictionary<UIPageType, Toggle> navToggles = new Dictionary<UIPageType, Toggle>();
+        private readonly Dictionary<UIPageType, Graphic> navLabels = new Dictionary<UIPageType, Graphic>();
         private bool built;
 
         public void BuildDefaultView()
         {
             if (built)
             {
-                BindButtons();
+                BindToggles();
                 return;
             }
 
             built = true;
 
             BindPrefabReferences();
-            if (HasCanvasPrefabButtons())
+            if (HasCanvasPrefabToggles())
             {
-                CacheNavButton(UIPageType.Hangar, hangarButton);
-                CacheNavButton(UIPageType.Lobby, lobbyButton);
-                CacheNavButton(UIPageType.Setting, settingButton);
-                BindButtons();
+                CacheNavToggle(UIPageType.Hangar, hangarToggle);
+                CacheNavToggle(UIPageType.Lobby, lobbyToggle);
+                CacheNavToggle(UIPageType.Setting, settingToggle);
+                BindToggles();
                 return;
             }
 
             if (TryBuildSpritePrefabView())
             {
-                BindButtons();
+                BindToggles();
                 return;
             }
 
+            RemoveDeprecatedButtons();
+
+            var group = EnsureToggleGroup();
             var background = gameObject.GetComponent<Image>() ?? gameObject.AddComponent<Image>();
             background.color = new Color(0.015f, 0.025f, 0.05f, 0.94f);
 
@@ -57,59 +64,73 @@ namespace LeiTing.UI
             layout.childForceExpandWidth = true;
             layout.childForceExpandHeight = true;
 
-            lobbyButton = CreateNavButton(UIPageType.Lobby, "大厅");
-            hangarButton = CreateNavButton(UIPageType.Hangar, "机库");
-            settingButton = CreateNavButton(UIPageType.Setting, "设置");
-            BindButtons();
+            lobbyToggle = CreateNavToggle(UIPageType.Lobby, "大厅", group);
+            hangarToggle = CreateNavToggle(UIPageType.Hangar, "机库", group);
+            settingToggle = CreateNavToggle(UIPageType.Setting, "设置", group);
+            BindToggles();
         }
 
         public void SetSelected(UIPageType pageType)
         {
             BuildDefaultView();
 
-            foreach (var pair in buttonImages)
+            foreach (var pair in navToggles)
             {
                 var selected = pair.Key == pageType;
-                pair.Value.color = selected
-                    ? new Color(0.1f, 0.68f, 1f, 0.96f)
-                    : new Color(0.055f, 0.08f, 0.13f, 0.82f);
+                pair.Value.SetIsOnWithoutNotify(selected);
 
-                if (buttonLabels.TryGetValue(pair.Key, out var label))
+                if (navLabels.TryGetValue(pair.Key, out var label))
                 {
                     label.color = selected ? Color.white : UIFactory.MutedTextColor;
                 }
             }
         }
 
-        private Button CreateNavButton(UIPageType pageType, string text)
+        private Toggle CreateNavToggle(UIPageType pageType, string text, ToggleGroup group)
         {
-            var button = UIFactory.CreateButton(pageType.ToString(), transform, text, new Color(0.055f, 0.08f, 0.13f, 0.82f), out var label, out var image);
-            buttonImages[pageType] = image;
-            buttonLabels[pageType] = label;
+            var rect = UIFactory.CreateRect(pageType.ToString(), transform);
+            var image = rect.gameObject.AddComponent<Image>();
+            image.color = new Color(0.055f, 0.08f, 0.13f, 0.82f);
 
-            var layoutElement = button.gameObject.AddComponent<LayoutElement>();
+            var checkmark = UIFactory.CreatePanel("Checkmark", rect, new Color(0.1f, 0.68f, 1f, 0.96f));
+            UIFactory.Stretch(checkmark.rectTransform);
+            checkmark.raycastTarget = false;
+
+            var toggle = rect.gameObject.AddComponent<Toggle>();
+            toggle.targetGraphic = image;
+            toggle.graphic = checkmark;
+            toggle.group = group;
+
+            var label = UIFactory.CreateText("Label", rect, text, 30f, TextAnchor.MiddleCenter, Color.white);
+            UIFactory.Stretch(label.rectTransform);
+
+            navToggles[pageType] = toggle;
+            navLabels[pageType] = label;
+
+            var layoutElement = toggle.gameObject.AddComponent<LayoutElement>();
             layoutElement.minHeight = 94f;
             layoutElement.preferredHeight = 94f;
-            return button;
+            return toggle;
         }
 
         private void BindPrefabReferences()
         {
-            lobbyButton = FindButton(lobbyButton, HallButtonName, "Lobby");
-            hangarButton = FindButton(hangarButton, ShopButtonName, "Hangar");
-            settingButton = FindButton(settingButton, GiftButtonName, "Setting");
+            lobbyToggle = FindToggle(lobbyToggle, HallToggleName, "BtnHall", "Hall", "Lobby");
+            hangarToggle = FindToggle(hangarToggle, HangarToggleName, "btnHangar", "BtnHangar", "Hangar");
+            settingToggle = FindToggle(settingToggle, SettingToggleName, "BtnSetting", "Setting");
+            ConfigureToggleGroups();
         }
 
-        private bool HasCanvasPrefabButtons()
+        private bool HasCanvasPrefabToggles()
         {
-            return IsCanvasButton(hangarButton)
-                && IsCanvasButton(lobbyButton)
-                && IsCanvasButton(settingButton);
+            return IsCanvasToggle(hangarToggle)
+                && IsCanvasToggle(lobbyToggle)
+                && IsCanvasToggle(settingToggle);
         }
 
-        private static bool IsCanvasButton(Button button)
+        private static bool IsCanvasToggle(Toggle toggle)
         {
-            return button != null && button.targetGraphic != null;
+            return toggle != null && toggle.targetGraphic != null;
         }
 
         private bool TryBuildSpritePrefabView()
@@ -134,14 +155,6 @@ namespace LeiTing.UI
             artLayer.pivot = new Vector2(0.5f, 0f);
             artLayer.anchoredPosition = Vector2.zero;
             artLayer.sizeDelta = backgroundSize;
-
-            foreach (var button in GetComponentsInChildren<Button>(true))
-            {
-                if (button.targetGraphic == null)
-                {
-                    button.enabled = false;
-                }
-            }
 
             foreach (var spriteRenderer in spriteRenderers)
             {
@@ -183,12 +196,13 @@ namespace LeiTing.UI
                 return;
             }
 
-            var uiButton = rect.gameObject.AddComponent<Button>();
-            uiButton.targetGraphic = image;
-            uiButton.transition = Selectable.Transition.ColorTint;
-            uiButton.colors = UIFactory.CreateButtonColors(Color.white);
+            var uiToggle = rect.gameObject.AddComponent<Toggle>();
+            uiToggle.targetGraphic = image;
+            uiToggle.group = EnsureToggleGroup();
+            uiToggle.transition = Selectable.Transition.ColorTint;
+            uiToggle.colors = UIFactory.CreateButtonColors(Color.white);
 
-            BindSpriteButton(spriteRenderer.name, uiButton);
+            BindSpriteToggle(spriteRenderer.name, uiToggle);
         }
 
         private static Vector2 GetSpriteAnchoredPosition(
@@ -219,18 +233,18 @@ namespace LeiTing.UI
             return spriteRenderer.size * sprite.pixelsPerUnit;
         }
 
-        private void BindSpriteButton(string buttonName, Button button)
+        private void BindSpriteToggle(string buttonName, Toggle toggle)
         {
             switch (buttonName)
             {
-                case HallButtonName:
-                    lobbyButton = button;
+                case HallSpriteButtonName:
+                    lobbyToggle = toggle;
                     break;
-                case ShopButtonName:
-                    hangarButton = button;
+                case ShopSpriteButtonName:
+                    hangarToggle = toggle;
                     break;
-                case GiftButtonName:
-                    settingButton = button;
+                case GiftSpriteButtonName:
+                    settingToggle = toggle;
                     break;
             }
         }
@@ -272,29 +286,30 @@ namespace LeiTing.UI
             return largest;
         }
 
-        private void CacheNavButton(UIPageType pageType, Button button)
+        private void CacheNavToggle(UIPageType pageType, Toggle toggle)
         {
-            if (button == null)
+            if (toggle == null)
             {
                 return;
             }
 
-            UIFactory.ApplyButtonTextFont(button);
+            UIFactory.ApplyFontsInChildren(toggle.transform);
 
-            var image = button.GetComponent<Image>();
-            if (image != null)
+            navToggles[pageType] = toggle;
+
+            Graphic label = toggle.GetComponentInChildren<Text>(true);
+            if (label == null)
             {
-                buttonImages[pageType] = image;
+                label = toggle.GetComponentInChildren<TMP_Text>(true);
             }
 
-            var label = button.GetComponentInChildren<Text>(true);
             if (label != null)
             {
-                buttonLabels[pageType] = label;
+                navLabels[pageType] = label;
             }
         }
 
-        private Button FindButton(Button current, params string[] childNames)
+        private Toggle FindToggle(Toggle current, params string[] childNames)
         {
             if (current != null)
             {
@@ -303,40 +318,95 @@ namespace LeiTing.UI
 
             foreach (var childName in childNames)
             {
-                var button = UIFactory.FindComponentInChildren<Button>(transform, childName);
-                if (button != null)
+                var toggle = UIFactory.FindComponentInChildren<Toggle>(transform, childName);
+                if (toggle != null)
                 {
-                    return button;
+                    return toggle;
                 }
             }
 
             return null;
         }
 
-        private void BindButtons()
+        private void RemoveDeprecatedButtons()
         {
-            hangarButton?.onClick.RemoveListener(OnClickHangar);
-            lobbyButton?.onClick.RemoveListener(OnClickLobby);
-            settingButton?.onClick.RemoveListener(OnClickSetting);
+            foreach (var button in GetComponentsInChildren<Button>(true))
+            {
+                if (button == null || button.transform == transform)
+                {
+                    continue;
+                }
 
-            hangarButton?.onClick.AddListener(OnClickHangar);
-            lobbyButton?.onClick.AddListener(OnClickLobby);
-            settingButton?.onClick.AddListener(OnClickSetting);
+                DestroyObject(button.gameObject);
+            }
         }
 
-        private static void OnClickHangar()
+        private static void DestroyObject(GameObject target)
         {
-            UIManager.Instance?.SwitchPage(UIPageType.Hangar);
+            if (target == null)
+            {
+                return;
+            }
+
+            if (Application.isPlaying)
+            {
+                target.SetActive(false);
+                Destroy(target);
+            }
+            else
+            {
+                DestroyImmediate(target);
+            }
         }
 
-        private static void OnClickLobby()
+        private ToggleGroup EnsureToggleGroup()
         {
-            UIManager.Instance?.SwitchPage(UIPageType.Lobby);
+            var group = gameObject.GetComponent<ToggleGroup>() ?? gameObject.AddComponent<ToggleGroup>();
+            group.allowSwitchOff = false;
+            return group;
         }
 
-        private static void OnClickSetting()
+        private void ConfigureToggleGroups()
         {
-            UIManager.Instance?.SwitchPage(UIPageType.Setting);
+            foreach (var group in GetComponentsInChildren<ToggleGroup>(true))
+            {
+                group.allowSwitchOff = false;
+            }
+        }
+
+        private void BindToggles()
+        {
+            hangarToggle?.onValueChanged.RemoveListener(OnHangarToggleChanged);
+            lobbyToggle?.onValueChanged.RemoveListener(OnLobbyToggleChanged);
+            settingToggle?.onValueChanged.RemoveListener(OnSettingToggleChanged);
+
+            hangarToggle?.onValueChanged.AddListener(OnHangarToggleChanged);
+            lobbyToggle?.onValueChanged.AddListener(OnLobbyToggleChanged);
+            settingToggle?.onValueChanged.AddListener(OnSettingToggleChanged);
+        }
+
+        private static void OnHangarToggleChanged(bool isOn)
+        {
+            if (isOn)
+            {
+                UIManager.Instance?.SwitchPage(UIPageType.Hangar);
+            }
+        }
+
+        private static void OnLobbyToggleChanged(bool isOn)
+        {
+            if (isOn)
+            {
+                UIManager.Instance?.SwitchPage(UIPageType.Lobby);
+            }
+        }
+
+        private static void OnSettingToggleChanged(bool isOn)
+        {
+            if (isOn)
+            {
+                UIManager.Instance?.SwitchPage(UIPageType.Setting);
+            }
         }
     }
 }
