@@ -41,6 +41,7 @@ namespace LeiTing.Config
         public Vector2 hitboxOffset;
         public string defaultBulletId;
         public float fireInterval;
+        public string fireSoundPath;
     }
 
     [Serializable]

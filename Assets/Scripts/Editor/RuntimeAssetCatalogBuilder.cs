@@ -37,8 +37,9 @@ namespace LeiTing.Editor
             var prefabPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var spritePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var fontPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var audioPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-            CollectConfiguredPaths(config, prefabPaths, spritePaths, fontPaths);
+            CollectConfiguredPaths(config, prefabPaths, spritePaths, fontPaths, audioPaths);
 
             var prefabEntries = prefabPaths
                 .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
@@ -56,6 +57,11 @@ namespace LeiTing.Editor
                 .Select(path => CreateFontEntry(path))
                 .Where(entry => entry != null)
                 .ToList();
+            var audioEntries = audioPaths
+                .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
+                .Select(path => CreateAudioClipEntry(path))
+                .Where(entry => entry != null)
+                .ToList();
 
             EnsureResourcesFolder();
 
@@ -66,11 +72,11 @@ namespace LeiTing.Editor
                 AssetDatabase.CreateAsset(catalog, CatalogPath);
             }
 
-            catalog.SetEntries(prefabEntries, spriteEntries, fontEntries);
+            catalog.SetEntries(prefabEntries, spriteEntries, fontEntries, audioEntries);
             EditorUtility.SetDirty(catalog);
             AssetDatabase.SaveAssets();
 
-            Debug.Log($"Runtime asset catalog rebuilt: {prefabEntries.Count} prefabs, {spriteEntries.Count} sprites, {fontEntries.Count} fonts.");
+            Debug.Log($"Runtime asset catalog rebuilt: {prefabEntries.Count} prefabs, {spriteEntries.Count} sprites, {fontEntries.Count} fonts, {audioEntries.Count} audio clips.");
         }
 
         private static bool TryLoadBuildConfig(out GameConfig config)
@@ -88,9 +94,11 @@ namespace LeiTing.Editor
             GameConfig config,
             HashSet<string> prefabPaths,
             HashSet<string> spritePaths,
-            HashSet<string> fontPaths)
+            HashSet<string> fontPaths,
+            HashSet<string> audioPaths)
         {
             AddPath(prefabPaths, config.player?.prefabPath);
+            AddPath(audioPaths, config.player?.fireSoundPath);
             AddPath(prefabPaths, BottomBarPrefabPath);
             AddPath(prefabPaths, HallPrefabPath);
             AddPath(prefabPaths, StagePrefabPath);
@@ -105,6 +113,7 @@ namespace LeiTing.Editor
                 foreach (var level in config.levels)
                 {
                     AddPath(spritePaths, level?.backgroundSpritePath);
+                    AddPath(audioPaths, level?.bgmPath);
                 }
             }
 
@@ -136,6 +145,10 @@ namespace LeiTing.Editor
                     AddPath(spritePaths, missile?.hitEffectRes);
                     AddPath(spritePaths, missile?.destroyEffectRes);
                     AddPath(spritePaths, missile?.effectRes);
+                    AddPath(audioPaths, missile?.soundRes);
+                    AddPath(audioPaths, missile?.soundLaunch);
+                    AddPath(audioPaths, missile?.soundLock);
+                    AddPath(audioPaths, missile?.soundExplode);
                 }
             }
 
@@ -192,6 +205,18 @@ namespace LeiTing.Editor
             }
 
             return new RuntimeAssetCatalog.FontEntry(path, font);
+        }
+
+        private static RuntimeAssetCatalog.AudioClipEntry CreateAudioClipEntry(string path)
+        {
+            var audioClip = AssetDatabase.LoadAssetAtPath<AudioClip>(path);
+            if (audioClip == null)
+            {
+                Debug.LogWarning($"Runtime asset catalog skipped missing audio clip: {path}");
+                return null;
+            }
+
+            return new RuntimeAssetCatalog.AudioClipEntry(path, audioClip);
         }
 
         private static void EnsureResourcesFolder()

@@ -35,6 +35,7 @@ public sealed partial class Player : Luban.BeanBase
         { if(!_buf["hitboxOffsetY"].IsNumber) { throw new SerializationException(); }  HitboxOffsetY = _buf["hitboxOffsetY"]; }
         { if(!_buf["defaultBulletId"].IsString) { throw new SerializationException(); }  DefaultBulletId = _buf["defaultBulletId"]; }
         { if(!_buf["fireInterval"].IsNumber) { throw new SerializationException(); }  FireInterval = _buf["fireInterval"]; }
+        { if(!_buf["fireSoundPath"].IsString) { throw new SerializationException(); }  FireSoundPath = _buf["fireSoundPath"]; }
     }
 
     public static Player DeserializePlayer(JSONNode _buf)
@@ -111,6 +112,10 @@ public sealed partial class Player : Luban.BeanBase
     /// 开火间隔
     /// </summary>
     public readonly float FireInterval;
+    /// <summary>
+    /// 开火音效路径
+    /// </summary>
+    public readonly string FireSoundPath;
    
     public const int __ID__ = -974993935;
     public override int GetTypeId() => __ID__;
@@ -140,6 +145,7 @@ public sealed partial class Player : Luban.BeanBase
         + "hitboxOffsetY:" + HitboxOffsetY + ","
         + "defaultBulletId:" + DefaultBulletId + ","
         + "fireInterval:" + FireInterval + ","
+        + "fireSoundPath:" + FireSoundPath + ","
         + "}";
     }
 }

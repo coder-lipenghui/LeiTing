@@ -12,11 +12,13 @@ namespace LeiTing.Core
         [SerializeField] private List<PrefabEntry> prefabs = new List<PrefabEntry>();
         [SerializeField] private List<SpriteEntry> sprites = new List<SpriteEntry>();
         [SerializeField] private List<FontEntry> fonts = new List<FontEntry>();
+        [SerializeField] private List<AudioClipEntry> audioClips = new List<AudioClipEntry>();
 
         private static RuntimeAssetCatalog cachedCatalog;
         private Dictionary<string, GameObject> prefabLookup;
         private Dictionary<string, Sprite> spriteLookup;
         private Dictionary<string, Font> fontLookup;
+        private Dictionary<string, AudioClip> audioClipLookup;
 
         [Serializable]
         public sealed class PrefabEntry
@@ -57,6 +59,19 @@ namespace LeiTing.Core
             }
         }
 
+        [Serializable]
+        public sealed class AudioClipEntry
+        {
+            public string path;
+            public AudioClip audioClip;
+
+            public AudioClipEntry(string path, AudioClip audioClip)
+            {
+                this.path = path;
+                this.audioClip = audioClip;
+            }
+        }
+
         public static GameObject LoadPrefab(string assetPath)
         {
             return string.IsNullOrEmpty(assetPath) || Catalog == null ? null : Catalog.GetPrefab(assetPath);
@@ -72,19 +87,35 @@ namespace LeiTing.Core
             return string.IsNullOrEmpty(assetPath) || Catalog == null ? null : Catalog.GetFont(assetPath);
         }
 
+        public static AudioClip LoadAudioClip(string assetPath)
+        {
+            return string.IsNullOrEmpty(assetPath) || Catalog == null ? null : Catalog.GetAudioClip(assetPath);
+        }
+
         public void SetEntries(List<PrefabEntry> prefabEntries, List<SpriteEntry> spriteEntries)
         {
-            SetEntries(prefabEntries, spriteEntries, null);
+            SetEntries(prefabEntries, spriteEntries, null, null);
         }
 
         public void SetEntries(List<PrefabEntry> prefabEntries, List<SpriteEntry> spriteEntries, List<FontEntry> fontEntries)
         {
+            SetEntries(prefabEntries, spriteEntries, fontEntries, null);
+        }
+
+        public void SetEntries(
+            List<PrefabEntry> prefabEntries,
+            List<SpriteEntry> spriteEntries,
+            List<FontEntry> fontEntries,
+            List<AudioClipEntry> audioClipEntries)
+        {
             prefabs = prefabEntries ?? new List<PrefabEntry>();
             sprites = spriteEntries ?? new List<SpriteEntry>();
             fonts = fontEntries ?? new List<FontEntry>();
+            audioClips = audioClipEntries ?? new List<AudioClipEntry>();
             prefabLookup = null;
             spriteLookup = null;
             fontLookup = null;
+            audioClipLookup = null;
         }
 
         private static RuntimeAssetCatalog Catalog
@@ -121,9 +152,16 @@ namespace LeiTing.Core
             return font;
         }
 
+        private AudioClip GetAudioClip(string assetPath)
+        {
+            EnsureLookups();
+            audioClipLookup.TryGetValue(NormalizeKey(assetPath), out var audioClip);
+            return audioClip;
+        }
+
         private void EnsureLookups()
         {
-            if (prefabLookup != null && spriteLookup != null && fontLookup != null)
+            if (prefabLookup != null && spriteLookup != null && fontLookup != null && audioClipLookup != null)
             {
                 return;
             }
@@ -131,6 +169,7 @@ namespace LeiTing.Core
             prefabLookup = new Dictionary<string, GameObject>(StringComparer.OrdinalIgnoreCase);
             spriteLookup = new Dictionary<string, Sprite>(StringComparer.OrdinalIgnoreCase);
             fontLookup = new Dictionary<string, Font>(StringComparer.OrdinalIgnoreCase);
+            audioClipLookup = new Dictionary<string, AudioClip>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var entry in prefabs)
             {
@@ -153,6 +192,14 @@ namespace LeiTing.Core
                 if (entry != null)
                 {
                     AddLookup(fontLookup, entry.path, entry.font);
+                }
+            }
+
+            foreach (var entry in audioClips)
+            {
+                if (entry != null)
+                {
+                    AddLookup(audioClipLookup, entry.path, entry.audioClip);
                 }
             }
         }

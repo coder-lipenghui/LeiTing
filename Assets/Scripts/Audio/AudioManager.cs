@@ -1,4 +1,7 @@
+using System;
+using System.Collections.Generic;
 using LeiTing.Core;
+using LeiTing.UI;
 using UnityEngine;
 
 #if UNITY_EDITOR
@@ -12,6 +15,7 @@ namespace LeiTing.Audio
         private AudioSource audioSource;
         private AudioClip enemyDestroyedClip;
         private AudioClip playerDestroyedClip;
+        private readonly Dictionary<string, AudioClip> clipCache = new Dictionary<string, AudioClip>(StringComparer.OrdinalIgnoreCase);
 
         protected override void Awake()
         {
@@ -19,7 +23,12 @@ namespace LeiTing.Audio
 
             if (Instance == this)
             {
-                audioSource = GetComponent<AudioSource>() ?? gameObject.AddComponent<AudioSource>();
+                audioSource = GetComponent<AudioSource>();
+                if (audioSource == null)
+                {
+                    audioSource = gameObject.AddComponent<AudioSource>();
+                }
+
                 audioSource.playOnAwake = false;
                 audioSource.volume = 0.7f;
             }
@@ -33,6 +42,16 @@ namespace LeiTing.Audio
         public void PlayPlayerDestroyed()
         {
             PlayClip(playerDestroyedClip ??= CreateImpactClip(0.32f, 180f, 45f));
+        }
+
+        public void PlaySfx(string clipPath)
+        {
+            if (string.IsNullOrEmpty(clipPath))
+            {
+                return;
+            }
+
+            PlayClip(LoadCachedAudioClip(clipPath));
         }
 
         public void PlayBgm(string clipPath)
@@ -67,10 +86,23 @@ namespace LeiTing.Audio
 
         private void PlayClip(AudioClip clip)
         {
-            if (audioSource != null && clip != null)
+            if (audioSource != null && clip != null && GameSettingManager.SoundEnabled)
             {
                 audioSource.PlayOneShot(clip);
             }
+        }
+
+        private AudioClip LoadCachedAudioClip(string clipPath)
+        {
+            var normalizedPath = clipPath.Replace("\\", "/").Trim();
+            if (clipCache.TryGetValue(normalizedPath, out var cachedClip))
+            {
+                return cachedClip;
+            }
+
+            var clip = LoadAudioClip(normalizedPath);
+            clipCache[normalizedPath] = clip;
+            return clip;
         }
 
         private static AudioClip CreateImpactClip(float duration, float startFrequency, float endFrequency)
@@ -107,7 +139,8 @@ namespace LeiTing.Audio
             }
 #endif
 
-            return Resources.Load<AudioClip>(NormalizeResourcesPath(clipPath));
+            return RuntimeAssetCatalog.LoadAudioClip(clipPath)
+                ?? Resources.Load<AudioClip>(NormalizeResourcesPath(clipPath));
         }
 
         private static string NormalizeResourcesPath(string assetPath)

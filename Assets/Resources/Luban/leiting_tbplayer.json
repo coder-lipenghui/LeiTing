@@ -17,6 +17,7 @@
     "hitboxOffsetX": 0,
     "hitboxOffsetY": -0.08,
     "defaultBulletId": "player_bullet_double_01",
-    "fireInterval": 0.16
+    "fireInterval": 0.16,
+    "fireSoundPath": "Assets/Art/Sound/player01.wav"
   }
 ]

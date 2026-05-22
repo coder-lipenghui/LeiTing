@@ -177,7 +177,8 @@ namespace LeiTing.Config
                 hitboxRadius = row.HitboxRadius,
                 hitboxOffset = new Vector2(row.HitboxOffsetX, row.HitboxOffsetY),
                 defaultBulletId = row.DefaultBulletId,
-                fireInterval = row.FireInterval
+                fireInterval = row.FireInterval,
+                fireSoundPath = row.FireSoundPath
             };
         }
 

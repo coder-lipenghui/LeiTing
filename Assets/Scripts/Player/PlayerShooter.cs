@@ -1,3 +1,4 @@
+using LeiTing.Audio;
 using LeiTing.Bullets;
 using LeiTing.Config;
 using LeiTing.Core;
@@ -47,6 +48,7 @@ namespace LeiTing.Player
             }
 
             FirePattern(bulletManager, bulletConfig);
+            PlayFireSound();
             return true;
         }
 
@@ -131,6 +133,19 @@ namespace LeiTing.Player
             }
 
             return string.IsNullOrEmpty(fallbackBulletId) ? DefaultBulletId : fallbackBulletId;
+        }
+
+        private void PlayFireSound()
+        {
+            if (config == null || string.IsNullOrEmpty(config.fireSoundPath))
+            {
+                return;
+            }
+
+            if (AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlaySfx(config.fireSoundPath);
+            }
         }
 
         private BulletConfig ResolveBulletConfig()
