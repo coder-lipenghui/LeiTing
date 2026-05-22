@@ -102,6 +102,8 @@ MonoBehaviour:
     sprite: {fileID: 21300000, guid: 0c239b385a642488982e36de47da2e62, type: 3}
   - path: Assets/Art/Sprites/Item/item_star.png
     sprite: {fileID: 21300000, guid: e7730ea40d6044b0f939ea9d3b66374a, type: 3}
+  - path: Assets/Art/Sprites/UI/backgroundH.png
+    sprite: {fileID: 21300000, guid: 1dbd6e063d403410b9f566bd45872809, type: 3}
   fonts:
   - path: Assets/Art/Font/simhei.ttf
     font: {fileID: 12800000, guid: 9f94a9364d47346d88936c0fe26c71e0, type: 3}

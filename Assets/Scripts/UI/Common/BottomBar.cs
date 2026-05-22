@@ -14,6 +14,12 @@ namespace LeiTing.UI
         private const string ShopSpriteButtonName = "btnShop";
         private const string GiftSpriteButtonName = "btnGift";
         private const string SpriteArtLayerName = "SpriteArtLayer";
+        private static readonly UIPageType[] DefaultNavigationOrder =
+        {
+            UIPageType.Hangar,
+            UIPageType.Lobby,
+            UIPageType.Setting
+        };
 
         [SerializeField] private Toggle hangarToggle;
         [SerializeField] private Toggle lobbyToggle;
@@ -21,6 +27,7 @@ namespace LeiTing.UI
 
         private readonly Dictionary<UIPageType, Toggle> navToggles = new Dictionary<UIPageType, Toggle>();
         private readonly Dictionary<UIPageType, Graphic> navLabels = new Dictionary<UIPageType, Graphic>();
+        private readonly List<UIPageType> navigationOrder = new List<UIPageType>();
         private bool built;
         private bool suppressToggleCallbacks;
 
@@ -37,15 +44,14 @@ namespace LeiTing.UI
             BindPrefabReferences();
             if (HasCanvasPrefabToggles())
             {
-                CacheNavToggle(UIPageType.Hangar, hangarToggle);
-                CacheNavToggle(UIPageType.Lobby, lobbyToggle);
-                CacheNavToggle(UIPageType.Setting, settingToggle);
+                CacheKnownNavigationToggles();
                 BindToggles();
                 return;
             }
 
             if (TryBuildSpritePrefabView())
             {
+                CacheKnownNavigationToggles();
                 BindToggles();
                 return;
             }
@@ -65,10 +71,31 @@ namespace LeiTing.UI
             layout.childForceExpandWidth = true;
             layout.childForceExpandHeight = true;
 
-            lobbyToggle = CreateNavToggle(UIPageType.Lobby, "大厅", group);
             hangarToggle = CreateNavToggle(UIPageType.Hangar, "机库", group);
+            lobbyToggle = CreateNavToggle(UIPageType.Lobby, "大厅", group);
             settingToggle = CreateNavToggle(UIPageType.Setting, "设置", group);
             BindToggles();
+        }
+
+        public bool TryGetNavigationSegment(UIPageType pageType, out int segmentIndex, out int segmentCount)
+        {
+            BuildDefaultView();
+
+            var orderedToggles = GetOrderedNavigationToggles();
+            segmentCount = orderedToggles.Count > 0 ? orderedToggles.Count : navigationOrder.Count;
+            segmentIndex = -1;
+
+            if (navToggles.TryGetValue(pageType, out var targetToggle) && targetToggle != null)
+            {
+                segmentIndex = orderedToggles.IndexOf(targetToggle);
+            }
+
+            if (segmentIndex < 0)
+            {
+                segmentIndex = navigationOrder.IndexOf(pageType);
+            }
+
+            return segmentIndex >= 0 && segmentCount > 0;
         }
 
         public void SetSelected(UIPageType pageType)
@@ -95,6 +122,51 @@ namespace LeiTing.UI
             }
         }
 
+        public void SetInputEnabled(bool enabled)
+        {
+            BuildDefaultView();
+
+            foreach (var canvas in GetComponentsInChildren<Canvas>(true))
+            {
+                if (canvas != null)
+                {
+                    canvas.enabled = true;
+                }
+            }
+
+            foreach (var raycaster in GetComponentsInChildren<GraphicRaycaster>(true))
+            {
+                if (raycaster != null)
+                {
+                    raycaster.enabled = true;
+                    raycaster.ignoreReversedGraphics = false;
+                }
+            }
+
+            var toggleTargets = new HashSet<Graphic>();
+            foreach (var toggle in navToggles.Values)
+            {
+                if (toggle == null)
+                {
+                    continue;
+                }
+
+                toggle.interactable = enabled;
+                if (toggle.targetGraphic != null)
+                {
+                    toggleTargets.Add(toggle.targetGraphic);
+                }
+            }
+
+            foreach (var graphic in GetComponentsInChildren<Graphic>(true))
+            {
+                if (graphic != null)
+                {
+                    graphic.raycastTarget = enabled && toggleTargets.Contains(graphic);
+                }
+            }
+        }
+
         private Toggle CreateNavToggle(UIPageType pageType, string text, ToggleGroup group)
         {
             var rect = UIFactory.CreateRect(pageType.ToString(), transform);
@@ -115,6 +187,10 @@ namespace LeiTing.UI
 
             navToggles[pageType] = toggle;
             navLabels[pageType] = label;
+            if (!navigationOrder.Contains(pageType))
+            {
+                navigationOrder.Add(pageType);
+            }
 
             var layoutElement = toggle.gameObject.AddComponent<LayoutElement>();
             layoutElement.minHeight = 94f;
@@ -305,6 +381,10 @@ namespace LeiTing.UI
             UIFactory.ApplyFontsInChildren(toggle.transform);
 
             navToggles[pageType] = toggle;
+            if (!navigationOrder.Contains(pageType))
+            {
+                navigationOrder.Add(pageType);
+            }
 
             Graphic label = toggle.GetComponentInChildren<Text>(true);
             if (label == null)
@@ -316,6 +396,75 @@ namespace LeiTing.UI
             {
                 navLabels[pageType] = label;
             }
+        }
+
+        private void CacheKnownNavigationToggles()
+        {
+            navToggles.Clear();
+            navLabels.Clear();
+            navigationOrder.Clear();
+
+            foreach (var pageType in DefaultNavigationOrder)
+            {
+                CacheNavToggle(pageType, GetKnownToggle(pageType));
+            }
+        }
+
+        private Toggle GetKnownToggle(UIPageType pageType)
+        {
+            switch (pageType)
+            {
+                case UIPageType.Hangar:
+                    return hangarToggle;
+                case UIPageType.Lobby:
+                    return lobbyToggle;
+                case UIPageType.Setting:
+                    return settingToggle;
+                default:
+                    return null;
+            }
+        }
+
+        private List<Toggle> GetOrderedNavigationToggles()
+        {
+            var toggles = new List<Toggle>();
+            foreach (var toggle in GetComponentsInChildren<Toggle>(true))
+            {
+                if (toggle != null && toggle.transform != transform)
+                {
+                    toggles.Add(toggle);
+                }
+            }
+
+            toggles.Sort(CompareToggleOrder);
+            return toggles;
+        }
+
+        private static int CompareToggleOrder(Toggle left, Toggle right)
+        {
+            if (left == right)
+            {
+                return 0;
+            }
+
+            if (left == null)
+            {
+                return 1;
+            }
+
+            if (right == null)
+            {
+                return -1;
+            }
+
+            var leftX = left.transform.position.x;
+            var rightX = right.transform.position.x;
+            if (!Mathf.Approximately(leftX, rightX))
+            {
+                return leftX.CompareTo(rightX);
+            }
+
+            return left.transform.GetSiblingIndex().CompareTo(right.transform.GetSiblingIndex());
         }
 
         private Toggle FindToggle(Toggle current, params string[] childNames)

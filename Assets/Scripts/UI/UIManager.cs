@@ -17,10 +17,13 @@ namespace LeiTing.UI
     public class UIManager : MonoSingleton<UIManager>
     {
         private const float PageSwitchDuration = 0.25f;
+        private const float CommonBackgroundMoveDuration = 0.25f;
         private const float MainTopBarHeight = 112f;
         private const float MainBottomBarHeight = 268f;
         private const string BottomBarPrefabAssetPath = "Assets/Prefabs/UI/UIBottom.prefab";
         private const string BottomBarPrefabResourcesPath = "UI/Common/UIBottom";
+        private const string MainBackgroundSpritePath = "Assets/Art/Sprites/UI/backgroundH.png";
+        private const string HallBackgroundSpriteName = "hall_bg";
 
         private readonly Dictionary<UIPageType, BasePage> pageInstances = new Dictionary<UIPageType, BasePage>();
         private readonly Stack<BasePopup> popupStack = new Stack<BasePopup>();
@@ -29,15 +32,28 @@ namespace LeiTing.UI
 
         private GameObject mainCanvasObject;
         private RectTransform contentLayer;
+        private RectTransform fullScreenPageLayer;
+        private RectTransform commonLayer;
         private RectTransform popupLayer;
         private RectTransform popupContainer;
         private Image popupMask;
+        private RawImage commonBackgroundImage;
+        private RectTransform commonBackgroundRect;
+        private Sprite commonBackgroundSprite;
+        private Coroutine commonBackgroundMoveRoutine;
+        private bool commonBackgroundPositionInitialized;
         private TopBar topBar;
         private BottomBar bottomBar;
         private BasePage currentPageInstance;
         private UIPageType currentPageType;
+        private BasePage currentMainPageInstance;
+        private UIPageType currentMainPageType;
+        private BasePage currentOverlayPageInstance;
+        private UIPageType currentOverlayPageType;
         private UIPageType pendingOpenPageType;
         private bool hasCurrentPage;
+        private bool hasCurrentMainPage;
+        private bool hasCurrentOverlayPage;
         private bool isSwitching;
         private bool hasPendingOpenPage;
         private bool mainUiInitialized;
@@ -127,6 +143,8 @@ namespace LeiTing.UI
         {
             return mainCanvasObject != null
                 && contentLayer != null
+                && fullScreenPageLayer != null
+                && commonLayer != null
                 && popupLayer != null
                 && topBar != null
                 && bottomBar != null;
@@ -153,29 +171,53 @@ namespace LeiTing.UI
             cachedPopups.Clear();
             currentPageInstance = null;
             currentPageType = default(UIPageType);
+            currentMainPageInstance = null;
+            currentMainPageType = default(UIPageType);
+            currentOverlayPageInstance = null;
+            currentOverlayPageType = default(UIPageType);
             hasCurrentPage = false;
+            hasCurrentMainPage = false;
+            hasCurrentOverlayPage = false;
             isSwitching = false;
             hasPendingOpenPage = false;
             mainCanvasObject = null;
             contentLayer = null;
+            fullScreenPageLayer = null;
+            commonLayer = null;
             popupLayer = null;
             popupContainer = null;
             popupMask = null;
+            commonBackgroundImage = null;
+            commonBackgroundRect = null;
+            commonBackgroundSprite = null;
+            commonBackgroundMoveRoutine = null;
+            commonBackgroundPositionInitialized = false;
             topBar = null;
             bottomBar = null;
         }
 
         private void EnsureLobbyPageVisible()
         {
-            if (!hasCurrentPage || currentPageInstance == null || !currentPageInstance.gameObject.activeSelf || currentPageType != UIPageType.Lobby)
+            if (hasCurrentOverlayPage)
             {
-                Debug.Log($"[UIManager] Init restoring UIHall. hasCurrent={hasCurrentPage}, current={currentPageType}, active={currentPageInstance != null && currentPageInstance.gameObject.activeSelf}");
+                CloseOverlayPage(currentOverlayPageType, false);
+            }
+
+            if (!hasCurrentMainPage || currentMainPageInstance == null || !currentMainPageInstance.gameObject.activeSelf || currentMainPageType != UIPageType.Lobby)
+            {
+                Debug.Log($"[UIManager] Init restoring UIHall. hasMain={hasCurrentMainPage}, currentMain={currentMainPageType}, active={currentMainPageInstance != null && currentMainPageInstance.gameObject.activeSelf}");
                 OpenPage(UIPageType.Lobby);
                 return;
             }
 
             ApplyPageChrome(UIPageType.Lobby);
-            currentPageInstance.RectTransform.anchoredPosition = Vector2.zero;
+            ApplyCommonBackground(UIPageType.Lobby);
+            PreparePageForCommonBackground(currentMainPageInstance, UIPageType.Lobby);
+            SetPageInput(currentMainPageInstance, true);
+            currentMainPageInstance.RectTransform.anchoredPosition = Vector2.zero;
+            currentPageInstance = currentMainPageInstance;
+            currentPageType = currentMainPageType;
+            hasCurrentPage = true;
             bottomBar?.SetSelected(UIPageType.Lobby);
             Debug.Log("[UIManager] Init verified UIHall is visible.");
         }
@@ -193,6 +235,17 @@ namespace LeiTing.UI
                 return;
             }
 
+            if (IsOverlayPage(pageType))
+            {
+                OpenOverlayPage(pageType);
+                return;
+            }
+
+            OpenMainPage(pageType);
+        }
+
+        private void OpenMainPage(UIPageType pageType)
+        {
             var targetPage = GetOrCreatePage(pageType);
             if (targetPage == null)
             {
@@ -201,25 +254,73 @@ namespace LeiTing.UI
             }
 
             Debug.Log($"[UIManager] OpenPage request. target={pageType}, current={(hasCurrentPage ? currentPageType.ToString() : "None")}, pageObject={targetPage.name}");
+            CloseActiveOverlayPage(false);
             ApplyPageChrome(pageType);
-            HideOtherPages(targetPage, currentPageInstance);
+            ApplyCommonBackground(pageType);
+            PreparePageForCommonBackground(targetPage, pageType);
+            HideOtherPages(targetPage, currentMainPageInstance, false);
 
-            if (currentPageInstance != null && currentPageInstance != targetPage)
+            if (currentMainPageInstance != null && currentMainPageInstance != targetPage)
             {
-                currentPageInstance.OnHide();
-                currentPageInstance.gameObject.SetActive(false);
+                currentMainPageInstance.OnHide();
+                SetPageInput(currentMainPageInstance, false);
+                currentMainPageInstance.gameObject.SetActive(false);
             }
 
             targetPage.gameObject.SetActive(true);
+            targetPage.transform.SetAsLastSibling();
             targetPage.RectTransform.anchoredPosition = Vector2.zero;
+            SetPageInput(targetPage, true);
             targetPage.OnOpen();
             targetPage.OnShow();
 
             currentPageType = pageType;
             currentPageInstance = targetPage;
+            currentMainPageType = pageType;
+            currentMainPageInstance = targetPage;
             hasCurrentPage = true;
+            hasCurrentMainPage = true;
             bottomBar?.SetSelected(pageType);
             Debug.Log($"[UIManager] OpenPage complete. current={currentPageType}, bottomVisible={bottomBar != null && bottomBar.gameObject.activeSelf}");
+        }
+
+        private void OpenOverlayPage(UIPageType pageType)
+        {
+            var targetPage = GetOrCreatePage(pageType);
+            if (targetPage == null)
+            {
+                Debug.LogWarning($"[UIManager] Open overlay page failed, target page is null: {pageType}");
+                return;
+            }
+
+            Debug.Log($"[UIManager] OpenOverlayPage request. target={pageType}, currentOverlay={(hasCurrentOverlayPage ? currentOverlayPageType.ToString() : "None")}, pageObject={targetPage.name}");
+            ApplyPageChrome(pageType);
+            ApplyCommonBackground(pageType);
+            HideOtherPages(targetPage, currentOverlayPageInstance, true);
+            SetMainContentVisible(false);
+
+            if (currentOverlayPageInstance != null && currentOverlayPageInstance != targetPage)
+            {
+                currentOverlayPageInstance.OnHide();
+                SetPageInput(currentOverlayPageInstance, false);
+                currentOverlayPageInstance.gameObject.SetActive(false);
+            }
+
+            targetPage.gameObject.SetActive(true);
+            targetPage.transform.SetAsLastSibling();
+            targetPage.RectTransform.anchoredPosition = Vector2.zero;
+            SetPageInput(targetPage, true);
+            targetPage.OnOpen();
+            targetPage.OnShow();
+
+            currentPageType = pageType;
+            currentPageInstance = targetPage;
+            currentOverlayPageType = pageType;
+            currentOverlayPageInstance = targetPage;
+            hasCurrentPage = true;
+            hasCurrentOverlayPage = true;
+            RestoreMainUiLayerOrder();
+            Debug.Log($"[UIManager] OpenOverlayPage complete. current={currentPageType}");
         }
 
         public void OpenStageFromHall()
@@ -233,14 +334,30 @@ namespace LeiTing.UI
         {
             Debug.Log("[UIManager] ReturnStageToHall requested. Close UIStage, show UIBottom, and switch to UIHall.");
 
-            if (pageInstances.TryGetValue(UIPageType.Stage, out var stagePage) && stagePage != null && stagePage.gameObject.activeSelf)
+            CloseOverlayPage(UIPageType.Stage, false);
+
+            if (!hasCurrentMainPage || currentMainPageInstance == null)
             {
-                stagePage.OnHide();
+                OpenMainPage(UIPageType.Lobby);
+                return;
             }
 
-            ClosePage(UIPageType.Stage);
-            ShowBottomBar(true);
-            OpenPage(UIPageType.Lobby);
+            if (currentMainPageType != UIPageType.Lobby)
+            {
+                OpenMainPage(UIPageType.Lobby);
+                return;
+            }
+
+            ApplyPageChrome(UIPageType.Lobby);
+            ApplyCommonBackground(UIPageType.Lobby);
+            PreparePageForCommonBackground(currentMainPageInstance, UIPageType.Lobby);
+            currentMainPageInstance.gameObject.SetActive(true);
+            currentMainPageInstance.RectTransform.anchoredPosition = Vector2.zero;
+            SetPageInput(currentMainPageInstance, true);
+            currentPageType = currentMainPageType;
+            currentPageInstance = currentMainPageInstance;
+            hasCurrentPage = true;
+            bottomBar?.SetSelected(UIPageType.Lobby);
         }
 
         public void SwitchPage(UIPageType targetPageType)
@@ -250,12 +367,18 @@ namespace LeiTing.UI
                 Init();
             }
 
-            if (isSwitching || hasCurrentPage && currentPageType == targetPageType)
+            if (IsOverlayPage(targetPageType))
+            {
+                OpenPage(targetPageType);
+                return;
+            }
+
+            if (isSwitching || hasCurrentMainPage && currentMainPageType == targetPageType)
             {
                 return;
             }
 
-            if (!hasCurrentPage || currentPageInstance == null)
+            if (!hasCurrentMainPage || currentMainPageInstance == null)
             {
                 OpenPage(targetPageType);
                 return;
@@ -272,6 +395,7 @@ namespace LeiTing.UI
             }
 
             page.OnClose();
+            SetPageInput(page, false);
             page.gameObject.SetActive(false);
 
             if (UIConfig.PageConfigs.TryGetValue(pageType, out var config) && !config.cache)
@@ -281,10 +405,45 @@ namespace LeiTing.UI
                 Destroy(page.gameObject);
             }
 
+            if (hasCurrentOverlayPage && currentOverlayPageType == pageType)
+            {
+                hasCurrentOverlayPage = false;
+                currentOverlayPageInstance = null;
+                currentOverlayPageType = default(UIPageType);
+            }
+
+            if (hasCurrentMainPage && currentMainPageType == pageType)
+            {
+                hasCurrentMainPage = false;
+                currentMainPageInstance = null;
+                currentMainPageType = default(UIPageType);
+            }
+
             if (hasCurrentPage && currentPageType == pageType)
             {
-                hasCurrentPage = false;
-                currentPageInstance = null;
+                if (hasCurrentOverlayPage)
+                {
+                    currentPageInstance = currentOverlayPageInstance;
+                    currentPageType = currentOverlayPageType;
+                }
+                else if (hasCurrentMainPage)
+                {
+                    currentPageInstance = currentMainPageInstance;
+                    currentPageType = currentMainPageType;
+                    SetPageInput(currentMainPageInstance, true);
+                }
+                else
+                {
+                    hasCurrentPage = false;
+                    currentPageInstance = null;
+                }
+            }
+
+            if (IsOverlayPage(pageType) && !hasCurrentOverlayPage && hasCurrentMainPage)
+            {
+                ApplyPageChrome(currentMainPageType);
+                ApplyCommonBackground(currentMainPageType);
+                SetPageInput(currentMainPageInstance, true);
             }
         }
 
@@ -370,6 +529,12 @@ namespace LeiTing.UI
                 canvasGroup.alpha = visible ? 1f : 0f;
                 canvasGroup.interactable = visible;
                 canvasGroup.blocksRaycasts = visible;
+                bottomBar.SetInputEnabled(visible);
+                if (visible)
+                {
+                    RestoreMainUiLayerOrder();
+                }
+
                 Debug.Log($"[UIManager] UIBottom visible={visible}");
             }
         }
@@ -471,7 +636,9 @@ namespace LeiTing.UI
         {
             isSwitching = true;
 
-            var currentPage = currentPageInstance;
+            CloseActiveOverlayPage(false);
+
+            var currentPage = currentMainPageInstance;
             var targetPage = GetOrCreatePage(targetPageType);
 
             if (currentPage == null || targetPage == null)
@@ -482,7 +649,9 @@ namespace LeiTing.UI
             }
 
             ApplyPageChrome(targetPageType);
-            HideOtherPages(targetPage, currentPage);
+            ApplyCommonBackground(targetPageType);
+            PreparePageForCommonBackground(targetPage, targetPageType);
+            HideOtherPages(targetPage, currentPage, false);
 
             var width = Mathf.Max(1f, contentLayer != null ? contentLayer.rect.width : Screen.width);
             var targetToRight = targetPage.PageIndex > currentPage.PageIndex;
@@ -490,7 +659,10 @@ namespace LeiTing.UI
             var targetStartX = targetToRight ? width : -width;
 
             targetPage.gameObject.SetActive(true);
+            targetPage.transform.SetAsLastSibling();
             targetPage.RectTransform.anchoredPosition = new Vector2(targetStartX, 0f);
+            SetPageInput(currentPage, false);
+            SetPageInput(targetPage, false);
             targetPage.OnOpen();
 
             var timer = 0f;
@@ -514,11 +686,15 @@ namespace LeiTing.UI
             currentPage.OnHide();
 
             targetPage.RectTransform.anchoredPosition = Vector2.zero;
+            SetPageInput(targetPage, true);
             targetPage.OnShow();
 
             currentPageType = targetPageType;
             currentPageInstance = targetPage;
+            currentMainPageType = targetPageType;
+            currentMainPageInstance = targetPage;
             hasCurrentPage = true;
+            hasCurrentMainPage = true;
             bottomBar?.SetSelected(targetPageType);
             isSwitching = false;
             FlushPendingOpenPage();
@@ -586,20 +762,102 @@ namespace LeiTing.UI
             hasPendingOpenPage = true;
         }
 
-        private void HideOtherPages(BasePage targetPage, BasePage pageToKeep)
+        private void HideOtherPages(BasePage targetPage, BasePage pageToKeep, bool overlayLayer)
         {
             foreach (var pair in pageInstances)
             {
                 var page = pair.Value;
-                if (page == null || page == targetPage || page == pageToKeep || !page.gameObject.activeSelf)
+                if (page == null || page == targetPage || page == pageToKeep || IsOverlayPage(pair.Key) != overlayLayer || !page.gameObject.activeSelf)
                 {
                     continue;
                 }
 
                 Debug.Log($"[UIManager] Hide inactive page before open. page={pair.Key}, object={page.name}");
                 page.OnHide();
+                SetPageInput(page, false);
                 page.gameObject.SetActive(false);
             }
+        }
+
+        private void CloseActiveOverlayPage(bool callOnClose)
+        {
+            if (!hasCurrentOverlayPage)
+            {
+                return;
+            }
+
+            CloseOverlayPage(currentOverlayPageType, callOnClose);
+        }
+
+        private void CloseOverlayPage(UIPageType pageType, bool callOnClose)
+        {
+            if (!IsOverlayPage(pageType) || !pageInstances.TryGetValue(pageType, out var page) || page == null)
+            {
+                return;
+            }
+
+            if (page.gameObject.activeSelf)
+            {
+                if (callOnClose)
+                {
+                    page.OnClose();
+                }
+                else
+                {
+                    page.OnHide();
+                }
+            }
+
+            SetPageInput(page, false);
+            page.gameObject.SetActive(false);
+
+            if (hasCurrentOverlayPage && currentOverlayPageType == pageType)
+            {
+                hasCurrentOverlayPage = false;
+                currentOverlayPageInstance = null;
+                currentOverlayPageType = default(UIPageType);
+            }
+
+            if (hasCurrentMainPage && currentMainPageInstance != null)
+            {
+                SetMainContentVisible(true);
+                currentPageInstance = currentMainPageInstance;
+                currentPageType = currentMainPageType;
+                hasCurrentPage = true;
+                SetPageInput(currentMainPageInstance, true);
+            }
+            else if (hasCurrentPage && currentPageType == pageType)
+            {
+                hasCurrentPage = false;
+                currentPageInstance = null;
+            }
+        }
+
+        private static void SetPageInput(BasePage page, bool enabled)
+        {
+            if (page == null)
+            {
+                return;
+            }
+
+            var canvasGroup = EnsureCanvasGroup(page.gameObject);
+            canvasGroup.interactable = enabled;
+            canvasGroup.blocksRaycasts = enabled;
+        }
+
+        private void SetMainContentVisible(bool visible)
+        {
+            if (contentLayer != null && contentLayer.gameObject.activeSelf != visible)
+            {
+                contentLayer.gameObject.SetActive(visible);
+            }
+
+            SetPageInput(currentMainPageInstance, visible);
+        }
+
+        private static bool IsOverlayPage(UIPageType pageType)
+        {
+            return pageType == UIPageType.Stage;
         }
 
         private void FlushPendingOpenPage()
@@ -678,7 +936,8 @@ namespace LeiTing.UI
             var backgroundLayer = CreateLayer("BackgroundLayer", root);
             contentLayer = CreateLayer("ContentLayer", root);
             UIFactory.SetInset(contentLayer, 0f, MainTopBarHeight, 0f, MainBottomBarHeight);
-            var commonLayer = CreateLayer("CommonLayer", root);
+            fullScreenPageLayer = CreateLayer("FullScreenPageLayer", root);
+            commonLayer = CreateLayer("CommonLayer", root);
             popupLayer = CreateLayer("PopupLayer", root);
 
             CreateBackgroundLayer(backgroundLayer);
@@ -686,8 +945,30 @@ namespace LeiTing.UI
             bottomBar = CreateBottomBar(commonLayer);
             CreatePopupLayer(popupLayer);
 
-            commonLayer.SetAsLastSibling();
-            popupLayer.SetAsLastSibling();
+            RestoreMainUiLayerOrder();
+        }
+
+        private void RestoreMainUiLayerOrder()
+        {
+            if (fullScreenPageLayer != null)
+            {
+                fullScreenPageLayer.SetAsLastSibling();
+            }
+
+            if (commonLayer != null)
+            {
+                commonLayer.SetAsLastSibling();
+            }
+
+            if (bottomBar != null)
+            {
+                bottomBar.transform.SetAsLastSibling();
+            }
+
+            if (popupLayer != null)
+            {
+                popupLayer.SetAsLastSibling();
+            }
         }
 
         private RectTransform CreateLayer(string layerName, Transform parent)
@@ -701,16 +982,187 @@ namespace LeiTing.UI
         {
             var background = UIFactory.CreatePanel("PixelSpaceBackground", parent, new Color(0.006f, 0.01f, 0.024f, 1f));
             UIFactory.Stretch(background.rectTransform);
+            background.raycastTarget = false;
+
+            commonBackgroundSprite = LoadMainBackgroundSprite();
+            if (commonBackgroundSprite != null && commonBackgroundSprite.texture != null)
+            {
+                var imageRect = UIFactory.CreateRect("CommonBackground", parent);
+                UIFactory.Stretch(imageRect);
+                commonBackgroundRect = imageRect;
+                commonBackgroundImage = imageRect.gameObject.AddComponent<RawImage>();
+                commonBackgroundImage.texture = commonBackgroundSprite.texture;
+                commonBackgroundImage.uvRect = GetSpriteUv(commonBackgroundSprite);
+                commonBackgroundImage.color = Color.white;
+                commonBackgroundImage.raycastTarget = false;
+                return;
+            }
 
             for (var index = 0; index < 32; index++)
             {
                 var star = UIFactory.CreatePanel("Star_" + index, parent, index % 3 == 0 ? UIFactory.PanelAccentColor : UIFactory.MutedTextColor);
+                star.raycastTarget = false;
                 var rect = star.rectTransform;
                 rect.anchorMin = new Vector2((index * 37 % 100) / 100f, (index * 61 % 100) / 100f);
                 rect.anchorMax = rect.anchorMin;
                 rect.pivot = new Vector2(0.5f, 0.5f);
                 rect.sizeDelta = Vector2.one * (index % 3 == 0 ? 5f : 3f);
             }
+        }
+
+        private void ApplyCommonBackground(UIPageType pageType)
+        {
+            if (commonBackgroundImage == null
+                || commonBackgroundRect == null
+                || commonBackgroundSprite == null
+                || commonBackgroundSprite.texture == null
+                || bottomBar == null
+                || !bottomBar.TryGetNavigationSegment(pageType, out var segmentIndex, out var segmentCount))
+            {
+                return;
+            }
+
+            commonBackgroundImage.uvRect = GetSpriteUv(commonBackgroundSprite);
+            MoveCommonBackground(segmentIndex, segmentCount);
+        }
+
+        private void MoveCommonBackground(int segmentIndex, int segmentCount)
+        {
+            var targetAnchorMin = new Vector2(-segmentIndex, 0f);
+            var targetAnchorMax = new Vector2(segmentCount - segmentIndex, 1f);
+
+            if (!Application.isPlaying || !gameObject.activeInHierarchy || !commonBackgroundPositionInitialized)
+            {
+                SetCommonBackgroundAnchors(targetAnchorMin, targetAnchorMax);
+                commonBackgroundPositionInitialized = true;
+                return;
+            }
+
+            if (commonBackgroundMoveRoutine != null)
+            {
+                StopCoroutine(commonBackgroundMoveRoutine);
+            }
+
+            commonBackgroundMoveRoutine = StartCoroutine(MoveCommonBackgroundCoroutine(targetAnchorMin, targetAnchorMax));
+        }
+
+        private IEnumerator MoveCommonBackgroundCoroutine(Vector2 targetAnchorMin, Vector2 targetAnchorMax)
+        {
+            var startAnchorMin = commonBackgroundRect.anchorMin;
+            var startAnchorMax = commonBackgroundRect.anchorMax;
+            var timer = 0f;
+
+            while (timer < CommonBackgroundMoveDuration)
+            {
+                timer += Time.deltaTime;
+                var t = EaseOutQuad(Mathf.Clamp01(timer / CommonBackgroundMoveDuration));
+                SetCommonBackgroundAnchors(
+                    Vector2.Lerp(startAnchorMin, targetAnchorMin, t),
+                    Vector2.Lerp(startAnchorMax, targetAnchorMax, t));
+                yield return null;
+            }
+
+            SetCommonBackgroundAnchors(targetAnchorMin, targetAnchorMax);
+            commonBackgroundMoveRoutine = null;
+        }
+
+        private void SetCommonBackgroundAnchors(Vector2 anchorMin, Vector2 anchorMax)
+        {
+            if (commonBackgroundRect == null)
+            {
+                return;
+            }
+
+            commonBackgroundRect.anchorMin = anchorMin;
+            commonBackgroundRect.anchorMax = anchorMax;
+            commonBackgroundRect.offsetMin = Vector2.zero;
+            commonBackgroundRect.offsetMax = Vector2.zero;
+        }
+
+        private static Rect GetSpriteUv(Sprite sprite)
+        {
+            var texture = sprite.texture;
+            var rect = sprite.textureRect;
+            return new Rect(
+                rect.x / texture.width,
+                rect.y / texture.height,
+                rect.width / texture.width,
+                rect.height / texture.height);
+        }
+
+        private static Sprite LoadMainBackgroundSprite()
+        {
+#if UNITY_EDITOR
+            var editorSprite = AssetDatabase.LoadAssetAtPath<Sprite>(MainBackgroundSpritePath);
+            if (editorSprite != null)
+            {
+                return editorSprite;
+            }
+#endif
+
+            return RuntimeAssetCatalog.LoadSprite(MainBackgroundSpritePath);
+        }
+
+        private void PreparePageForCommonBackground(BasePage page, UIPageType pageType)
+        {
+            if (page == null || commonBackgroundImage == null || !IsMainNavigationPage(pageType))
+            {
+                return;
+            }
+
+            foreach (var graphic in page.GetComponentsInChildren<Graphic>(true))
+            {
+                if (!ShouldHidePageBackground(page.transform, graphic))
+                {
+                    continue;
+                }
+
+                var color = graphic.color;
+                color.a = 0f;
+                graphic.color = color;
+                graphic.raycastTarget = false;
+            }
+        }
+
+        private static bool IsMainNavigationPage(UIPageType pageType)
+        {
+            return pageType == UIPageType.Hangar
+                || pageType == UIPageType.Lobby
+                || pageType == UIPageType.Setting;
+        }
+
+        private static bool ShouldHidePageBackground(Transform pageRoot, Graphic graphic)
+        {
+            if (graphic == null || graphic.rectTransform == null || graphic.transform.parent != pageRoot)
+            {
+                return false;
+            }
+
+            var isPageBackdrop = graphic.name.IndexOf("Backdrop", StringComparison.OrdinalIgnoreCase) >= 0;
+            if (isPageBackdrop && IsStretchedToParent(graphic.rectTransform))
+            {
+                return true;
+            }
+
+            var image = graphic as Image;
+            return image != null
+                && image.sprite != null
+                && string.Equals(image.sprite.name, HallBackgroundSpriteName, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool IsStretchedToParent(RectTransform rect)
+        {
+            const float epsilon = 0.01f;
+            return NearlyEqual(rect.anchorMin, Vector2.zero, epsilon)
+                && NearlyEqual(rect.anchorMax, Vector2.one, epsilon)
+                && NearlyEqual(rect.offsetMin, Vector2.zero, epsilon)
+                && NearlyEqual(rect.offsetMax, Vector2.zero, epsilon);
+        }
+
+        private static bool NearlyEqual(Vector2 left, Vector2 right, float epsilon)
+        {
+            return Mathf.Abs(left.x - right.x) <= epsilon
+                && Mathf.Abs(left.y - right.y) <= epsilon;
         }
 
         private TopBar CreateTopBar(RectTransform parent)
@@ -878,16 +1330,25 @@ namespace LeiTing.UI
 
         private void ApplyPageChrome(UIPageType pageType)
         {
-            var stagePage = pageType == UIPageType.Stage;
-            var fullContentPage = stagePage || pageType == UIPageType.Lobby;
-            Debug.Log($"[UIManager] ApplyPageChrome. page={pageType}, topVisible={!stagePage}, bottomVisible={!stagePage}, fullContent={fullContentPage}");
-            ShowTopBar(!stagePage);
-            ShowBottomBar(!stagePage);
+            var overlayPage = IsOverlayPage(pageType);
+            var fullContentPage = pageType == UIPageType.Lobby;
+            Debug.Log($"[UIManager] ApplyPageChrome. page={pageType}, topVisible={!overlayPage}, bottomVisible={!overlayPage}, fullContent={fullContentPage}");
+            ShowTopBar(!overlayPage);
+            ShowBottomBar(!overlayPage);
+            RestoreMainUiLayerOrder();
 
             if (contentLayer == null)
             {
                 return;
             }
+
+            if (overlayPage)
+            {
+                SetMainContentVisible(false);
+                return;
+            }
+
+            SetMainContentVisible(true);
 
             if (fullContentPage)
             {
@@ -928,18 +1389,19 @@ namespace LeiTing.UI
                 return null;
             }
 
+            var pageParent = GetPageLayer(pageType);
             GameObject pageObject = null;
             var prefab = LoadPagePrefab(config.prefabPath);
             if (prefab != null)
             {
-                pageObject = Instantiate(prefab, contentLayer);
+                pageObject = Instantiate(prefab, pageParent);
                 Debug.Log($"[UIManager] Loaded page prefab. page={pageType}, path={config.prefabPath}");
             }
 
             if (pageObject == null)
             {
                 Debug.LogWarning($"[UIManager] Page prefab not found, create fallback page. page={pageType}, path={config.prefabPath}");
-                pageObject = CreateFallbackPage(config);
+                pageObject = CreateFallbackPage(config, pageParent);
             }
 
             var rectTransform = pageObject.GetComponent<RectTransform>();
@@ -957,15 +1419,26 @@ namespace LeiTing.UI
             }
 
             page.Configure(config.pageType, config.index);
+            SetPageInput(page, false);
             page.gameObject.SetActive(false);
             pageInstances[pageType] = page;
             Debug.Log($"[UIManager] Page created. page={pageType}, object={pageObject.name}, component={page.GetType().Name}");
             return page;
         }
 
-        private GameObject CreateFallbackPage(UIPageConfig config)
+        private Transform GetPageLayer(UIPageType pageType)
         {
-            var rect = UIFactory.CreateRect(config.pageType + "Page", contentLayer);
+            if (IsOverlayPage(pageType) && fullScreenPageLayer != null)
+            {
+                return fullScreenPageLayer;
+            }
+
+            return contentLayer;
+        }
+
+        private GameObject CreateFallbackPage(UIPageConfig config, Transform parent)
+        {
+            var rect = UIFactory.CreateRect(config.pageType + "Page", parent);
             UIFactory.Stretch(rect);
             AddPageComponent(rect.gameObject, config.pageType);
             return rect.gameObject;

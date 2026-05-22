@@ -17,6 +17,7 @@ namespace LeiTing.Editor
         private const string HallPrefabPath = "Assets/Prefabs/UI/UIHall.prefab";
         private const string StagePrefabPath = "Assets/Prefabs/UI/UIStage.prefab";
         private const string DefaultFontPath = "Assets/Art/Font/simhei.ttf";
+        private const string MainUiBackgroundPath = "Assets/Art/Sprites/UI/backgroundH.png";
 
         public int callbackOrder => -1000;
 
@@ -94,6 +95,7 @@ namespace LeiTing.Editor
             AddPath(prefabPaths, HallPrefabPath);
             AddPath(prefabPaths, StagePrefabPath);
             AddPath(fontPaths, DefaultFontPath);
+            AddPath(spritePaths, MainUiBackgroundPath);
 
             AddPath(spritePaths, "Assets/Art/Animations/Enemies/enemy-01.png");
             AddPath(spritePaths, "Assets/Art/Animations/Enemies/BOSS-1.png");
