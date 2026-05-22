@@ -24,6 +24,12 @@ namespace LeiTing.UI
         [SerializeField] private Toggle hangarToggle;
         [SerializeField] private Toggle lobbyToggle;
         [SerializeField] private Toggle settingToggle;
+        [SerializeField] private Sprite hangarNormalSprite;
+        [SerializeField] private Sprite hangarSelectedSprite;
+        [SerializeField] private Sprite lobbyNormalSprite;
+        [SerializeField] private Sprite lobbySelectedSprite;
+        [SerializeField] private Sprite settingNormalSprite;
+        [SerializeField] private Sprite settingSelectedSprite;
 
         private readonly Dictionary<UIPageType, Toggle> navToggles = new Dictionary<UIPageType, Toggle>();
         private readonly Dictionary<UIPageType, Graphic> navLabels = new Dictionary<UIPageType, Graphic>();
@@ -44,6 +50,7 @@ namespace LeiTing.UI
             BindPrefabReferences();
             if (HasCanvasPrefabToggles())
             {
+                ApplyConfiguredSpritesToExistingToggles();
                 CacheKnownNavigationToggles();
                 BindToggles();
                 return;
@@ -57,6 +64,13 @@ namespace LeiTing.UI
             }
 
             RemoveDeprecatedButtons();
+
+            if (TryBuildConfiguredSpriteView())
+            {
+                CacheKnownNavigationToggles();
+                BindToggles();
+                return;
+            }
 
             var group = EnsureToggleGroup();
             var background = gameObject.GetComponent<Image>() ?? gameObject.AddComponent<Image>();
@@ -75,6 +89,22 @@ namespace LeiTing.UI
             lobbyToggle = CreateNavToggle(UIPageType.Lobby, "大厅", group);
             settingToggle = CreateNavToggle(UIPageType.Setting, "设置", group);
             BindToggles();
+        }
+
+        public void ConfigureSprites(
+            Sprite hangarNormal,
+            Sprite hangarSelected,
+            Sprite hallNormal,
+            Sprite hallSelected,
+            Sprite settingNormal,
+            Sprite settingSelected)
+        {
+            hangarNormalSprite = hangarNormal;
+            hangarSelectedSprite = hangarSelected;
+            lobbyNormalSprite = hallNormal;
+            lobbySelectedSprite = hallSelected;
+            settingNormalSprite = settingNormal;
+            settingSelectedSprite = settingSelected;
         }
 
         public bool TryGetNavigationSegment(UIPageType pageType, out int segmentIndex, out int segmentCount)
@@ -198,12 +228,158 @@ namespace LeiTing.UI
             return toggle;
         }
 
+        private bool TryBuildConfiguredSpriteView()
+        {
+            if (hangarNormalSprite == null
+                || hangarSelectedSprite == null
+                || lobbyNormalSprite == null
+                || lobbySelectedSprite == null
+                || settingNormalSprite == null
+                || settingSelectedSprite == null)
+            {
+                return false;
+            }
+
+            var rootRect = GetComponent<RectTransform>();
+            if (rootRect != null)
+            {
+                rootRect.sizeDelta = new Vector2(rootRect.sizeDelta.x, 150f);
+            }
+
+            var group = EnsureToggleGroup();
+            hangarToggle = CreateSpriteToggle(
+                HangarToggleName,
+                UIPageType.Hangar,
+                hangarNormalSprite,
+                hangarSelectedSprite,
+                group);
+            lobbyToggle = CreateSpriteToggle(
+                HallToggleName,
+                UIPageType.Lobby,
+                lobbyNormalSprite,
+                lobbySelectedSprite,
+                group);
+            settingToggle = CreateSpriteToggle(
+                SettingToggleName,
+                UIPageType.Setting,
+                settingNormalSprite,
+                settingSelectedSprite,
+                group);
+
+            return true;
+        }
+
+        private Toggle CreateSpriteToggle(
+            string objectName,
+            UIPageType pageType,
+            Sprite normalSprite,
+            Sprite selectedSprite,
+            ToggleGroup group)
+        {
+            var rect = UIFactory.CreateRect(objectName, transform);
+            rect.anchorMin = new Vector2(0.5f, 0f);
+            rect.anchorMax = new Vector2(0.5f, 0f);
+            rect.pivot = new Vector2(0.5f, 0f);
+            rect.anchoredPosition = GetSpriteTogglePosition(pageType);
+            rect.sizeDelta = GetMaxSpriteSize(normalSprite, selectedSprite);
+
+            var normalImage = rect.gameObject.AddComponent<Image>();
+            normalImage.sprite = normalSprite;
+            normalImage.color = Color.white;
+            normalImage.preserveAspect = true;
+            normalImage.raycastTarget = true;
+
+            var selectedRect = UIFactory.CreateRect("Selected", rect);
+            selectedRect.anchorMin = new Vector2(0.5f, 0.5f);
+            selectedRect.anchorMax = new Vector2(0.5f, 0.5f);
+            selectedRect.pivot = new Vector2(0.5f, 0.5f);
+            selectedRect.anchoredPosition = Vector2.zero;
+            selectedRect.sizeDelta = selectedSprite != null ? selectedSprite.rect.size : rect.sizeDelta;
+
+            var selectedImage = selectedRect.gameObject.AddComponent<Image>();
+            selectedImage.sprite = selectedSprite;
+            selectedImage.color = Color.white;
+            selectedImage.preserveAspect = true;
+            selectedImage.raycastTarget = false;
+
+            var toggle = rect.gameObject.AddComponent<Toggle>();
+            toggle.targetGraphic = normalImage;
+            toggle.graphic = selectedImage;
+            toggle.group = group;
+            toggle.transition = Selectable.Transition.None;
+
+            navToggles[pageType] = toggle;
+            if (!navigationOrder.Contains(pageType))
+            {
+                navigationOrder.Add(pageType);
+            }
+
+            return toggle;
+        }
+
+        private static Vector2 GetSpriteTogglePosition(UIPageType pageType)
+        {
+            switch (pageType)
+            {
+                case UIPageType.Hangar:
+                    return new Vector2(-312f, 14f);
+                case UIPageType.Setting:
+                    return new Vector2(312f, 14f);
+                default:
+                    return new Vector2(0f, 14f);
+            }
+        }
+
+        private static Vector2 GetMaxSpriteSize(Sprite normalSprite, Sprite selectedSprite)
+        {
+            var normalSize = normalSprite != null ? normalSprite.rect.size : Vector2.zero;
+            var selectedSize = selectedSprite != null ? selectedSprite.rect.size : Vector2.zero;
+            return new Vector2(
+                Mathf.Max(normalSize.x, selectedSize.x),
+                Mathf.Max(normalSize.y, selectedSize.y));
+        }
+
         private void BindPrefabReferences()
         {
             lobbyToggle = FindToggle(lobbyToggle, HallToggleName, "BtnHall", "Hall", "Lobby");
             hangarToggle = FindToggle(hangarToggle, HangarToggleName, "btnHangar", "BtnHangar", "Hangar");
             settingToggle = FindToggle(settingToggle, SettingToggleName, "BtnSetting", "Setting");
             ConfigureToggleGroups();
+        }
+
+        private void ApplyConfiguredSpritesToExistingToggles()
+        {
+            ApplySpritesToToggle(hangarToggle, hangarNormalSprite, hangarSelectedSprite);
+            ApplySpritesToToggle(lobbyToggle, lobbyNormalSprite, lobbySelectedSprite);
+            ApplySpritesToToggle(settingToggle, settingNormalSprite, settingSelectedSprite);
+        }
+
+        private static void ApplySpritesToToggle(Toggle toggle, Sprite normalSprite, Sprite selectedSprite)
+        {
+            if (toggle == null)
+            {
+                return;
+            }
+
+            if (normalSprite != null && toggle.targetGraphic is Image normalImage)
+            {
+                normalImage.sprite = normalSprite;
+                normalImage.color = Color.white;
+                normalImage.preserveAspect = true;
+            }
+
+            if (selectedSprite != null && toggle.graphic is Image selectedImage)
+            {
+                selectedImage.sprite = selectedSprite;
+                selectedImage.color = Color.white;
+                selectedImage.preserveAspect = true;
+
+                var selectedRect = selectedImage.rectTransform;
+                if (selectedRect != null)
+                {
+                    selectedRect.sizeDelta = selectedSprite.rect.size;
+                }
+            }
         }
 
         private bool HasCanvasPrefabToggles()

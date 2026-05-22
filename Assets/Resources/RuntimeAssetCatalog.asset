@@ -66,9 +66,9 @@ MonoBehaviour:
   - path: Assets/Prefabs/Player/warplane-01.prefab
     prefab: {fileID: 100000, guid: 9a1d4e2b8a144d9589ae5a4f8e72404b, type: 3}
   - path: Assets/Prefabs/UI/UIBottom.prefab
-    prefab: {fileID: 8285059673505338041, guid: 717901b75871846ba99febdc5e065b96, type: 3}
+    prefab: {fileID: 6221101000000000001, guid: 86935af36fb8418eab3cd7c04318d14e, type: 3}
   - path: Assets/Prefabs/UI/UIHall.prefab
-    prefab: {fileID: 2644241041284139834, guid: d3f645fa987974c4793c6cfe9fa09d9e, type: 3}
+    prefab: {fileID: 6221102000000000001, guid: bedc2e9e43ec42aa88a035018677a668, type: 3}
   - path: Assets/Prefabs/UI/UIStage.prefab
     prefab: {fileID: 2644241041284139834, guid: e90da74bc4d4e436881279fb327604cc, type: 3}
   sprites:

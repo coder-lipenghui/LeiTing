@@ -23,7 +23,6 @@ namespace LeiTing.UI
         private const string BottomBarPrefabAssetPath = "Assets/Prefabs/UI/UIBottom.prefab";
         private const string BottomBarPrefabResourcesPath = "UI/Common/UIBottom";
         private const string MainBackgroundSpritePath = "Assets/Art/Sprites/UI/backgroundH.png";
-        private const string HallBackgroundSpriteName = "hall_bg";
 
         private readonly Dictionary<UIPageType, BasePage> pageInstances = new Dictionary<UIPageType, BasePage>();
         private readonly Stack<BasePopup> popupStack = new Stack<BasePopup>();
@@ -1144,10 +1143,7 @@ namespace LeiTing.UI
                 return true;
             }
 
-            var image = graphic as Image;
-            return image != null
-                && image.sprite != null
-                && string.Equals(image.sprite.name, HallBackgroundSpriteName, StringComparison.OrdinalIgnoreCase);
+            return false;
         }
 
         private static bool IsStretchedToParent(RectTransform rect)
