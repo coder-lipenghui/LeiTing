@@ -388,6 +388,11 @@ namespace LeiTing.Enemy
 
             currentHp = Mathf.Max(0, currentHp - damage);
 
+            if (AudioManager.Instance != null && config != null)
+            {
+                AudioManager.Instance.PlaySfx(config.hitSoundPath);
+            }
+
             if (currentHp <= 0)
             {
                 StartCoroutine(DefeatSequence());

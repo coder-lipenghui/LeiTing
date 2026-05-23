@@ -2064,14 +2064,25 @@ namespace LeiTing.UI
 
         private static void EnsureEventSystem()
         {
-            if (EventSystem.current != null)
+            var eventSystem = EventSystem.current;
+            if (eventSystem == null)
             {
-                return;
+                var createdEventSystemObject = new GameObject("EventSystem");
+                eventSystem = createdEventSystemObject.AddComponent<EventSystem>();
             }
 
-            var eventSystemObject = new GameObject("EventSystem");
-            eventSystemObject.AddComponent<EventSystem>();
-            eventSystemObject.AddComponent<StandaloneInputModule>();
+            var eventSystemObject = eventSystem.gameObject;
+            if (eventSystemObject.GetComponent<StandaloneInputModule>() == null)
+            {
+                eventSystemObject.AddComponent<StandaloneInputModule>();
+            }
+
+#if UNITY_WEBGL
+            if (eventSystemObject.GetComponent<TTSDK.TTInputOverrideBypass>() == null)
+            {
+                eventSystemObject.AddComponent<TTSDK.TTInputOverrideBypass>();
+            }
+#endif
         }
     }
 }

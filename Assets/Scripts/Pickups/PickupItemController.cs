@@ -1,3 +1,4 @@
+using LeiTing.Audio;
 using LeiTing.Config;
 using LeiTing.Core;
 using LeiTing.Player;
@@ -19,6 +20,8 @@ namespace LeiTing.Pickups
         private const float MagnetGlowRange = 0.34f;
         private const float TreasureGlowRange = 0.3f;
         private const float TreasureScaleVariance = 0.08f;
+        private const string CoinPickupSoundPath = "Assets/Art/Sound/SFX/Item/coin.wav";
+        private const string StarPickupSoundPath = "Assets/Art/Sound/SFX/Item/star.wav";
 
         private static readonly Color MagnetGlowColor = new Color(0.12f, 0.58f, 1f, 0.54f);
         private static readonly Color TreasureGlowColor = new Color(1f, 0.72f, 0.08f, 0.58f);
@@ -51,6 +54,7 @@ namespace LeiTing.Pickups
         }
 
         public bool IsStarPickup => IsItemType("Star") || IsItemId("star");
+        private bool IsCoinPickup => IsItemType("Coin") || IsItemId("coin");
         public bool IsCollected => isCollected;
 
         public void BeginForcedAttract(PlayerController player)
@@ -227,10 +231,12 @@ namespace LeiTing.Pickups
             if (IsStarPickup)
             {
                 player.AddStars(GetStarValue());
+                PlayPickupSound(StarPickupSoundPath);
             }
-            else if (IsItemType("Coin") || IsItemId("coin"))
+            else if (IsCoinPickup)
             {
                 player.AddCoins(GetCoinValue());
+                PlayPickupSound(CoinPickupSoundPath);
             }
             else if (IsItemType("Magnet") || IsItemId("magnet"))
             {
@@ -250,6 +256,14 @@ namespace LeiTing.Pickups
             }
 
             Destroy(gameObject);
+        }
+
+        private static void PlayPickupSound(string soundPath)
+        {
+            if (AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlaySfx(soundPath);
+            }
         }
 
         private bool IsItemType(string itemType)
@@ -322,7 +336,7 @@ namespace LeiTing.Pickups
 
         private bool ShouldRandomizeTreasureScale()
         {
-            return IsStarPickup || IsItemType("Coin") || IsItemId("coin");
+            return IsStarPickup || IsCoinPickup;
         }
 
         private void ApplyGlowVisual()
@@ -338,7 +352,7 @@ namespace LeiTing.Pickups
                 return;
             }
 
-            if (IsStarPickup || IsItemType("Coin") || IsItemId("coin"))
+            if (IsStarPickup || IsCoinPickup)
             {
                 ConfigureGlow(TreasureGlowColor, TreasureGlowRange);
                 return;

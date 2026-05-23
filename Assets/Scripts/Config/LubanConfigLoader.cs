@@ -208,6 +208,7 @@ namespace LeiTing.Config
                 bulletPatternId = row.BulletPatternId,
                 hitScaleFeedback = row.HitScaleFeedback,
                 score = row.Score,
+                hitSoundPath = row.HitSoundPath,
                 drops = new List<DropConfig>()
             };
         }

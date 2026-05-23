@@ -10,7 +10,8 @@
     "bulletId": "enemy_bullet_01",
     "bulletPatternId": "enemy_aim_single",
     "hitScaleFeedback": false,
-    "score": 100
+    "score": 100,
+    "hitSoundPath": "Assets/Art/Sound/SFX/Enemy/SFX_Enemy_Hit_01.wav"
   },
   {
     "index": 2,
@@ -23,7 +24,8 @@
     "bulletId": "enemy_bullet_01",
     "bulletPatternId": "enemy_fan_07",
     "hitScaleFeedback": false,
-    "score": 220
+    "score": 220,
+    "hitSoundPath": "Assets/Art/Sound/SFX/Enemy/SFX_Enemy_Hit_01.wav"
   },
   {
     "index": 3,
@@ -36,7 +38,8 @@
     "bulletId": "enemy_bullet_02",
     "bulletPatternId": "enemy_rotating_05",
     "hitScaleFeedback": false,
-    "score": 160
+    "score": 160,
+    "hitSoundPath": "Assets/Art/Sound/SFX/Enemy/SFX_Enemy_Hit_01.wav"
   },
   {
     "index": 4,
@@ -49,7 +52,8 @@
     "bulletId": "enemy_bullet_01",
     "bulletPatternId": "enemy_single_down",
     "hitScaleFeedback": false,
-    "score": 120
+    "score": 120,
+    "hitSoundPath": "Assets/Art/Sound/SFX/Enemy/SFX_Enemy_Hit_01.wav"
   },
   {
     "index": 5,
@@ -62,7 +66,8 @@
     "bulletId": "enemy_bullet_02",
     "bulletPatternId": "enemy_ring_16",
     "hitScaleFeedback": false,
-    "score": 260
+    "score": 260,
+    "hitSoundPath": "Assets/Art/Sound/SFX/Enemy/SFX_Enemy_Hit_01.wav"
   },
   {
     "index": 6,
@@ -75,7 +80,8 @@
     "bulletId": "enemy_bullet_02",
     "bulletPatternId": "",
     "hitScaleFeedback": false,
-    "score": 5000
+    "score": 5000,
+    "hitSoundPath": "Assets/Art/Sound/SFX/Enemy/SFX_Enemy_Hit_01.wav"
   },
   {
     "index": 7,
@@ -88,7 +94,8 @@
     "bulletId": "enemy_bullet_02",
     "bulletPatternId": "",
     "hitScaleFeedback": false,
-    "score": 5300
+    "score": 5300,
+    "hitSoundPath": "Assets/Art/Sound/SFX/Enemy/SFX_Enemy_Hit_01.wav"
   },
   {
     "index": 8,
@@ -101,7 +108,8 @@
     "bulletId": "enemy_bullet_02",
     "bulletPatternId": "",
     "hitScaleFeedback": false,
-    "score": 5600
+    "score": 5600,
+    "hitSoundPath": "Assets/Art/Sound/SFX/Enemy/SFX_Enemy_Hit_01.wav"
   },
   {
     "index": 9,
@@ -114,7 +122,8 @@
     "bulletId": "enemy_bullet_02",
     "bulletPatternId": "",
     "hitScaleFeedback": false,
-    "score": 5900
+    "score": 5900,
+    "hitSoundPath": "Assets/Art/Sound/SFX/Enemy/SFX_Enemy_Hit_01.wav"
   },
   {
     "index": 10,
@@ -127,7 +136,8 @@
     "bulletId": "enemy_bullet_02",
     "bulletPatternId": "",
     "hitScaleFeedback": false,
-    "score": 6200
+    "score": 6200,
+    "hitSoundPath": "Assets/Art/Sound/SFX/Enemy/SFX_Enemy_Hit_01.wav"
   },
   {
     "index": 11,
@@ -140,7 +150,8 @@
     "bulletId": "enemy_bullet_02",
     "bulletPatternId": "",
     "hitScaleFeedback": false,
-    "score": 6500
+    "score": 6500,
+    "hitSoundPath": "Assets/Art/Sound/SFX/Enemy/SFX_Enemy_Hit_01.wav"
   },
   {
     "index": 12,
@@ -153,7 +164,8 @@
     "bulletId": "enemy_bullet_02",
     "bulletPatternId": "",
     "hitScaleFeedback": false,
-    "score": 6800
+    "score": 6800,
+    "hitSoundPath": "Assets/Art/Sound/SFX/Enemy/SFX_Enemy_Hit_01.wav"
   },
   {
     "index": 13,
@@ -166,7 +178,8 @@
     "bulletId": "enemy_bullet_02",
     "bulletPatternId": "",
     "hitScaleFeedback": false,
-    "score": 7100
+    "score": 7100,
+    "hitSoundPath": "Assets/Art/Sound/SFX/Enemy/SFX_Enemy_Hit_01.wav"
   },
   {
     "index": 14,
@@ -179,7 +192,8 @@
     "bulletId": "enemy_bullet_02",
     "bulletPatternId": "",
     "hitScaleFeedback": false,
-    "score": 7400
+    "score": 7400,
+    "hitSoundPath": "Assets/Art/Sound/SFX/Enemy/SFX_Enemy_Hit_01.wav"
   },
   {
     "index": 15,
@@ -192,7 +206,8 @@
     "bulletId": "enemy_bullet_02",
     "bulletPatternId": "",
     "hitScaleFeedback": false,
-    "score": 7700
+    "score": 7700,
+    "hitSoundPath": "Assets/Art/Sound/SFX/Enemy/SFX_Enemy_Hit_01.wav"
   },
   {
     "index": 16,
@@ -205,7 +220,8 @@
     "bulletId": "enemy_bullet_02",
     "bulletPatternId": "",
     "hitScaleFeedback": false,
-    "score": 8000
+    "score": 8000,
+    "hitSoundPath": "Assets/Art/Sound/SFX/Enemy/SFX_Enemy_Hit_01.wav"
   },
   {
     "index": 17,
@@ -218,7 +234,8 @@
     "bulletId": "enemy_bullet_02",
     "bulletPatternId": "",
     "hitScaleFeedback": false,
-    "score": 8300
+    "score": 8300,
+    "hitSoundPath": "Assets/Art/Sound/SFX/Enemy/SFX_Enemy_Hit_01.wav"
   },
   {
     "index": 18,
@@ -231,7 +248,8 @@
     "bulletId": "enemy_bullet_02",
     "bulletPatternId": "",
     "hitScaleFeedback": false,
-    "score": 6100
+    "score": 6100,
+    "hitSoundPath": "Assets/Art/Sound/SFX/Enemy/SFX_Enemy_Hit_01.wav"
   },
   {
     "index": 19,
@@ -244,7 +262,8 @@
     "bulletId": "enemy_bullet_02",
     "bulletPatternId": "",
     "hitScaleFeedback": false,
-    "score": 6600
+    "score": 6600,
+    "hitSoundPath": "Assets/Art/Sound/SFX/Enemy/SFX_Enemy_Hit_01.wav"
   },
   {
     "index": 20,
@@ -257,7 +276,8 @@
     "bulletId": "enemy_bullet_02",
     "bulletPatternId": "",
     "hitScaleFeedback": false,
-    "score": 7200
+    "score": 7200,
+    "hitSoundPath": "Assets/Art/Sound/SFX/Enemy/SFX_Enemy_Hit_01.wav"
   },
   {
     "index": 21,
@@ -270,7 +290,8 @@
     "bulletId": "enemy_bullet_02",
     "bulletPatternId": "",
     "hitScaleFeedback": false,
-    "score": 7800
+    "score": 7800,
+    "hitSoundPath": "Assets/Art/Sound/SFX/Enemy/SFX_Enemy_Hit_01.wav"
   },
   {
     "index": 22,
@@ -283,7 +304,8 @@
     "bulletId": "enemy_bullet_02",
     "bulletPatternId": "",
     "hitScaleFeedback": false,
-    "score": 8600
+    "score": 8600,
+    "hitSoundPath": "Assets/Art/Sound/SFX/Enemy/SFX_Enemy_Hit_01.wav"
   },
   {
     "index": 23,
@@ -296,7 +318,8 @@
     "bulletId": "enemy_bullet_02",
     "bulletPatternId": "",
     "hitScaleFeedback": false,
-    "score": 9800
+    "score": 9800,
+    "hitSoundPath": "Assets/Art/Sound/SFX/Enemy/SFX_Enemy_Hit_01.wav"
   },
   {
     "index": 24,
@@ -309,7 +332,8 @@
     "bulletId": "",
     "bulletPatternId": "",
     "hitScaleFeedback": false,
-    "score": 50
+    "score": 50,
+    "hitSoundPath": "Assets/Art/Sound/SFX/Enemy/SFX_Enemy_Hit_01.wav"
   },
   {
     "index": 25,
@@ -322,6 +346,7 @@
     "bulletId": "enemy_bullet_01",
     "bulletPatternId": "enemy_spiral_windmill",
     "hitScaleFeedback": false,
-    "score": 500
+    "score": 500,
+    "hitSoundPath": "Assets/Art/Sound/SFX/Enemy/SFX_Enemy_Hit_01.wav"
   }
 ]

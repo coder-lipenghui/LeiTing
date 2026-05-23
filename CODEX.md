@@ -1,249 +1,163 @@
 # LeiTing Codex Handoff
 
-This project is a Unity 2021.3.6f1c1 2D vertical shooter demo inspired by LeiDian/Raiden-style gameplay. The main design notes live in `雷霆战机.md`; the playable implementation is driven mostly by scripts under `Assets/Scripts` and Luban source tables under `Luban/Datas`.
+This Unity project is a 2D vertical shooter targeting Douyin WebGL mini-game
+builds. The current implementation is defined by C# under `Assets/Scripts`,
+Unity scene/prefab data, and Luban source tables under `Luban/Datas`.
+
+## Documentation Sync Rule
+
+- Treat runtime code, active Unity assets, and Luban source workbooks as the
+  source of truth when a document disagrees with the implementation.
+- Every change to core runtime logic must update this file and any affected
+  topic document in the same work item. Core logic includes game flow, player
+  controls, combat, config/data loading, pickups, UI/navigation, audio,
+  platform integration, and build input paths.
+- Replace obsolete behavior descriptions instead of leaving legacy assumptions
+  as if they were still active.
 
 ## Quick State
 
 - Unity version: `2021.3.6f1c1`
-- Main scene: `Assets/Scenes/SampleScene.unity`
-- Runtime config: Luban tables generated to `Assets/Resources/Luban`; `Assets/Resources/Configs/GameConfig.json` is only the legacy fallback.
-- Demo scene setup menu: `LeiTing/Setup/Create Demo Scene Skeleton`
-- Editor level test menu: `LeiTing/Test/Level Selector`
-- Current content count:
-  - 5 normal enemy config ids: `enemy_a` to `enemy_e`
-  - 12 boss config ids: `boss_01` to `boss_12`
-  - 12 level config ids: `level_01` to `level_12`
-  - 7 bullet configs
-  - 14 bullet pattern configs
-  - 14 stage waves
-  - 7 stage timeline events
-  - Current level final Boss enters at `180s`
+- Lobby/menu scene: `Assets/Scenes/SampleScene.unity`
+- Battle scene: `Assets/Scenes/BattleScene.unity`
+- Both scenes are enabled in `ProjectSettings/EditorBuildSettings.asset`.
+- Runtime configuration is generated Luban data in `Assets/Resources/Luban`.
+  `ConfigManager.LoadDefaultConfig()` loads Luban only; on failure it leaves
+  config unavailable and logs an error. There is no legacy JSON runtime
+  fallback.
+- WebGL builds use `STARK_UNITY_INPUT_OVERRIDE` in the current project
+  settings. `UIManager` ensures an `EventSystem` exists and attaches
+  `TTSDK.TTInputOverrideBypass` for WebGL.
+- Design notes live in `雷霆战机.md`. Douyin touch debugging and fallback
+  switches are recorded in `docs/webgl-douyin-player-input-troubleshooting.md`.
 
-## Important Commands
+## Validation Commands
 
-Run these from the repo root:
+Run lightweight checks from the repository root:
 
 ```bash
-dotnet build Assembly-CSharp.csproj --no-restore
-dotnet build Assembly-CSharp-Editor.csproj --no-restore
-node -e "JSON.parse(require('fs').readFileSync('Assets/Resources/Configs/GameConfig.json','utf8')); console.log('json ok')"
+dotnet build Assembly-CSharp.csproj --no-restore -v:minimal
+dotnet build Assembly-CSharp-Editor.csproj --no-restore -v:minimal
+dotnet build Assembly-CSharp.csproj --no-restore -v:minimal -p:DefineConstants=UNITY_WEBGL%3BUNITY_2021_3_OR_NEWER%3BSTARK_UNITY_INPUT_OVERRIDE%3BENABLE_LEGACY_INPUT_MANAGER%3BCSHARP_7_OR_LATER%3BCSHARP_7_3_OR_NEWER
 ```
 
-These are the current lightweight validation commands. Full gameplay still needs Unity Play Mode checks.
-
-## Luban Config Rule
-
-Do not directly edit Luban generated code or generated JSON:
-
-- `Assets/Scripts/Config/LubanGenerated/**`
-- `Assets/Resources/Luban/**`
-
-`Assets/Resources/Luban/*.json` is a generated output directory. Do not patch, script-edit, or hand-format these JSON files directly. For every config change, edit the corresponding source workbook under `Luban/Datas/*.xlsx`, then run:
+For config changes, regenerate tables before compiling:
 
 ```bash
 bash Luban/gen.sh
 ```
 
-Generated code and generated JSON should only change as output from Luban generation. If JSON diffs appear, they must be reproducible by rerunning `bash Luban/gen.sh` from the committed workbook changes.
+Input behavior and rendering changes still require a rebuilt Douyin package
+and a phone test.
 
-## Architecture
+## Config And Runtime Assets
 
-Core flow:
+- Edit gameplay table sources only in `Luban/Datas/*.xlsx`.
+- Do not hand-edit generated files under
+  `Assets/Scripts/Config/LubanGenerated/**` or
+  `Assets/Resources/Luban/**`; regenerate them with `bash Luban/gen.sh`.
+- `LubanConfigLoader` constructs `GameConfig` from generated Resources data.
+  `ConfigManager` exposes players, enemies, waves, bullets, missiles, pickups,
+  levels, stage events, boss phases, and related patterns from that object.
+- `RuntimeAssetCatalog` is the runtime lookup path for configured prefabs,
+  sprites, and audio assets outside editor-only `AssetDatabase` loading.
+  Rebuild its asset data when referenced runtime assets change.
 
-- `GameBootstrap` loads config, prepares camera/player/background, then starts the game.
-- `GameManager` owns game state and score.
-- `ConfigManager` loads generated Luban resources first, then falls back to `Resources/Configs/GameConfig.json`.
-- `EnemyManager` reads wave config and spawns enemies.
-- `StageManager` reads stage timeline events, expands level/Boss placeholders, and shows notices/clears enemy bullets.
-- `BulletManager` pools and fires projectiles.
-- `BulletPatternManager` expands pattern configs into bullet volleys.
-- `UIManager` builds runtime test UI, HUD, Boss HP bar, phase notices, score popups, and settlement text.
+## Scene And Game Flow
 
-The project intentionally has no complex prefab authoring dependency for basic boot. If a prefab is missing, many systems still fallback to generated/dynamic objects.
+- `GameSceneManager` persists across scenes. It enters `BattleScene` after
+  saving the requested level, or falls back to starting a battle in the active
+  scene if the battle scene cannot be loaded.
+- The lobby flow is implemented through `LobbyPage`, `HangarPage`,
+  `SettingPage`, and `StagePage`. Stage selection reads Luban level data and
+  launches the selected unlocked level.
+- `PlaneManager` supplies the current lobby plane list and stores selection,
+  ownership, and ad-progress values with `PlayerPrefs`.
+- In battle, `GameBootstrap` loads config, sets the design camera, ensures a
+  pickup manager and player exist, applies player config, prepares the
+  scrolling background, starts the configured level BGM, then starts
+  `GameManager`. The lobby bootstrap does not play level BGM; the same audio
+  is started only after entering the active-scene fallback battle path and is
+  stopped when that fallback returns to lobby UI.
+- `GameManager` owns state, score, selected level, unlock progression, restart
+  and next-level transitions. On victory it first attracts remaining pickups
+  to the player and waits for collection before completing settlement.
 
-## Prefabs And Mounts
+## Player Input And Douyin WebGL
 
-Enemy prefabs live in:
+`PlayerController` currently implements multiple selectable input paths:
 
-```text
-Assets/Prefabs/Enemies/
-```
+- Default `Touch Input Strategy`: `DouyinEventsPreferred`. A real WebGL build
+  first subscribes to `TT.OnTouchStart`, `TT.OnTouchMove`, `TT.OnTouchEnd`,
+  and `TT.OnTouchCancel`.
+- If the event path does not provide an active touch, it tries SDK overridden
+  polling through `global::Input` when `STARK_UNITY_INPUT_OVERRIDE` is
+  compiled, then falls back to explicit `UnityEngine.Input` touch/mouse reads.
+- `SdkPollingOnly` and `UnityLegacyOnly` remain Inspector alternatives for
+  isolating platform input failures.
+- Default `Pointer Tracking Mode`: `PreserveInitialOffset`. On pointer down,
+  the controller records the pointer world position and the aircraft position;
+  while dragging, the aircraft target is its start position plus the pointer
+  delta from that start. This prevents an aircraft jump when a drag begins
+  away from it. `FollowFinger` remains available only as a comparison mode.
+- On the tested Douyin WebGL handset, the `TTTouch` callback Y value already
+  moves in Unity screen-space direction. The default path therefore uses
+  `touch.screenY` directly. `Invert Douyin Touch Y` is off by default and
+  exists only for a host/SDK variant proven to report the opposite direction.
+- The target is clamped to the camera viewport while respecting the player
+  hitbox. Movement is blocked only when the starting touch raycasts to
+  interactive UI such as a `Selectable`, `ScrollRect`, or `BasePopup`.
+- Temporarily enable `Log Pointer Input Diagnostics` to see the selected
+  source, strategy, tracking mode, Y inversion flag, pointer coordinates, and
+  resulting target coordinates on a test build.
 
-Generated prefabs:
+## Combat And Stage Systems
 
-- `enemy_01.prefab`
-- `boss_01.prefab` through `boss_12.prefab`
+- `EnemyManager` spawns enemies from level wave data.
+- `BulletManager`, `BulletPatternManager`, and `MissileManager` handle
+  projectile behavior and configured firing patterns.
+- `BossController` handles boss entry, HP, configured phase changes, firing,
+  defeat, and the victory trigger.
+- `StageManager` advances level timeline events. A clear-bullets event clears
+  both enemy bullets and enemy missiles, and stage messages can substitute
+  `{LEVEL}`, `{MAX_LEVEL}`, `{BOSS_ID}`, and `{BOSS}`.
+- Hitboxes are child-driven through `ActorHitbox`; it forwards damage to the
+  owning enemy or boss while preventing duplicate same-frame hits from
+  overlapping child hitboxes.
 
-Boss prefab structure:
+## Pickups, UI, And Audio
 
-```text
-boss_XX
-├── Visual
-├── FirePoints
-│   └── main_3
-│       ├── left
-│       ├── center
-│       └── right
-└── HitBoxes
-    ├── body
-    ├── left
-    └── right
-```
+- `PickupManager` spawns configured enemy drops and can force active pickups
+  toward the player during settlement.
+- `PickupItemController` supports star, coin, magnet, bomb, heal, and shield
+  behavior. Magnet attracts stars, bomb removes non-boss enemies, and star
+  and coin pickups play configured sound paths currently defined in code.
+- `UIManager` provides battle HUD/settlement behavior and runtime-created UI
+  where an authored view is unavailable. The page classes provide lobby,
+  hangar, settings, and stage-selection views.
+- `GameSettingManager` stores music, sound, and vibration preferences in
+  `PlayerPrefs`. Player vibration reads that setting; sound effects and
+  `AircraftEngineAudio` respect `SoundEnabled`.
+- `AudioManager` plays level BGM and one-shot SFX through catalog/Resources
+  loading; `AircraftEngineAudio` is an optional per-aircraft looping sound
+  component.
 
-Relevant scripts:
+## Prefabs And Asset Editing
 
-- `ActorMounts`: finds fire point groups by name.
-- `ActorHitbox`: child hitbox component; forwards damage to parent `EnemyController` or `BossController`.
-- `EnemyController` / `BossController`: disable root hitbox when child hitboxes exist.
+- Player prefabs live under `Assets/Prefabs/Player/`.
+- Enemy and boss prefabs live under `Assets/Prefabs/Enemies/`.
+- Prefer prefab transform edits for visual mounts and hitbox placement rather
+  than embedding asset-specific coordinates in runtime logic.
+- Runtime boot deliberately has fallbacks for some missing scene objects and
+  prefab references, but data loading itself requires valid generated Luban
+  resources.
 
-When adjusting enemy/Boss resources, prefer moving `FirePoints` and `HitBoxes` in prefab view instead of hardcoding coordinates.
+## Known Verification Points
 
-## Config Rules
-
-Main config file:
-
-```text
-Assets/Resources/Configs/GameConfig.json
-```
-
-Enemy config supports:
-
-- `id`
-- `displayName`
-- `prefabPath`
-- `hp`
-- `moveSpeed`
-- `attackInterval`
-- `bulletId`
-- `bulletPatternId`
-- `hitScaleFeedback`
-- `score`
-
-Wave spawn config supports:
-
-- `enemyId`
-- `count`
-- `interval`
-- `startPosition`
-- `attackPatternId`
-- `movementPath`
-- `pathAmplitude`
-- `pathSpeed`
-- `holdDuration`
-
-Supported normal enemy movement paths:
-
-- `Straight`
-- `Sine`
-- `DriftLeft`
-- `DriftRight`
-- `Hold`
-- `StopAndLeave`
-
-Bullet pattern config supports `firePointGroup`. Current groups are:
-
-- `center`
-- `left`
-- `right`
-- `main_3`
-
-For `main_3`, the pattern fires once from each child point in that group.
-
-## Boss System
-
-`BossController` handles:
-
-- entry movement
-- HP tracking
-- phase switching
-- phase notices
-- Boss HP UI
-- pattern bursts
-- hit flash
-- optional hit scale feedback via `hitScaleFeedback`
-- defeat explosion sequence
-- game victory
-
-Only `boss_01` currently has explicit `bossPhases`. Other bosses fallback to `boss_01` phase config until their own phases are added.
-
-Current `boss_01` HP is `160`. With the default player weapon:
-
-- bullet: `player_laser_01`
-- damage: `1`
-- fire interval: `0.16s`
-- theoretical DPS: `6.25`
-- full-hit kill time: `25.6s`
-
-`player_laser_01` is procedural: it uses `Assets/Shaders/ProceduralLaser.shader` and does not need a laser image asset. During gameplay it follows the player's `FirePoint` every frame and dynamically stretches to the camera's top edge.
-
-## Hit Feedback Notes
-
-Recent bugfixes:
-
-- `HitFlash` / `BossHitFlash` now sync with `Visual` transform so prefab-scaled sprites do not flash at the wrong size.
-- `ActorHitbox` deduplicates hits by `(same bullet, same actor, same frame)` to avoid overlapping child hitboxes applying multiple damage ticks.
-- `BossController` ignores damage after death starts.
-- `EnemyController` ignores damage after death starts.
-
-If hit feedback looks wrong again, inspect:
-
-- whether `Visual` has a custom scale
-- whether `HitBoxes` overlap too much
-- whether root collider is accidentally enabled along with child hitboxes
-- whether the bullet is piercing or laser-like
-
-## Level And Stage Timeline
-
-Levels are declared in `levels`; each level owns its background sprite, background scroll speed, and BGM path. Boss spawning is declared by level-specific `Wave` / `WaveSpawn` rows, with each Boss spawn using an explicit `enemyId`.
-
-Current demo structure:
-
-- `0:00 - 0:30`: tutorial
-- `0:30 - 1:30`: first combat wave
-- `1:30 - 2:30`: escalation
-- `2:30 - 3:00`: transition and Boss warning
-- `3:00+`: current level final Boss battle
-
-`StageManager` events live in `stageEvents` and can:
-
-- show a message through `UIManager.ShowBossPhaseNotice`
-- clear enemy bullets through `BulletManager.ClearEnemyBullets`
-
-## Asset Locations
-
-Enemy/Boss source sprites:
-
-```text
-Assets/Art/Animations/Enemies/enemy-01.png
-Assets/Art/Animations/Enemies/BOSS-1.png
-...
-Assets/Art/Animations/Enemies/BOSS-12.png
-```
-
-Bullet sprites:
-
-```text
-Assets/Art/Sprites/Bullets/player_bullet_01.png
-Assets/Art/Sprites/Bullets/enemy_bullet_01.png
-```
-
-Player prefab:
-
-```text
-Assets/Prefabs/Player/warplane-01.prefab
-```
-
-## Known Caveats
-
-- Many UI elements are currently generated in code by `UIManager`, not authored as UI prefabs.
-- Enemy/Boss prefabs were generated mechanically; fire points and hitboxes are usable defaults, but should be tuned visually in Unity.
-- `boss_02` to `boss_12` exist as config and prefabs, but do not yet have unique phase patterns.
-- Full Play Mode visual verification is still recommended after prefab/hitbox changes.
-- `.idea/` may appear as an untracked local editor folder; ignore unless the user asks otherwise.
-
-## Coding Preferences For Future Work
-
-- Prefer config-driven behavior in `GameConfig.json`.
-- Prefer prefab transform edits for spatial mount/hitbox tuning.
-- Keep fallback behavior for missing prefabs/assets where practical.
-- Run the two `dotnet build` commands and JSON parse check before handing off.
+- The local TT SDK documentation's Y-origin wording did not match the observed
+  callback movement direction on the target phone; use real-device behavior
+  as the basis for the default and retest after SDK/host changes.
+- UI and WebGL input changes need phone validation after packaging, not only
+  editor mouse checks.
+- Runtime-created pages and mechanically prepared combat prefabs should be
+  inspected in Play Mode after visual, hitbox, or navigation edits.

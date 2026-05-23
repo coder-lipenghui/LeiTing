@@ -738,7 +738,7 @@ PlayerSettings:
   webGLThreadsSupport: 0
   webGLDecompressionFallback: 0
   scriptingDefineSymbols:
-    WebGL: 
+    WebGL: STARK_UNITY_INPUT_OVERRIDE
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend: {}

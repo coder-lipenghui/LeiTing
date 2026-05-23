@@ -28,6 +28,7 @@ public sealed partial class Enemy : Luban.BeanBase
         { if(!_buf["bulletPatternId"].IsString) { throw new SerializationException(); }  BulletPatternId = _buf["bulletPatternId"]; }
         { if(!_buf["hitScaleFeedback"].IsBoolean) { throw new SerializationException(); }  HitScaleFeedback = _buf["hitScaleFeedback"]; }
         { if(!_buf["score"].IsNumber) { throw new SerializationException(); }  Score = _buf["score"]; }
+        { if(!_buf["hitSoundPath"].IsString) { throw new SerializationException(); }  HitSoundPath = _buf["hitSoundPath"]; }
     }
 
     public static Enemy DeserializeEnemy(JSONNode _buf)
@@ -76,6 +77,10 @@ public sealed partial class Enemy : Luban.BeanBase
     /// 击杀得分
     /// </summary>
     public readonly int Score;
+    /// <summary>
+    /// 受击音效路径
+    /// </summary>
+    public readonly string HitSoundPath;
    
     public const int __ID__ = 2036662904;
     public override int GetTypeId() => __ID__;
@@ -98,6 +103,7 @@ public sealed partial class Enemy : Luban.BeanBase
         + "bulletPatternId:" + BulletPatternId + ","
         + "hitScaleFeedback:" + HitScaleFeedback + ","
         + "score:" + Score + ","
+        + "hitSoundPath:" + HitSoundPath + ","
         + "}";
     }
 }

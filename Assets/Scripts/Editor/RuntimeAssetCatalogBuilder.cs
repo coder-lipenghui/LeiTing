@@ -18,6 +18,8 @@ namespace LeiTing.Editor
         private const string StagePrefabPath = "Assets/Prefabs/UI/UIStage.prefab";
         private const string DefaultFontPath = "Assets/Art/Font/simhei.ttf";
         private const string MainUiBackgroundPath = "Assets/Art/Sprites/UI/backgroundH.png";
+        private const string CoinPickupSoundPath = "Assets/Art/Sound/SFX/Item/coin.wav";
+        private const string StarPickupSoundPath = "Assets/Art/Sound/SFX/Item/star.wav";
         private const string AircraftEngineAudioTypeName = "LeiTing.Audio.AircraftEngineAudio";
 
         public int callbackOrder => -1000;
@@ -105,6 +107,8 @@ namespace LeiTing.Editor
             AddPath(prefabPaths, StagePrefabPath);
             AddPath(fontPaths, DefaultFontPath);
             AddPath(spritePaths, MainUiBackgroundPath);
+            AddPath(audioPaths, CoinPickupSoundPath);
+            AddPath(audioPaths, StarPickupSoundPath);
 
             AddPath(spritePaths, "Assets/Art/Animations/Enemies/enemy-01.png");
             AddPath(spritePaths, "Assets/Art/Animations/Enemies/BOSS-1.png");
@@ -123,6 +127,7 @@ namespace LeiTing.Editor
                 foreach (var enemy in config.enemies)
                 {
                     AddPath(prefabPaths, enemy?.prefabPath);
+                    AddPath(audioPaths, enemy?.hitSoundPath);
                 }
             }
 

@@ -67,6 +67,7 @@ namespace LeiTing.Config
         public string bulletPatternId;
         public bool hitScaleFeedback;
         public int score;
+        public string hitSoundPath;
         public List<DropConfig> drops = new List<DropConfig>();
     }
 

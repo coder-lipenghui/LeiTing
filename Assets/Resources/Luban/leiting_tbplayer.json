@@ -18,6 +18,6 @@
     "hitboxOffsetY": -0.08,
     "defaultBulletId": "player_bullet_double_01",
     "fireInterval": 0.16,
-    "fireSoundPath": "Assets/Art/Sound/player01.wav"
+    "fireSoundPath": "Assets/Art/Sound/SFX/Player/SFX_Player_Shoot_Normal_01.wav"
   }
 ]

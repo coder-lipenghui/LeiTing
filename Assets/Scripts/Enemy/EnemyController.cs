@@ -599,6 +599,11 @@ namespace LeiTing.Enemy
             currentHp = Mathf.Max(0, currentHp - damage);
             flashUntil = Time.time + 0.06f;
 
+            if (AudioManager.Instance != null && config != null)
+            {
+                AudioManager.Instance.PlaySfx(config.hitSoundPath);
+            }
+
             if (currentHp <= 0)
             {
                 Die();
