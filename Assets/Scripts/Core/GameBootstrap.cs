@@ -4,6 +4,7 @@ using LeiTing.Pickups;
 using LeiTing.Player;
 using LeiTing.Stage;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -35,7 +36,11 @@ namespace LeiTing.Core
             {
                 GameManager.Instance.Initialize();
                 EnsureBackgroundReady();
-                EnsureLevelAudio();
+
+                if (GameSceneManager.IsBattleSceneName(SceneManager.GetActiveScene().name))
+                {
+                    PlayCurrentLevelBgm();
+                }
 
                 if (startGameOnAwake)
                 {
@@ -175,7 +180,7 @@ namespace LeiTing.Core
             return RuntimeAssetCatalog.LoadSprite(spritePath);
         }
 
-        private static void EnsureLevelAudio()
+        internal static void PlayCurrentLevelBgm()
         {
             var levelConfig = GetCurrentLevelConfig();
             if (levelConfig != null && AudioManager.Instance != null)

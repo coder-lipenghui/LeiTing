@@ -5,7 +5,7 @@
     "displayName": "第 1 关",
     "backgroundSpritePath": "Assets/Art/Sprites/Backgrounds/background-01.png",
     "backgroundScrollSpeed": 2.1,
-    "bgmPath": ""
+    "bgmPath": "Assets/Art/Sound/SFX/Ambience/SFX_Ambience_Battle_Loop_01.mp3"
   },
   {
     "index": 2,

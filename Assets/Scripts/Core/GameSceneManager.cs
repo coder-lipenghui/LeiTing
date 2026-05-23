@@ -1,3 +1,4 @@
+using LeiTing.Audio;
 using LeiTing.UI;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -71,6 +72,11 @@ namespace LeiTing.Core
                 return;
             }
 
+            if (AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlayBgm(null);
+            }
+
             if (UIManager.Instance != null)
             {
                 UIManager.Instance.ShowMainUI(true);
@@ -96,6 +102,7 @@ namespace LeiTing.Core
             if (GameManager.Instance != null)
             {
                 GameManager.Instance.Initialize();
+                GameBootstrap.PlayCurrentLevelBgm();
                 GameManager.Instance.StartGame();
             }
         }

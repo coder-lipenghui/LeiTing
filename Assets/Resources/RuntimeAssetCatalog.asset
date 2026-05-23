@@ -110,5 +110,7 @@ MonoBehaviour:
   audioClips:
   - path: Assets/Art/Sound/helicopter01.wav
     audioClip: {fileID: 8300000, guid: b1f2f821f9fb140c19ab81dd66448399, type: 3}
+  - path: Assets/Art/Sound/SFX/Ambience/SFX_Ambience_Battle_Loop_01.mp3
+    audioClip: {fileID: 8300000, guid: 785548cdc06f140e0bcb316fff3651ad, type: 3}
   - path: Assets/Art/Sound/player01.wav
     audioClip: {fileID: 8300000, guid: c8656b43614e24426b2e2353be9f8f24, type: 3}
