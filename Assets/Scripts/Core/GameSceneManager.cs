@@ -45,6 +45,11 @@ namespace LeiTing.Core
             return string.Equals(sceneName, DefaultBattleSceneName, System.StringComparison.OrdinalIgnoreCase);
         }
 
+        public static bool IsLobbySceneName(string sceneName)
+        {
+            return string.Equals(sceneName, DefaultLobbySceneName, System.StringComparison.OrdinalIgnoreCase);
+        }
+
         public void EnterBattle()
         {
             EnterBattle(GameManager.RequestedLevelNumber);
@@ -52,7 +57,10 @@ namespace LeiTing.Core
 
         public void EnterBattle(int levelNumber)
         {
-            GameManager.RequestLevel(Mathf.Max(1, levelNumber));
+            var requestedLevelNumber = Mathf.Max(1, levelNumber);
+            GameManager.RequestLevel(requestedLevelNumber);
+            AudioManager.Instance?.StopBgm();
+            GameBootstrap.PlayLevelBgm(requestedLevelNumber);
 
             if (CanLoadScene(battleSceneName))
             {
@@ -66,15 +74,15 @@ namespace LeiTing.Core
 
         public void EnterLobby()
         {
+            if (AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlayMenuBgm();
+            }
+
             if (CanLoadScene(lobbySceneName))
             {
                 SceneManager.LoadScene(lobbySceneName);
                 return;
-            }
-
-            if (AudioManager.Instance != null)
-            {
-                AudioManager.Instance.PlayBgm(null);
             }
 
             if (UIManager.Instance != null)

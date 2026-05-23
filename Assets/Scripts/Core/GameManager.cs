@@ -101,7 +101,9 @@ namespace LeiTing.Core
 
         public void LoadLevel(int levelNumber)
         {
-            RequestLevel(Mathf.Clamp(levelNumber, 1, MaxLevelCount));
+            var requestedLevelNumber = Mathf.Clamp(levelNumber, 1, MaxLevelCount);
+            RequestLevel(requestedLevelNumber);
+            GameBootstrap.PlayLevelBgm(requestedLevelNumber);
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
         }
 

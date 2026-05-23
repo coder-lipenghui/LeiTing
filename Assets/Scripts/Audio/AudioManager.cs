@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using LeiTing.Core;
 using LeiTing.UI;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -12,10 +13,19 @@ namespace LeiTing.Audio
 {
     public class AudioManager : MonoSingleton<AudioManager>
     {
-        private AudioSource audioSource;
+        public const string MenuBgmPath = "Assets/Art/Sound/BGM/BGM_Menu_Main_Loop_01.wav";
+
+        private const float DefaultVolume = 0.7f;
+        private const float BgmRetryInterval = 0.5f;
+        private const string PersistentBgmSourceName = "PersistentBgmAudioSource";
+
+        private static AudioSource persistentBgmSource;
+        private AudioSource bgmSource;
+        private AudioSource sfxSource;
         private AudioClip enemyDestroyedClip;
         private AudioClip playerDestroyedClip;
         private readonly Dictionary<string, AudioClip> clipCache = new Dictionary<string, AudioClip>(StringComparer.OrdinalIgnoreCase);
+        private float nextBgmRetryTime;
 
         protected override void Awake()
         {
@@ -23,14 +33,38 @@ namespace LeiTing.Audio
 
             if (Instance == this)
             {
-                audioSource = GetComponent<AudioSource>();
-                if (audioSource == null)
+                sfxSource = GetComponent<AudioSource>();
+                if (sfxSource == null)
                 {
-                    audioSource = gameObject.AddComponent<AudioSource>();
+                    sfxSource = gameObject.AddComponent<AudioSource>();
                 }
 
-                audioSource.playOnAwake = false;
-                audioSource.volume = 0.7f;
+                ConfigureAudioSource(sfxSource, false);
+                bgmSource = GetOrCreatePersistentBgmSource();
+            }
+        }
+
+        private void Start()
+        {
+            if (Instance == this && GameSceneManager.IsLobbySceneName(SceneManager.GetActiveScene().name))
+            {
+                PlayMenuBgm();
+            }
+        }
+
+        private void Update()
+        {
+            if (bgmSource == null || bgmSource.clip == null)
+            {
+                return;
+            }
+
+            var musicEnabled = GameSettingManager.MusicEnabled;
+            bgmSource.mute = !musicEnabled;
+
+            if (musicEnabled && !bgmSource.isPlaying && Time.unscaledTime >= nextBgmRetryTime)
+            {
+                StartBgm();
             }
         }
 
@@ -54,41 +88,65 @@ namespace LeiTing.Audio
             PlayClip(LoadCachedAudioClip(clipPath));
         }
 
+        public void PlayMenuBgm()
+        {
+            PlayBgm(MenuBgmPath);
+        }
+
         public void PlayBgm(string clipPath)
         {
-            if (audioSource == null)
+            if (bgmSource == null)
             {
                 return;
             }
 
             if (string.IsNullOrEmpty(clipPath))
             {
-                if (audioSource.loop)
-                {
-                    audioSource.Stop();
-                    audioSource.clip = null;
-                    audioSource.loop = false;
-                }
-
+                StopBgm();
                 return;
             }
 
-            var clip = LoadAudioClip(clipPath);
-            if (clip == null || audioSource.clip == clip)
+            var clip = LoadCachedAudioClip(clipPath);
+            if (clip == null)
+            {
+                Debug.LogWarning($"BGM audio clip could not be loaded: {clipPath}", this);
+                StopBgm();
+                return;
+            }
+
+            if (bgmSource.clip != clip)
+            {
+                bgmSource.Stop();
+                bgmSource.clip = clip;
+            }
+
+            bgmSource.loop = true;
+            bgmSource.mute = !GameSettingManager.MusicEnabled;
+
+            if (!bgmSource.mute && !bgmSource.isPlaying)
+            {
+                StartBgm();
+            }
+        }
+
+        public void StopBgm()
+        {
+            if (bgmSource == null)
             {
                 return;
             }
 
-            audioSource.clip = clip;
-            audioSource.loop = true;
-            audioSource.Play();
+            bgmSource.Stop();
+            bgmSource.clip = null;
+            bgmSource.loop = false;
+            nextBgmRetryTime = 0f;
         }
 
         private void PlayClip(AudioClip clip)
         {
-            if (audioSource != null && clip != null && GameSettingManager.SoundEnabled)
+            if (sfxSource != null && clip != null && GameSettingManager.SoundEnabled)
             {
-                audioSource.PlayOneShot(clip);
+                sfxSource.PlayOneShot(clip);
             }
         }
 
@@ -103,6 +161,34 @@ namespace LeiTing.Audio
             var clip = LoadAudioClip(normalizedPath);
             clipCache[normalizedPath] = clip;
             return clip;
+        }
+
+        private void StartBgm()
+        {
+            bgmSource.Play();
+            nextBgmRetryTime = Time.unscaledTime + BgmRetryInterval;
+        }
+
+        private static void ConfigureAudioSource(AudioSource source, bool loop)
+        {
+            source.playOnAwake = false;
+            source.loop = loop;
+            source.volume = DefaultVolume;
+            source.spatialBlend = 0f;
+        }
+
+        private static AudioSource GetOrCreatePersistentBgmSource()
+        {
+            if (persistentBgmSource != null)
+            {
+                return persistentBgmSource;
+            }
+
+            var sourceObject = new GameObject(PersistentBgmSourceName);
+            UnityEngine.Object.DontDestroyOnLoad(sourceObject);
+            persistentBgmSource = sourceObject.AddComponent<AudioSource>();
+            ConfigureAudioSource(persistentBgmSource, true);
+            return persistentBgmSource;
         }
 
         private static AudioClip CreateImpactClip(float duration, float startFrequency, float endFrequency)

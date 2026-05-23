@@ -182,7 +182,17 @@ namespace LeiTing.Core
 
         internal static void PlayCurrentLevelBgm()
         {
-            var levelConfig = GetCurrentLevelConfig();
+            if (GameManager.Instance != null)
+            {
+                PlayLevelBgm(GameManager.Instance.CurrentLevelNumber);
+            }
+        }
+
+        internal static void PlayLevelBgm(int levelNumber)
+        {
+            var levelConfig = ConfigManager.Instance != null && ConfigManager.Instance.IsLoaded
+                ? ConfigManager.Instance.GetLevel(levelNumber)
+                : null;
             if (levelConfig != null && AudioManager.Instance != null)
             {
                 AudioManager.Instance.PlayBgm(levelConfig.bgmPath);

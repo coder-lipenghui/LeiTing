@@ -75,10 +75,13 @@ and a phone test.
   ownership, and ad-progress values with `PlayerPrefs`.
 - In battle, `GameBootstrap` loads config, sets the design camera, ensures a
   pickup manager and player exist, applies player config, prepares the
-  scrolling background, starts the configured level BGM, then starts
-  `GameManager`. The lobby bootstrap does not play level BGM; the same audio
-  is started only after entering the active-scene fallback battle path and is
-  stopped when that fallback returns to lobby UI.
+  scrolling background, verifies the configured level BGM, then starts
+  `GameManager`. Starting or changing a level initiates its BGM during the
+  initiating button click and carries playback into the battle scene, after
+  stopping any menu BGM; directly launching `BattleScene` starts the same BGM
+  from `GameBootstrap`. Entering the lobby starts the looping menu BGM at
+  `Assets/Art/Sound/BGM/BGM_Menu_Main_Loop_01.wav`; all lobby pages, including
+  hall, stage selection, hangar, and settings, share it.
 - `GameManager` owns state, score, selected level, unlock progression, restart
   and next-level transitions. On victory it first attracts remaining pickups
   to the player and waits for collection before completing settlement.
@@ -136,11 +139,15 @@ and a phone test.
   where an authored view is unavailable. The page classes provide lobby,
   hangar, settings, and stage-selection views.
 - `GameSettingManager` stores music, sound, and vibration preferences in
-  `PlayerPrefs`. Player vibration reads that setting; sound effects and
-  `AircraftEngineAudio` respect `SoundEnabled`.
-- `AudioManager` plays level BGM and one-shot SFX through catalog/Resources
-  loading; `AircraftEngineAudio` is an optional per-aircraft looping sound
-  component.
+  `PlayerPrefs`. Player vibration reads that setting; menu and level BGM
+  respect `MusicEnabled`, while sound effects and `AircraftEngineAudio`
+  respect `SoundEnabled`.
+- `AudioManager` plays the menu/level BGM and one-shot SFX through
+  catalog/Resources loading on separate 2D audio sources. Only the BGM source
+  persists across scene changes, so gameplay transitions do not stop music
+  already started from a WebGL user gesture. It retries an assigned BGM that
+  is not yet playing for delayed audio activation and resume cases.
+  `AircraftEngineAudio` is an optional per-aircraft looping sound component.
 
 ## Prefabs And Asset Editing
 

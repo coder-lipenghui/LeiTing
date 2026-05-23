@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using LeiTing.Audio;
 using LeiTing.Config;
 using LeiTing.Core;
 using UnityEditor;
@@ -109,6 +110,7 @@ namespace LeiTing.Editor
             AddPath(spritePaths, MainUiBackgroundPath);
             AddPath(audioPaths, CoinPickupSoundPath);
             AddPath(audioPaths, StarPickupSoundPath);
+            AddPath(audioPaths, AudioManager.MenuBgmPath);
 
             AddPath(spritePaths, "Assets/Art/Animations/Enemies/enemy-01.png");
             AddPath(spritePaths, "Assets/Art/Animations/Enemies/BOSS-1.png");
