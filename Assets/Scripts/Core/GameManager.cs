@@ -20,10 +20,15 @@ namespace LeiTing.Core
 #endif
 
         private static int requestedLevelNumber = 1;
+        private static bool hasRequestedBattleOptions;
+        private static bool requestedInvincibleMode;
 
         [SerializeField] private GameState currentState = GameState.Boot;
         [SerializeField] private int score;
         [SerializeField] private int currentLevelNumber = 1;
+        [Header("调试选项")]
+        [InspectorName("无敌模式")]
+        [SerializeField] private bool invincibleMode;
 
         private Coroutine pendingVictoryRoutine;
 
@@ -37,9 +42,11 @@ namespace LeiTing.Core
         public string CurrentLevelBossId => ResolveCurrentLevelBossId();
         public string CurrentLevelBossDisplayName => ResolveCurrentLevelBossDisplayName();
         public static int RequestedLevelNumber => ResolveRequestedLevelNumber();
+        public static bool InvincibleModeEnabled => Instance != null && Instance.invincibleMode;
 
         public void Initialize()
         {
+            ApplyRequestedBattleOptions();
             CancelPendingVictory();
             currentLevelNumber = Mathf.Clamp(ResolveRequestedLevelNumber(), 1, MaxLevelCount);
             currentState = GameState.Ready;
@@ -113,6 +120,32 @@ namespace LeiTing.Core
 #if UNITY_EDITOR
             EditorPrefs.SetInt(EditorRequestedLevelKey, requestedLevelNumber);
 #endif
+        }
+
+        public static void CaptureBattleOptions()
+        {
+            if (Instance == null)
+            {
+                return;
+            }
+
+            requestedInvincibleMode = Instance.invincibleMode;
+            hasRequestedBattleOptions = true;
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetBattleOptions()
+        {
+            requestedInvincibleMode = false;
+            hasRequestedBattleOptions = false;
+        }
+
+        private void ApplyRequestedBattleOptions()
+        {
+            if (hasRequestedBattleOptions && GameSceneManager.IsBattleSceneName(SceneManager.GetActiveScene().name))
+            {
+                invincibleMode = requestedInvincibleMode;
+            }
         }
 
         private static int ResolveRequestedLevelNumber()

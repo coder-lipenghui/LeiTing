@@ -58,6 +58,7 @@ namespace LeiTing.Core
         public void EnterBattle(int levelNumber)
         {
             var requestedLevelNumber = Mathf.Max(1, levelNumber);
+            GameManager.CaptureBattleOptions();
             GameManager.RequestLevel(requestedLevelNumber);
             AudioManager.Instance?.StopBgm();
             GameBootstrap.PlayLevelBgm(requestedLevelNumber);

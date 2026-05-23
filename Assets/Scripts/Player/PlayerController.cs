@@ -94,7 +94,8 @@ namespace LeiTing.Player
         public int CurrentShield => currentShield;
         public int CurrentStars => currentStars;
         public int CurrentCoins => currentCoins;
-        public bool IsInvincible => Time.time < invincibleUntil;
+        private bool HasTimedInvincibility => Time.time < invincibleUntil;
+        public bool IsInvincible => GameManager.InvincibleModeEnabled || HasTimedInvincibility;
         public float MoveSpeed => GetMoveSpeed();
         public float HitboxRadius => GetHitboxRadius();
         public float PickupAttractRange => GetPickupAttractRange();
@@ -953,7 +954,7 @@ namespace LeiTing.Player
                 return;
             }
 
-            if (!IsInvincible)
+            if (!HasTimedInvincibility)
             {
                 spriteRenderer.color = originalColor;
                 return;

@@ -124,6 +124,9 @@ and a phone test.
 - `StageManager` advances level timeline events. A clear-bullets event clears
   both enemy bullets and enemy missiles, and stage messages can substitute
   `{LEVEL}`, `{MAX_LEVEL}`, `{BOSS_ID}`, and `{BOSS}`.
+- `GameManager` exposes the `无敌模式` Inspector toggle on `Managers`. The
+  value selected in `SampleScene` is carried into `BattleScene`, where
+  `PlayerController` ignores incoming damage without continuously flashing.
 - Hitboxes are child-driven through `ActorHitbox`; it forwards damage to the
   owning enemy or boss while preventing duplicate same-frame hits from
   overlapping child hitboxes.
