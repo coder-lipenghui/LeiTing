@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 100071}
   - component: {fileID: 100072}
   - component: {fileID: 8646080502000942367}
+  - component: {fileID: 3710896856423927564}
   m_Layer: 10
   m_Name: small_helicopter_01
   m_TagString: Untagged
@@ -111,6 +112,24 @@ MonoBehaviour:
     score: 0
     drops: []
   currentHp: 0
+--- !u!114 &3710896856423927564
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 100000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7f81bff2b07b4dee9207ec0c1cf23e5c, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  clipPath: Assets/Art/Sound/helicopter01.wav
+  clipOverride: {fileID: 0}
+  volume: 0.35
+  pitch: 1
+  loop: 1
+  playOnEnable: 1
 --- !u!1 &100002
 GameObject:
   m_ObjectHideFlags: 0

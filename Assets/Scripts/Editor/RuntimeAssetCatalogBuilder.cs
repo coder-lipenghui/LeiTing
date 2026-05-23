@@ -18,6 +18,7 @@ namespace LeiTing.Editor
         private const string StagePrefabPath = "Assets/Prefabs/UI/UIStage.prefab";
         private const string DefaultFontPath = "Assets/Art/Font/simhei.ttf";
         private const string MainUiBackgroundPath = "Assets/Art/Sprites/UI/backgroundH.png";
+        private const string AircraftEngineAudioTypeName = "LeiTing.Audio.AircraftEngineAudio";
 
         public int callbackOrder => -1000;
 
@@ -157,6 +158,38 @@ namespace LeiTing.Editor
                 foreach (var item in config.pickupItems)
                 {
                     AddPath(spritePaths, item?.spritePath);
+                }
+            }
+
+            CollectPrefabAudioPaths(prefabPaths, audioPaths);
+        }
+
+        private static void CollectPrefabAudioPaths(IEnumerable<string> prefabPaths, HashSet<string> audioPaths)
+        {
+            foreach (var prefabPath in prefabPaths)
+            {
+                var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+                if (prefab == null)
+                {
+                    continue;
+                }
+
+                foreach (var component in prefab.GetComponentsInChildren<MonoBehaviour>(true))
+                {
+                    if (component == null || !string.Equals(component.GetType().FullName, AircraftEngineAudioTypeName, StringComparison.Ordinal))
+                    {
+                        continue;
+                    }
+
+                    var serializedAudio = new SerializedObject(component);
+                    var clipPath = serializedAudio.FindProperty("clipPath");
+                    AddPath(audioPaths, clipPath?.stringValue);
+
+                    var clipOverride = serializedAudio.FindProperty("clipOverride")?.objectReferenceValue as AudioClip;
+                    if (clipOverride != null)
+                    {
+                        AddPath(audioPaths, AssetDatabase.GetAssetPath(clipOverride));
+                    }
                 }
             }
         }

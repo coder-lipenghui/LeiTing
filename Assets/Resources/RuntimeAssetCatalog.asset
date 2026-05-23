@@ -108,5 +108,7 @@ MonoBehaviour:
   - path: Assets/Art/Font/simhei.ttf
     font: {fileID: 12800000, guid: 9f94a9364d47346d88936c0fe26c71e0, type: 3}
   audioClips:
+  - path: Assets/Art/Sound/helicopter01.wav
+    audioClip: {fileID: 8300000, guid: b1f2f821f9fb140c19ab81dd66448399, type: 3}
   - path: Assets/Art/Sound/player01.wav
     audioClip: {fileID: 8300000, guid: c8656b43614e24426b2e2353be9f8f24, type: 3}
