@@ -150,7 +150,12 @@ and a phone test.
   persists across scene changes, so gameplay transitions do not stop music
   already started from a WebGL user gesture. It retries an assigned BGM that
   is not yet playing for delayed audio activation and resume cases.
-  `AircraftEngineAudio` is an optional per-aircraft looping sound component.
+  `AircraftEngineAudio` is an optional per-aircraft looping sound component;
+  the small helicopter uses
+  `Assets/Art/Sound/SFX/Enemy/SFX_Enemy_Engine_Loop_Small_01.wav`.
+  Boss entry plays
+  `Assets/Art/Sound/SFX/Enemy/SFX_Boss_Attack_Warning_01.wav` once as the
+  approach warning is shown.
 
 ## Prefabs And Asset Editing
 

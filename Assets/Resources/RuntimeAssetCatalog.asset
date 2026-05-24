@@ -110,10 +110,12 @@ MonoBehaviour:
   audioClips:
   - path: Assets/Art/Sound/BGM/BGM_Menu_Main_Loop_01.wav
     audioClip: {fileID: 8300000, guid: 6577c91532cec48eeb887a99c9c1c712, type: 3}
-  - path: Assets/Art/Sound/helicopter01.wav
-    audioClip: {fileID: 8300000, guid: b1f2f821f9fb140c19ab81dd66448399, type: 3}
   - path: Assets/Art/Sound/SFX/Ambience/SFX_Ambience_Battle_Loop_01.mp3
     audioClip: {fileID: 8300000, guid: 785548cdc06f140e0bcb316fff3651ad, type: 3}
+  - path: Assets/Art/Sound/SFX/Enemy/SFX_Boss_Attack_Warning_01.wav
+    audioClip: {fileID: 8300000, guid: 1a338ca27ec3640d2988dcb3a0a87c78, type: 3}
+  - path: Assets/Art/Sound/SFX/Enemy/SFX_Enemy_Engine_Loop_Small_01.wav
+    audioClip: {fileID: 8300000, guid: c20e6fd5da743482587496c025971972, type: 3}
   - path: Assets/Art/Sound/SFX/Enemy/SFX_Enemy_Hit_01.wav
     audioClip: {fileID: 8300000, guid: d5e1ff195a4cc4b2e86abdc5a710cb15, type: 3}
   - path: Assets/Art/Sound/SFX/Item/coin.wav

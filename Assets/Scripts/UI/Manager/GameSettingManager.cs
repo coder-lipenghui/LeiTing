@@ -1,4 +1,4 @@
-using UnityEngine;
+using LeiTing.Storage;
 
 namespace LeiTing.UI
 {
@@ -10,26 +10,26 @@ namespace LeiTing.UI
 
         public static bool MusicEnabled
         {
-            get => PlayerPrefs.GetInt(MusicKey, 1) == 1;
+            get => GameStorage.GetInt(MusicKey, 1) == 1;
             set => SetBool(MusicKey, value);
         }
 
         public static bool SoundEnabled
         {
-            get => PlayerPrefs.GetInt(SoundKey, 1) == 1;
+            get => GameStorage.GetInt(SoundKey, 1) == 1;
             set => SetBool(SoundKey, value);
         }
 
         public static bool VibrationEnabled
         {
-            get => PlayerPrefs.GetInt(VibrationKey, 1) == 1;
+            get => GameStorage.GetInt(VibrationKey, 1) == 1;
             set => SetBool(VibrationKey, value);
         }
 
         private static void SetBool(string key, bool value)
         {
-            PlayerPrefs.SetInt(key, value ? 1 : 0);
-            PlayerPrefs.Save();
+            GameStorage.SetInt(key, value ? 1 : 0);
+            GameStorage.Save();
         }
     }
 }

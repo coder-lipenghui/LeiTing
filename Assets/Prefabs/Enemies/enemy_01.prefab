@@ -112,6 +112,7 @@ MonoBehaviour:
     bulletPatternId: 
     hitScaleFeedback: 0
     score: 0
+    hitSoundPath: 
     drops: []
   currentHp: 0
 --- !u!114 &100033

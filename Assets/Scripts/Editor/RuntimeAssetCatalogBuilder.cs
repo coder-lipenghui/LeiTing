@@ -21,6 +21,7 @@ namespace LeiTing.Editor
         private const string MainUiBackgroundPath = "Assets/Art/Sprites/UI/backgroundH.png";
         private const string CoinPickupSoundPath = "Assets/Art/Sound/SFX/Item/coin.wav";
         private const string StarPickupSoundPath = "Assets/Art/Sound/SFX/Item/star.wav";
+        private const string BossEntryWarningSoundPath = "Assets/Art/Sound/SFX/Enemy/SFX_Boss_Attack_Warning_01.wav";
         private const string AircraftEngineAudioTypeName = "LeiTing.Audio.AircraftEngineAudio";
 
         public int callbackOrder => -1000;
@@ -110,6 +111,7 @@ namespace LeiTing.Editor
             AddPath(spritePaths, MainUiBackgroundPath);
             AddPath(audioPaths, CoinPickupSoundPath);
             AddPath(audioPaths, StarPickupSoundPath);
+            AddPath(audioPaths, BossEntryWarningSoundPath);
             AddPath(audioPaths, AudioManager.MenuBgmPath);
 
             AddPath(spritePaths, "Assets/Art/Animations/Enemies/enemy-01.png");

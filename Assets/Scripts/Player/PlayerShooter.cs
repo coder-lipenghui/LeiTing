@@ -10,6 +10,7 @@ namespace LeiTing.Player
     public class PlayerShooter : MonoBehaviour
     {
         private const string DefaultBulletId = "player_bullet_double_01";
+        private const float FireSoundVolumeScale = 0.6f;
 
         [SerializeField] private PlayerConfig config;
         [SerializeField] private Transform firePoint;
@@ -144,7 +145,7 @@ namespace LeiTing.Player
 
             if (AudioManager.Instance != null)
             {
-                AudioManager.Instance.PlaySfx(config.fireSoundPath);
+                AudioManager.Instance.PlaySfx(config.fireSoundPath, FireSoundVolumeScale);
             }
         }
 

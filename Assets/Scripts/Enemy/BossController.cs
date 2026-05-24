@@ -23,6 +23,7 @@ namespace LeiTing.Enemy
         private const float EntryTargetY = 2.95f;
         private const float EntrySpeed = 1.65f;
         private const float DefaultAttackInterval = 1.8f;
+        private const string EntryWarningSoundPath = "Assets/Art/Sound/SFX/Enemy/SFX_Boss_Attack_Warning_01.wav";
 
         [SerializeField] private EnemyConfig config;
         [SerializeField] private int currentHp;
@@ -74,6 +75,11 @@ namespace LeiTing.Enemy
             if (UIManager.Instance != null)
             {
                 UIManager.Instance.ShowBossPhaseNotice("WARNING\nBOSS APPROACHING");
+            }
+
+            if (AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlaySfx(EntryWarningSoundPath);
             }
         }
 

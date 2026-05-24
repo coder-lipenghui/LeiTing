@@ -4,6 +4,7 @@ using UnityEngine.SceneManagement;
 using LeiTing.Config;
 using LeiTing.Pickups;
 using LeiTing.Player;
+using LeiTing.Storage;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -257,7 +258,7 @@ namespace LeiTing.Core
 
         public static int GetMaxUnlockedLevel(int maxLevelCount)
         {
-            return Mathf.Clamp(PlayerPrefs.GetInt(LatestUnlockedLevelKey, 1), 1, Mathf.Max(1, maxLevelCount));
+            return Mathf.Clamp(GameStorage.GetInt(LatestUnlockedLevelKey, 1), 1, Mathf.Max(1, maxLevelCount));
         }
 
         private void UnlockNextLevel()
@@ -268,8 +269,8 @@ namespace LeiTing.Core
                 return;
             }
 
-            PlayerPrefs.SetInt(LatestUnlockedLevelKey, nextUnlockedLevel);
-            PlayerPrefs.Save();
+            GameStorage.SetInt(LatestUnlockedLevelKey, nextUnlockedLevel);
+            GameStorage.Save();
         }
     }
 }

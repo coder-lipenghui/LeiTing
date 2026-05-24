@@ -80,12 +80,17 @@ namespace LeiTing.Audio
 
         public void PlaySfx(string clipPath)
         {
+            PlaySfx(clipPath, 1f);
+        }
+
+        public void PlaySfx(string clipPath, float volumeScale)
+        {
             if (string.IsNullOrEmpty(clipPath))
             {
                 return;
             }
 
-            PlayClip(LoadCachedAudioClip(clipPath));
+            PlayClip(LoadCachedAudioClip(clipPath), volumeScale);
         }
 
         public void PlayMenuBgm()
@@ -144,9 +149,14 @@ namespace LeiTing.Audio
 
         private void PlayClip(AudioClip clip)
         {
+            PlayClip(clip, 1f);
+        }
+
+        private void PlayClip(AudioClip clip, float volumeScale)
+        {
             if (sfxSource != null && clip != null && GameSettingManager.SoundEnabled)
             {
-                sfxSource.PlayOneShot(clip);
+                sfxSource.PlayOneShot(clip, Mathf.Clamp01(volumeScale));
             }
         }
 

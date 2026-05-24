@@ -13,7 +13,7 @@ namespace LeiTing.Audio
     public sealed class AircraftEngineAudio : MonoBehaviour
     {
         [Header("Engine Sound")]
-        [Tooltip("Audio asset path, for example Assets/Art/Sound/helicopter01.wav.")]
+        [Tooltip("Audio asset path, for example Assets/Art/Sound/SFX/Enemy/SFX_Enemy_Engine_Loop_Small_01.wav.")]
         [SerializeField] private string clipPath;
         [Tooltip("Optional direct reference. When assigned, it overrides Clip Path.")]
         [SerializeField] private AudioClip clipOverride;

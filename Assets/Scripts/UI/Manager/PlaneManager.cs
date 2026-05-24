@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using LeiTing.Core;
+using LeiTing.Storage;
 using UnityEngine;
 
 namespace LeiTing.UI
@@ -59,7 +60,7 @@ namespace LeiTing.UI
         public PlaneData GetSelectedPlane()
         {
             EnsureDefaultPlanes();
-            var selectedId = PlayerPrefs.GetInt(SelectedPlaneKey, 1);
+            var selectedId = GameStorage.GetInt(SelectedPlaneKey, 1);
 
             foreach (var plane in planes)
             {
@@ -97,9 +98,9 @@ namespace LeiTing.UI
                 return;
             }
 
-            PlayerPrefs.SetInt(SelectedPlaneKey, planeId);
+            GameStorage.SetInt(SelectedPlaneKey, planeId);
             RefreshSelection();
-            PlayerPrefs.Save();
+            GameStorage.Save();
             OnPlaneDataChanged?.Invoke();
         }
 
@@ -114,7 +115,7 @@ namespace LeiTing.UI
             }
 
             plane.adCountWatched = Mathf.Min(plane.adCountRequired, plane.adCountWatched + 1);
-            PlayerPrefs.SetInt(GetAdKey(planeId), plane.adCountWatched);
+            GameStorage.SetInt(GetAdKey(planeId), plane.adCountWatched);
 
             if (plane.adCountWatched >= plane.adCountRequired)
             {
@@ -122,7 +123,7 @@ namespace LeiTing.UI
             }
             else
             {
-                PlayerPrefs.Save();
+                GameStorage.Save();
                 OnPlaneDataChanged?.Invoke();
             }
         }
@@ -144,10 +145,10 @@ namespace LeiTing.UI
             }
 
             plane.owned = true;
-            PlayerPrefs.SetInt(GetOwnedKey(planeId), 1);
-            PlayerPrefs.SetInt(SelectedPlaneKey, planeId);
+            GameStorage.SetInt(GetOwnedKey(planeId), 1);
+            GameStorage.SetInt(SelectedPlaneKey, planeId);
             RefreshSelection();
-            PlayerPrefs.Save();
+            GameStorage.Save();
             OnPlaneDataChanged?.Invoke();
         }
 
@@ -176,7 +177,7 @@ namespace LeiTing.UI
             bool defaultOwned,
             int adCountRequired)
         {
-            var owned = defaultOwned || PlayerPrefs.GetInt(GetOwnedKey(id), defaultOwned ? 1 : 0) == 1;
+            var owned = defaultOwned || GameStorage.GetInt(GetOwnedKey(id), defaultOwned ? 1 : 0) == 1;
             return new PlaneData
             {
                 id = id,
@@ -191,7 +192,7 @@ namespace LeiTing.UI
                 selected = false,
                 unlockType = owned ? PlaneUnlockType.Default : PlaneUnlockType.Ad,
                 adCountRequired = Mathf.Max(1, adCountRequired),
-                adCountWatched = PlayerPrefs.GetInt(GetAdKey(id), 0)
+                adCountWatched = GameStorage.GetInt(GetAdKey(id), 0)
             };
         }
 
@@ -215,20 +216,20 @@ namespace LeiTing.UI
                 return;
             }
 
-            var selectedId = PlayerPrefs.GetInt(SelectedPlaneKey, 1);
+            var selectedId = GameStorage.GetInt(SelectedPlaneKey, 1);
             var selectedPlane = FindPlane(selectedId);
 
             if (selectedPlane == null || !selectedPlane.owned)
             {
                 selectedId = planes[0].id;
-                PlayerPrefs.SetInt(SelectedPlaneKey, selectedId);
+                GameStorage.SetInt(SelectedPlaneKey, selectedId);
             }
 
             foreach (var plane in planes)
             {
                 plane.selected = plane.id == selectedId;
-                plane.owned = plane.owned || PlayerPrefs.GetInt(GetOwnedKey(plane.id), plane.owned ? 1 : 0) == 1;
-                plane.adCountWatched = PlayerPrefs.GetInt(GetAdKey(plane.id), plane.adCountWatched);
+                plane.owned = plane.owned || GameStorage.GetInt(GetOwnedKey(plane.id), plane.owned ? 1 : 0) == 1;
+                plane.adCountWatched = GameStorage.GetInt(GetAdKey(plane.id), plane.adCountWatched);
             }
         }
 
