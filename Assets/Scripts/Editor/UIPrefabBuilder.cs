@@ -12,7 +12,7 @@ namespace LeiTing.Editor
         private const string CommonFolder = UiFolder + "/Common";
         private const string RuntimePrefabFolder = "Assets/Prefabs/UI";
         private const string HallArtFolder = "Assets/Art/Sprites/UI/UIHall";
-        private const string PlayerPlaneSpritePath = "Assets/Art/Animations/Player/warplane-01.png";
+        private const string PlayerPlaneSpritePath = "Assets/Art/Sprites/UI/Player/warplane-01.png";
 
         [MenuItem("Tools/LeiTing/UI/Rebuild Main UI Prefabs")]
         public static void RebuildMainUiPrefabs()

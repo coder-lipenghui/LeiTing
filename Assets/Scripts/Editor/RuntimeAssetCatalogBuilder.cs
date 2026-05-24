@@ -19,6 +19,7 @@ namespace LeiTing.Editor
         private const string StagePrefabPath = "Assets/Prefabs/UI/UIStage.prefab";
         private const string DefaultFontPath = "Assets/Art/Font/simhei.ttf";
         private const string MainUiBackgroundPath = "Assets/Art/Sprites/UI/backgroundH.png";
+        private const string PlayerUiSpriteFolder = "Assets/Art/Sprites/UI/Player";
         private const string CoinPickupSoundPath = "Assets/Art/Sound/SFX/Item/coin.wav";
         private const string StarPickupSoundPath = "Assets/Art/Sound/SFX/Item/star.wav";
         private const string BossEntryWarningSoundPath = "Assets/Art/Sound/SFX/Enemy/SFX_Boss_Attack_Warning_01.wav";
@@ -109,6 +110,7 @@ namespace LeiTing.Editor
             AddPath(prefabPaths, StagePrefabPath);
             AddPath(fontPaths, DefaultFontPath);
             AddPath(spritePaths, MainUiBackgroundPath);
+            CollectFolderSpritePaths(PlayerUiSpriteFolder, spritePaths);
             AddPath(audioPaths, CoinPickupSoundPath);
             AddPath(audioPaths, StarPickupSoundPath);
             AddPath(audioPaths, BossEntryWarningSoundPath);
@@ -171,6 +173,19 @@ namespace LeiTing.Editor
             }
 
             CollectPrefabAudioPaths(prefabPaths, audioPaths);
+        }
+
+        private static void CollectFolderSpritePaths(string folderPath, HashSet<string> spritePaths)
+        {
+            if (spritePaths == null || !AssetDatabase.IsValidFolder(folderPath))
+            {
+                return;
+            }
+
+            foreach (var guid in AssetDatabase.FindAssets("t:Sprite", new[] { folderPath }))
+            {
+                AddPath(spritePaths, AssetDatabase.GUIDToAssetPath(guid));
+            }
         }
 
         private static void CollectPrefabAudioPaths(IEnumerable<string> prefabPaths, HashSet<string> audioPaths)

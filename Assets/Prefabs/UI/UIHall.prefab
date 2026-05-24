@@ -417,7 +417,7 @@ MonoBehaviour:
   planeImage: {fileID: 6462321895795038380}
   backgroundSprite: {fileID: 21300000, guid: 2228449035e79423aa007b67f11799c6, type: 3}
   startButtonSprite: {fileID: 21300000, guid: 0b297f21449e74c3ab4f5cdcc4cd666e, type: 3}
-  defaultPlaneSprite: {fileID: 21300000, guid: 1ab9240c6e40b4eefab026b34cf300fe, type: 3}
+  defaultPlaneSprite: {fileID: 21300000, guid: c046cc64a80994e7bb4a593a75c3f1de, type: 3}
 --- !u!1 &7256787105450793155
 GameObject:
   m_ObjectHideFlags: 0
@@ -689,8 +689,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 86}
-  m_SizeDelta: {x: 600, y: 598}
+  m_AnchoredPosition: {x: 0, y: 21}
+  m_SizeDelta: {x: 376, y: 375}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &8321629413177971708
 CanvasRenderer:

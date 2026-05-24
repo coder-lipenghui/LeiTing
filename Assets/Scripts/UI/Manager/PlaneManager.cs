@@ -11,6 +11,7 @@ namespace LeiTing.UI
         private const string SelectedPlaneKey = "leiting_selected_plane";
         private const string OwnedPlaneKeyPrefix = "leiting_plane_owned_";
         private const string PlaneAdKeyPrefix = "leiting_plane_ad_";
+        private const string PlaneIconFolder = "Assets/Art/Sprites/UI/Player";
 
         private readonly List<PlaneData> planes = new List<PlaneData>();
 
@@ -182,7 +183,7 @@ namespace LeiTing.UI
             {
                 id = id,
                 name = name,
-                iconPath = string.Empty,
+                iconPath = GetPlaneIconPath(prefabPath),
                 prefabPath = prefabPath,
                 hp = hp,
                 attack = attack,
@@ -251,6 +252,22 @@ namespace LeiTing.UI
                 adCountRequired = source.adCountRequired,
                 adCountWatched = source.adCountWatched
             };
+        }
+
+        private static string GetPlaneIconPath(string prefabPath)
+        {
+            if (string.IsNullOrWhiteSpace(prefabPath))
+            {
+                return string.Empty;
+            }
+
+            var normalizedPath = prefabPath.Replace("\\", "/").Trim();
+            var fileNameStart = normalizedPath.LastIndexOf('/') + 1;
+            var fileName = normalizedPath.Substring(fileNameStart);
+            var extensionStart = fileName.LastIndexOf('.');
+            var planeName = extensionStart >= 0 ? fileName.Substring(0, extensionStart) : fileName;
+
+            return string.IsNullOrEmpty(planeName) ? string.Empty : $"{PlaneIconFolder}/{planeName}.png";
         }
 
         private static string GetOwnedKey(int planeId)
