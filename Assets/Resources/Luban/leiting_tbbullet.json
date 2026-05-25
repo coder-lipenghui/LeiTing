@@ -152,5 +152,27 @@
     "muzzleSpacing": 0,
     "pierceCount": 0,
     "laserLength": 0
+  },
+  {
+    "index": 8,
+    "id": "level1_midboss_spinning_bullet",
+    "owner": "Enemy",
+    "firePattern": "Spin:70",
+    "spritePath": "Assets/Art/Sprites/Bullets/enemy_bullet_43.png",
+    "damage": 1,
+    "speed": 3.4,
+    "lifetime": 5.4,
+    "sizeX": 0.18,
+    "sizeY": 0.34,
+    "glowColorR": 1,
+    "glowColorG": 0.38,
+    "glowColorB": 0.16,
+    "glowColorA": 0.52,
+    "glowRange": 0.18,
+    "projectileCount": 1,
+    "spreadAngle": 0,
+    "muzzleSpacing": 0,
+    "pierceCount": 0,
+    "laserLength": 0
   }
 ]

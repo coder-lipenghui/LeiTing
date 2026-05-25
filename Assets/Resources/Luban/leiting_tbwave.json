@@ -184,5 +184,35 @@
     "id": "wave_level_01_spiral_045_sides",
     "levelId": "level_01",
     "startTime": 45
+  },
+  {
+    "index": 32,
+    "id": "wave_level_01_resource_heal_070",
+    "levelId": "level_01",
+    "startTime": 70
+  },
+  {
+    "index": 33,
+    "id": "wave_level_01_extra_planes_073",
+    "levelId": "level_01",
+    "startTime": 73
+  },
+  {
+    "index": 34,
+    "id": "wave_level_01_homing_fighters_080",
+    "levelId": "level_01",
+    "startTime": 80
+  },
+  {
+    "index": 35,
+    "id": "wave_level_01_midboss_090",
+    "levelId": "level_01",
+    "startTime": 90
+  },
+  {
+    "index": 36,
+    "id": "wave_level_01_side_helis_110",
+    "levelId": "level_01",
+    "startTime": 110
   }
 ]

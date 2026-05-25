@@ -348,5 +348,61 @@
     "hitScaleFeedback": false,
     "score": 500,
     "hitSoundPath": "Assets/Art/Sound/SFX/Enemy/SFX_Enemy_Hit_01.wav"
+  },
+  {
+    "index": 26,
+    "id": "level1_resource_helicopter",
+    "displayName": "关卡1补给直升机",
+    "prefabPath": "Assets/Prefabs/Enemies/small_helicopter_05.prefab",
+    "hp": 10,
+    "moveSpeed": 2,
+    "attackInterval": 999,
+    "bulletId": "",
+    "bulletPatternId": "",
+    "hitScaleFeedback": false,
+    "score": 120,
+    "hitSoundPath": "Assets/Art/Sound/SFX/Enemy/SFX_Enemy_Hit_01.wav"
+  },
+  {
+    "index": 27,
+    "id": "level1_homing_fighter",
+    "displayName": "关卡1追踪导弹战斗机",
+    "prefabPath": "Assets/Prefabs/Enemies/enemy_02.prefab",
+    "hp": 16,
+    "moveSpeed": 5.2,
+    "attackInterval": 999,
+    "bulletId": "enemy_bullet_01",
+    "bulletPatternId": "level1_fighter_homing_pair",
+    "hitScaleFeedback": false,
+    "score": 260,
+    "hitSoundPath": "Assets/Art/Sound/SFX/Enemy/SFX_Enemy_Hit_01.wav"
+  },
+  {
+    "index": 28,
+    "id": "level1_side_helicopter",
+    "displayName": "关卡1侧翼直升机",
+    "prefabPath": "Assets/Prefabs/Enemies/small_helicopter_05.prefab",
+    "hp": 7,
+    "moveSpeed": 2.35,
+    "attackInterval": 999,
+    "bulletId": "",
+    "bulletPatternId": "",
+    "hitScaleFeedback": false,
+    "score": 90,
+    "hitSoundPath": "Assets/Art/Sound/SFX/Enemy/SFX_Enemy_Hit_01.wav"
+  },
+  {
+    "index": 29,
+    "id": "boss_level1_enemy_08",
+    "displayName": "关卡1小型BOSS机",
+    "prefabPath": "Assets/Prefabs/Enemies/enemy_08.prefab",
+    "hp": 120,
+    "moveSpeed": 1.2,
+    "attackInterval": 1.2,
+    "bulletId": "level1_midboss_spinning_bullet",
+    "bulletPatternId": "",
+    "hitScaleFeedback": false,
+    "score": 1800,
+    "hitSoundPath": "Assets/Art/Sound/SFX/Enemy/SFX_Enemy_Hit_01.wav"
   }
 ]

@@ -1,4 +1,7 @@
+using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Globalization;
 using LeiTing.Audio;
 using LeiTing.Bullets;
 using LeiTing.Config;
@@ -30,6 +33,7 @@ namespace LeiTing.Enemy
         [SerializeField] private int maxHp;
 
         private BossPhaseConfig[] phases;
+        private readonly List<ScheduledPattern> scheduledPatterns = new List<ScheduledPattern>();
         private Rigidbody2D body;
         private CircleCollider2D hitbox;
         private SpriteRenderer spriteRenderer;
@@ -66,6 +70,7 @@ namespace LeiTing.Enemy
             isEntering = true;
             isFiringBurst = false;
             isDead = false;
+            scheduledPatterns.Clear();
 
             ApplyLayer();
             ApplyVisual();
@@ -165,10 +170,17 @@ namespace LeiTing.Enemy
         {
             var hasConfiguredSprite = spriteRenderer.sprite != null;
             spriteRenderer.sprite = hasConfiguredSprite ? spriteRenderer.sprite : LoadBossSprite() ?? CreateFallbackBossSprite();
-            spriteRenderer.flipY = true;
+            spriteRenderer.flipY = ShouldFlipBossVisual();
             spriteRenderer.sortingOrder = 25;
             originalColor = hasConfiguredSprite ? spriteRenderer.color : Color.white;
             spriteRenderer.color = originalColor;
+        }
+
+        private bool ShouldFlipBossVisual()
+        {
+            return config == null
+                || string.IsNullOrEmpty(config.prefabPath)
+                || config.prefabPath.IndexOf("/enemy_", StringComparison.OrdinalIgnoreCase) < 0;
         }
 
         private void UpdateEntry()
@@ -223,6 +235,7 @@ namespace LeiTing.Enemy
             currentPhaseIndex = Mathf.Clamp(phaseIndex, 0, Mathf.Max(0, GetPhaseCount() - 1));
             nextAttackTime = Time.time + (isInitial ? 0.65f : 1.1f);
             volleyCursor = 0;
+            ConfigureScheduledPatterns(GetCurrentPhase());
 
             if (!isInitial && BulletManager.Instance != null)
             {
@@ -255,6 +268,12 @@ namespace LeiTing.Enemy
 
         private void UpdateAttack()
         {
+            if (scheduledPatterns.Count > 0)
+            {
+                UpdateScheduledPatterns();
+                return;
+            }
+
             if (Time.time < nextAttackTime || isFiringBurst)
             {
                 return;
@@ -301,12 +320,101 @@ namespace LeiTing.Enemy
             var patternId = phase.bulletPatternIds[volleyCursor % phase.bulletPatternIds.Count];
             volleyCursor++;
 
+            FirePatternId(patternId);
+        }
+
+        private void FirePatternId(string patternId)
+        {
             if (TryFireBulletPattern(patternId) || TryFireMissilePattern(patternId))
             {
                 return;
             }
 
             FireFallbackShot();
+        }
+
+        private void ConfigureScheduledPatterns(BossPhaseConfig phase)
+        {
+            scheduledPatterns.Clear();
+            if (phase?.bulletPatternIds == null)
+            {
+                return;
+            }
+
+            foreach (var rawPatternId in phase.bulletPatternIds)
+            {
+                if (!TryParseScheduledPattern(rawPatternId, out var patternId, out var interval, out var offset))
+                {
+                    continue;
+                }
+
+                scheduledPatterns.Add(new ScheduledPattern
+                {
+                    patternId = patternId,
+                    interval = interval,
+                    nextFireTime = Time.time + offset
+                });
+            }
+        }
+
+        private void UpdateScheduledPatterns()
+        {
+            for (var index = 0; index < scheduledPatterns.Count; index++)
+            {
+                var scheduled = scheduledPatterns[index];
+                if (Time.time < scheduled.nextFireTime)
+                {
+                    continue;
+                }
+
+                FirePatternId(scheduled.patternId);
+                scheduled.nextFireTime = Time.time + scheduled.interval;
+            }
+        }
+
+        private static bool TryParseScheduledPattern(string rawPatternId, out string patternId, out float interval, out float offset)
+        {
+            patternId = rawPatternId;
+            interval = 0f;
+            offset = 0f;
+
+            if (string.IsNullOrWhiteSpace(rawPatternId))
+            {
+                return false;
+            }
+
+            var separatorIndex = rawPatternId.IndexOf('@');
+            if (separatorIndex < 0 || separatorIndex >= rawPatternId.Length - 1)
+            {
+                return false;
+            }
+
+            patternId = rawPatternId.Substring(0, separatorIndex);
+            var scheduleSpec = rawPatternId.Substring(separatorIndex + 1);
+            var offsetIndex = scheduleSpec.IndexOf('+');
+            var intervalText = offsetIndex >= 0 ? scheduleSpec.Substring(0, offsetIndex) : scheduleSpec;
+            var offsetText = offsetIndex >= 0 ? scheduleSpec.Substring(offsetIndex + 1) : "0";
+
+            if (!float.TryParse(intervalText, NumberStyles.Float, CultureInfo.InvariantCulture, out interval))
+            {
+                return false;
+            }
+
+            if (!float.TryParse(offsetText, NumberStyles.Float, CultureInfo.InvariantCulture, out offset))
+            {
+                offset = 0f;
+            }
+
+            interval = Mathf.Max(0.05f, interval);
+            offset = Mathf.Max(0f, offset);
+            return !string.IsNullOrWhiteSpace(patternId);
+        }
+
+        private sealed class ScheduledPattern
+        {
+            public string patternId;
+            public float interval;
+            public float nextFireTime;
         }
 
         private bool TryFireBulletPattern(string patternId)

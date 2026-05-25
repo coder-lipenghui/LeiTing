@@ -40,6 +40,7 @@ namespace LeiTing.Bullets
         private SpriteRenderer glowRenderer;
         private Vector2 direction = Vector2.up;
         private float speed;
+        private float visualSpinSpeed;
         private float lifetimeRemaining;
         private float laserWidth;
         private float laserLength;
@@ -79,6 +80,7 @@ namespace LeiTing.Bullets
             Owner = string.IsNullOrEmpty(bulletConfig.owner) ? "Player" : bulletConfig.owner;
             Damage = Mathf.Max(1, bulletConfig.damage);
             speed = Mathf.Max(0f, bulletConfig.speed);
+            visualSpinSpeed = ResolveVisualSpinSpeed(bulletConfig.firePattern);
             lifetimeRemaining = Mathf.Max(0.05f, bulletConfig.lifetime);
             direction = fireDirection.sqrMagnitude > 0.0001f ? fireDirection.normalized : Vector2.up;
             remainingPierceHits = bulletConfig.pierceCount;
@@ -124,6 +126,7 @@ namespace LeiTing.Bullets
             else
             {
                 transform.position += (Vector3)(direction * speed * delta);
+                UpdateVisualSpin(delta);
             }
 
             lifetimeRemaining -= delta;
@@ -303,6 +306,16 @@ namespace LeiTing.Bullets
             laserLength = length;
         }
 
+        private void UpdateVisualSpin(float delta)
+        {
+            if (Mathf.Approximately(visualSpinSpeed, 0f) || visualRoot == null)
+            {
+                return;
+            }
+
+            visualRoot.Rotate(0f, 0f, visualSpinSpeed * delta, Space.Self);
+        }
+
         private void ConfigureLaserGlow(float length)
         {
             if (glowRenderer == null)
@@ -406,6 +419,29 @@ namespace LeiTing.Bullets
         private static bool IsPattern(string pattern, string expected)
         {
             return string.Equals(pattern, expected, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static float ResolveVisualSpinSpeed(string firePattern)
+        {
+            if (string.IsNullOrWhiteSpace(firePattern)
+                || !firePattern.StartsWith("Spin", StringComparison.OrdinalIgnoreCase))
+            {
+                return 0f;
+            }
+
+            var separatorIndex = firePattern.IndexOf(':');
+            if (separatorIndex >= 0
+                && separatorIndex < firePattern.Length - 1
+                && float.TryParse(
+                    firePattern.Substring(separatorIndex + 1),
+                    System.Globalization.NumberStyles.Float,
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    out var configuredSpeed))
+            {
+                return configuredSpeed;
+            }
+
+            return 70f;
         }
 
         private static Sprite LoadConfiguredSprite(string spritePath)

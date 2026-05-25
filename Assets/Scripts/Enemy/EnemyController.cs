@@ -48,8 +48,11 @@ namespace LeiTing.Enemy
         private OrbitMovement orbitMovement;
         private bool usesOrbitMovement;
         private bool configuredRotateToPath;
+        private bool configuredFireOnce;
         private float configuredRotationOffset = -90f;
+        private float configuredFireOnceDelay = 0.65f;
         private bool hasFiredEntryShot;
+        private bool hasFiredConfiguredOnce;
         private bool useChildHitboxes;
         private bool isDead;
 
@@ -79,6 +82,7 @@ namespace LeiTing.Enemy
             nextAttackTime = Time.time + GetAttackInterval();
             flashUntil = 0f;
             hasFiredEntryShot = false;
+            hasFiredConfiguredOnce = false;
             isDead = false;
             gameObject.SetActive(true);
 
@@ -269,7 +273,9 @@ namespace LeiTing.Enemy
         {
             usesOrbitMovement = false;
             configuredRotateToPath = false;
+            configuredFireOnce = false;
             configuredRotationOffset = -90f;
+            configuredFireOnceDelay = 0.65f;
 
             if (!IsOrbitMovementPath(movementPath))
             {
@@ -347,6 +353,14 @@ namespace LeiTing.Enemy
                     case "rotationoffset":
                         SetFloat(value, result => configuredRotationOffset = result);
                         break;
+                    case "fireonce":
+                    case "entryshotonce":
+                        SetBool(value, result => configuredFireOnce = result);
+                        break;
+                    case "fireoncedelay":
+                    case "attackdelay":
+                        SetFloat(value, result => configuredFireOnceDelay = Mathf.Max(0f, result));
+                        break;
                 }
             });
         }
@@ -423,6 +437,17 @@ namespace LeiTing.Enemy
         {
             if (string.IsNullOrEmpty(config?.bulletId) && string.IsNullOrEmpty(attackPatternId))
             {
+                return;
+            }
+
+            if (configuredFireOnce)
+            {
+                if (!hasFiredConfiguredOnce && aliveTime >= configuredFireOnceDelay)
+                {
+                    hasFiredConfiguredOnce = true;
+                    FireConfiguredPattern();
+                }
+
                 return;
             }
 

@@ -3,7 +3,7 @@
     "index": 1,
     "id": "boss_phase_01",
     "bossId": "boss_01",
-    "displayName": "PHASE 1  弹幕教学",
+    "displayName": "热身",
     "triggerHpPercent": 1,
     "attackInterval": 1.55,
     "burstCount": 2,
@@ -16,7 +16,7 @@
     "index": 2,
     "id": "boss_phase_02",
     "bossId": "boss_01",
-    "displayName": "PHASE 2  压迫提升",
+    "displayName": "正式",
     "triggerHpPercent": 0.66,
     "attackInterval": 1.35,
     "burstCount": 3,
@@ -29,7 +29,7 @@
     "index": 3,
     "id": "boss_phase_03",
     "bossId": "boss_01",
-    "displayName": "PHASE 3  雷核过载",
+    "displayName": "恐惧",
     "triggerHpPercent": 0.33,
     "attackInterval": 1.1,
     "burstCount": 4,
@@ -115,5 +115,18 @@
     "movementRangeX": 1.5,
     "movementRangeY": 0.18,
     "movementSpeed": 1.3
+  },
+  {
+    "index": 10,
+    "id": "boss_level1_enemy_08_phase_01",
+    "bossId": "boss_level1_enemy_08",
+    "displayName": "关卡1小型BOSS",
+    "triggerHpPercent": 1,
+    "attackInterval": 1.2,
+    "burstCount": 1,
+    "burstInterval": 0.1,
+    "movementRangeX": 0.85,
+    "movementRangeY": 0.1,
+    "movementSpeed": 0.95
   }
 ]

@@ -6,7 +6,7 @@ namespace LeiTing.Effects
     [DisallowMultipleComponent]
     public class PropellerRotator : MonoBehaviour
     {
-        [SerializeField] private float degreesPerSecond = -1440f;
+        [SerializeField] private float degreesPerSecond = -1200f;
         [SerializeField] private bool useUnscaledTime;
         [SerializeField] private bool spinOnlyDuringGameplay = true;
 

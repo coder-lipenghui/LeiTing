@@ -51,10 +51,16 @@ MonoBehaviour:
     prefab: {fileID: 100000, guid: f3c65bb633bd8a0e465cdc20d5621a6d, type: 3}
   - path: Assets/Prefabs/Enemies/enemy_01.prefab
     prefab: {fileID: 100000, guid: 861c5dbe2db07a3f85e7ca0adefe9e3a, type: 3}
+  - path: Assets/Prefabs/Enemies/enemy_02.prefab
+    prefab: {fileID: 100000, guid: f5b41cb591ef94c3eaaa851b8d4253ae, type: 3}
   - path: Assets/Prefabs/Enemies/enemy_04.prefab
     prefab: {fileID: 100000, guid: c909ea4459bc34daba2da1ba110fdb30, type: 3}
+  - path: Assets/Prefabs/Enemies/enemy_08.prefab
+    prefab: {fileID: 100000, guid: c8a80df846fbf4e419d0178f0996e986, type: 3}
   - path: Assets/Prefabs/Enemies/small_helicopter_01.prefab
     prefab: {fileID: 100000, guid: 26672fe7dd4fe481997e755590e0a058, type: 3}
+  - path: Assets/Prefabs/Enemies/small_helicopter_05.prefab
+    prefab: {fileID: 100000, guid: 44e865aabc12a46848b536a3457eea8e, type: 3}
   - path: Assets/Prefabs/Missiles/missile_01_straight.prefab
     prefab: {fileID: 100000, guid: 0b059b8e3c13cabb9aec2aff6ff0a0c0, type: 3}
   - path: Assets/Prefabs/Missiles/missile_03_weak_homing.prefab
@@ -80,6 +86,8 @@ MonoBehaviour:
     sprite: {fileID: 21300000, guid: 7061789d426f74cecbba946337ad4ab8, type: 3}
   - path: Assets/Art/Sprites/Bullets/enemy_bullet_01.png
     sprite: {fileID: 21300000, guid: 6b07a0cd9ca8f44088f4cf651dbcff97, type: 3}
+  - path: Assets/Art/Sprites/Bullets/enemy_bullet_43.png
+    sprite: {fileID: 21300000, guid: 881490422961144179c61fce1a59aa38, type: 3}
   - path: Assets/Art/Sprites/Bullets/missile_01.png
     sprite: {fileID: 21300000, guid: d04d3f7d4dea84760b954e08e4d2c7ef, type: 3}
   - path: Assets/Art/Sprites/Bullets/missile_03.png
@@ -122,6 +130,8 @@ MonoBehaviour:
     audioClip: {fileID: 8300000, guid: d5e1ff195a4cc4b2e86abdc5a710cb15, type: 3}
   - path: Assets/Art/Sound/SFX/Item/coin.wav
     audioClip: {fileID: 8300000, guid: 6aa541d00c37464e855eec5c6f7f98f7, type: 3}
+  - path: Assets/Art/Sound/SFX/Item/SFX_Item_Pickup_Special_01.wav
+    audioClip: {fileID: 8300000, guid: 139dffd3390874fec9611869bd5c3402, type: 3}
   - path: Assets/Art/Sound/SFX/Item/star.wav
     audioClip: {fileID: 8300000, guid: 2dba4168eb074156ba0289f4d1e6eead, type: 3}
   - path: Assets/Art/Sound/SFX/Player/SFX_Player_Shoot_Normal_01.wav

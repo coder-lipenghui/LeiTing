@@ -22,6 +22,7 @@ namespace LeiTing.Pickups
         private const float TreasureScaleVariance = 0.08f;
         private const string CoinPickupSoundPath = "Assets/Art/Sound/SFX/Item/coin.wav";
         private const string StarPickupSoundPath = "Assets/Art/Sound/SFX/Item/star.wav";
+        private const string SpecialPickupSoundPath = "Assets/Art/Sound/SFX/Item/SFX_Item_Pickup_Special_01.wav";
 
         private static readonly Color MagnetGlowColor = new Color(0.12f, 0.58f, 1f, 0.54f);
         private static readonly Color TreasureGlowColor = new Color(1f, 0.72f, 0.08f, 0.58f);
@@ -238,21 +239,26 @@ namespace LeiTing.Pickups
                 player.AddCoins(GetCoinValue());
                 PlayPickupSound(CoinPickupSoundPath);
             }
-            else if (IsItemType("Magnet") || IsItemId("magnet"))
+            else
             {
-                PickupManager.GetOrCreate().AttractAllStarsToPlayer(player);
-            }
-            else if (IsItemType("Bomb") || IsItemId("boom"))
-            {
-                PickupManager.GetOrCreate().KillAllMinions();
-            }
-            else if (IsItemType("Heal") || IsItemId("hp"))
-            {
-                player.Heal(GetHealValue());
-            }
-            else if (IsItemType("Shield") || IsItemId("shield"))
-            {
-                player.ActivateInvincibleShield(GetShieldDuration());
+                if (IsItemType("Magnet") || IsItemId("magnet"))
+                {
+                    PickupManager.GetOrCreate().AttractAllStarsToPlayer(player);
+                }
+                else if (IsItemType("Bomb") || IsItemId("boom"))
+                {
+                    PickupManager.GetOrCreate().KillAllMinions();
+                }
+                else if (IsItemType("Heal") || IsItemId("hp"))
+                {
+                    player.Heal(GetHealValue());
+                }
+                else if (IsItemType("Shield") || IsItemId("shield"))
+                {
+                    player.ActivateInvincibleShield(GetShieldDuration());
+                }
+
+                PlayPickupSound(SpecialPickupSoundPath);
             }
 
             Destroy(gameObject);

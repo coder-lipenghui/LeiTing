@@ -294,6 +294,18 @@ namespace LeiTing.Bullets
                 return angles;
             }
 
+            if (IsPatternType(patternType, "RandomLine") || IsPatternType(patternType, "RandomXLine"))
+            {
+                var totalSpread = pattern.spreadAngle > 0f ? pattern.spreadAngle : 18f;
+                var halfSpread = totalSpread * 0.5f;
+                for (var index = 0; index < bulletCount; index++)
+                {
+                    angles.Add(baseAngle + UnityEngine.Random.Range(-halfSpread, halfSpread));
+                }
+
+                return angles;
+            }
+
             if (IsPatternType(patternType, "Fan") || IsPatternType(patternType, "Aim") || IsPatternType(patternType, "Rotating"))
             {
                 var totalSpread = pattern.spreadAngle > 0f ? pattern.spreadAngle : pattern.angleStep * Mathf.Max(0, bulletCount - 1);
