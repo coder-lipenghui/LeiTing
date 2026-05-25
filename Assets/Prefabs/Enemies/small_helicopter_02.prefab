@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 3710896856423927564}
   - component: {fileID: -6474643019475341318}
   m_Layer: 10
-  m_Name: small_helicopter_01
+  m_Name: small_helicopter_02
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -302,7 +302,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 25
-  m_Sprite: {fileID: 21300000, guid: 724559548e99548febbcc035ebe278a7, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 043b7db460d3641b9a0c4d306089b994, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
