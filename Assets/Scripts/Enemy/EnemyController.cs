@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using LeiTing.Bullets;
 using LeiTing.Audio;
@@ -24,6 +25,13 @@ namespace LeiTing.Enemy
 
         private static Material hitFlashMaterial;
 
+        private sealed class ScheduledPattern
+        {
+            public string patternId;
+            public float interval;
+            public float nextFireTime;
+        }
+
         [SerializeField] private EnemyConfig config;
         [SerializeField] private int currentHp;
 
@@ -33,6 +41,7 @@ namespace LeiTing.Enemy
         private SpriteRenderer flashRenderer;
         private AircraftWingTrailEffect wingTrailEffect;
         private ActorMounts mounts;
+        private readonly List<ScheduledPattern> scheduledPatterns = new List<ScheduledPattern>();
         private Color originalColor = Color.white;
         private Vector3 spawnPosition;
         private Vector3 flashBaseLocalScale = Vector3.one;
@@ -83,6 +92,7 @@ namespace LeiTing.Enemy
             flashUntil = 0f;
             hasFiredEntryShot = false;
             hasFiredConfiguredOnce = false;
+            ConfigureScheduledPatterns(attackPatternId);
             isDead = false;
             gameObject.SetActive(true);
 
@@ -440,6 +450,12 @@ namespace LeiTing.Enemy
                 return;
             }
 
+            if (scheduledPatterns.Count > 0)
+            {
+                UpdateScheduledPatterns();
+                return;
+            }
+
             if (configuredFireOnce)
             {
                 if (!hasFiredConfiguredOnce && aliveTime >= configuredFireOnceDelay)
@@ -476,13 +492,99 @@ namespace LeiTing.Enemy
         {
             if (!string.IsNullOrEmpty(attackPatternId))
             {
-                if (TryFireBulletPattern(attackPatternId) || TryFireMissilePattern(attackPatternId))
-                {
-                    return;
-                }
+                FirePatternId(attackPatternId);
+                return;
             }
 
             FireSingleAtPlayer();
+        }
+
+        private void FirePatternId(string patternId)
+        {
+            if (TryFireBulletPattern(patternId) || TryFireMissilePattern(patternId))
+            {
+                return;
+            }
+
+            FireSingleAtPlayer();
+        }
+
+        private void ConfigureScheduledPatterns(string patternSpec)
+        {
+            scheduledPatterns.Clear();
+            if (string.IsNullOrWhiteSpace(patternSpec))
+            {
+                return;
+            }
+
+            var entries = patternSpec.Split(new[] { '|', ';' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var rawEntry in entries)
+            {
+                if (!TryParseScheduledPattern(rawEntry.Trim(), out var patternId, out var interval, out var offset))
+                {
+                    continue;
+                }
+
+                scheduledPatterns.Add(new ScheduledPattern
+                {
+                    patternId = patternId,
+                    interval = interval,
+                    nextFireTime = Time.time + offset
+                });
+            }
+        }
+
+        private void UpdateScheduledPatterns()
+        {
+            for (var index = 0; index < scheduledPatterns.Count; index++)
+            {
+                var scheduled = scheduledPatterns[index];
+                if (Time.time < scheduled.nextFireTime)
+                {
+                    continue;
+                }
+
+                FirePatternId(scheduled.patternId);
+                scheduled.nextFireTime = Time.time + scheduled.interval;
+            }
+        }
+
+        private static bool TryParseScheduledPattern(string rawPatternId, out string patternId, out float interval, out float offset)
+        {
+            patternId = rawPatternId;
+            interval = 0f;
+            offset = 0f;
+
+            if (string.IsNullOrWhiteSpace(rawPatternId))
+            {
+                return false;
+            }
+
+            var separatorIndex = rawPatternId.IndexOf('@');
+            if (separatorIndex < 0 || separatorIndex >= rawPatternId.Length - 1)
+            {
+                return false;
+            }
+
+            patternId = rawPatternId.Substring(0, separatorIndex);
+            var scheduleSpec = rawPatternId.Substring(separatorIndex + 1);
+            var offsetIndex = scheduleSpec.IndexOf('+');
+            var intervalText = offsetIndex >= 0 ? scheduleSpec.Substring(0, offsetIndex) : scheduleSpec;
+            var offsetText = offsetIndex >= 0 ? scheduleSpec.Substring(offsetIndex + 1) : "0";
+
+            if (!float.TryParse(intervalText, NumberStyles.Float, CultureInfo.InvariantCulture, out interval))
+            {
+                return false;
+            }
+
+            if (!float.TryParse(offsetText, NumberStyles.Float, CultureInfo.InvariantCulture, out offset))
+            {
+                offset = 0f;
+            }
+
+            interval = Mathf.Max(0.05f, interval);
+            offset = Mathf.Max(0f, offset);
+            return !string.IsNullOrWhiteSpace(patternId);
         }
 
         private bool TryFireBulletPattern(string patternId)

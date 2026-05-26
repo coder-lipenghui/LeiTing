@@ -257,33 +257,5 @@
     "bossPhaseId": "boss_helicopter_06_phase_01",
     "sort": 5,
     "patternId": "heli_missile_explode_3"
-  },
-  {
-    "index": 38,
-    "id": "boss_phase_pattern_boss_level1_enemy_08_phase_01_01",
-    "bossPhaseId": "boss_level1_enemy_08_phase_01",
-    "sort": 1,
-    "patternId": "level1_midboss_center_random_line@3+0.2"
-  },
-  {
-    "index": 39,
-    "id": "boss_phase_pattern_boss_level1_enemy_08_phase_01_02",
-    "bossPhaseId": "boss_level1_enemy_08_phase_01",
-    "sort": 2,
-    "patternId": "level1_midboss_windmill_cw@4+0.6"
-  },
-  {
-    "index": 40,
-    "id": "boss_phase_pattern_boss_level1_enemy_08_phase_01_03",
-    "bossPhaseId": "boss_level1_enemy_08_phase_01",
-    "sort": 3,
-    "patternId": "level1_midboss_windmill_ccw@4+2.6"
-  },
-  {
-    "index": 41,
-    "id": "boss_phase_pattern_boss_level1_enemy_08_phase_01_04",
-    "bossPhaseId": "boss_level1_enemy_08_phase_01",
-    "sort": 4,
-    "patternId": "level1_midboss_missile_pair@6+1.2"
   }
 ]

@@ -39,13 +39,21 @@ namespace LeiTing.Bullets
         private SpriteRenderer spriteRenderer;
         private SpriteRenderer glowRenderer;
         private Vector2 direction = Vector2.up;
+        private Vector2 linearOrigin;
+        private Vector2 lateralDirection;
         private float speed;
         private float visualSpinSpeed;
+        private float projectileAge;
         private float lifetimeRemaining;
         private float laserWidth;
         private float laserLength;
+        private float swayAmplitude;
+        private float swayFrequency;
+        private float swayPhase;
+        private float previousSwayOffset;
         private int remainingPierceHits;
         private bool isLaser;
+        private bool useSwayMovement;
         private bool isActiveProjectile;
 
         public string Owner { get; private set; }
@@ -80,9 +88,13 @@ namespace LeiTing.Bullets
             Owner = string.IsNullOrEmpty(bulletConfig.owner) ? "Player" : bulletConfig.owner;
             Damage = Mathf.Max(1, bulletConfig.damage);
             speed = Mathf.Max(0f, bulletConfig.speed);
-            visualSpinSpeed = ResolveVisualSpinSpeed(bulletConfig.firePattern);
+            ConfigureMotionPattern(bulletConfig.firePattern);
             lifetimeRemaining = Mathf.Max(0.05f, bulletConfig.lifetime);
             direction = fireDirection.sqrMagnitude > 0.0001f ? fireDirection.normalized : Vector2.up;
+            lateralDirection = new Vector2(-direction.y, direction.x);
+            linearOrigin = transform.position;
+            projectileAge = 0f;
+            previousSwayOffset = 0f;
             remainingPierceHits = bulletConfig.pierceCount;
             isLaser = IsPattern(bulletConfig.firePattern, "Laser");
 
@@ -125,7 +137,15 @@ namespace LeiTing.Bullets
             }
             else
             {
-                transform.position += (Vector3)(direction * speed * delta);
+                if (useSwayMovement)
+                {
+                    UpdateSwayMovement(delta);
+                }
+                else
+                {
+                    transform.position += (Vector3)(direction * speed * delta);
+                }
+
                 UpdateVisualSpin(delta);
             }
 
@@ -316,6 +336,27 @@ namespace LeiTing.Bullets
             visualRoot.Rotate(0f, 0f, visualSpinSpeed * delta, Space.Self);
         }
 
+        private void UpdateSwayMovement(float delta)
+        {
+            projectileAge += delta;
+            linearOrigin += direction * speed * delta;
+
+            var swayOffset = Mathf.Sin(projectileAge * swayFrequency * Mathf.PI * 2f + swayPhase) * swayAmplitude;
+            transform.position = linearOrigin + lateralDirection * swayOffset;
+
+            if (delta > 0f)
+            {
+                var lateralSpeed = (swayOffset - previousSwayOffset) / delta;
+                var velocity = direction * speed + lateralDirection * lateralSpeed;
+                if (velocity.sqrMagnitude > 0.0001f)
+                {
+                    transform.up = velocity.normalized;
+                }
+            }
+
+            previousSwayOffset = swayOffset;
+        }
+
         private void ConfigureLaserGlow(float length)
         {
             if (glowRenderer == null)
@@ -421,27 +462,91 @@ namespace LeiTing.Bullets
             return string.Equals(pattern, expected, StringComparison.OrdinalIgnoreCase);
         }
 
+        private void ConfigureMotionPattern(string firePattern)
+        {
+            visualSpinSpeed = ResolveVisualSpinSpeed(firePattern);
+            useSwayMovement = IsMotionPattern(firePattern, "Sway") || IsMotionPattern(firePattern, "Sine");
+            swayAmplitude = 0.28f;
+            swayFrequency = 1.6f;
+            swayPhase = 0f;
+
+            if (!useSwayMovement)
+            {
+                return;
+            }
+
+            var values = GetPatternValues(firePattern);
+            TryReadFloat(values, 0, result => swayAmplitude = Mathf.Max(0f, result));
+            TryReadFloat(values, 1, result => swayFrequency = Mathf.Max(0.05f, result));
+            TryReadFloat(values, 2, result => visualSpinSpeed = result);
+            TryReadFloat(values, 3, result => swayPhase = result * Mathf.Deg2Rad);
+        }
+
         private static float ResolveVisualSpinSpeed(string firePattern)
         {
             if (string.IsNullOrWhiteSpace(firePattern)
-                || !firePattern.StartsWith("Spin", StringComparison.OrdinalIgnoreCase))
+                || !IsMotionPattern(firePattern, "Spin"))
             {
                 return 0f;
             }
 
-            var separatorIndex = firePattern.IndexOf(':');
-            if (separatorIndex >= 0
-                && separatorIndex < firePattern.Length - 1
-                && float.TryParse(
-                    firePattern.Substring(separatorIndex + 1),
-                    System.Globalization.NumberStyles.Float,
-                    System.Globalization.CultureInfo.InvariantCulture,
-                    out var configuredSpeed))
+            var values = GetPatternValues(firePattern);
+            if (TryGetFloat(values, 0, out var configuredSpeed))
             {
                 return configuredSpeed;
             }
 
             return 70f;
+        }
+
+        private static bool IsMotionPattern(string firePattern, string expected)
+        {
+            if (string.IsNullOrWhiteSpace(firePattern))
+            {
+                return false;
+            }
+
+            var separatorIndex = firePattern.IndexOf(':');
+            var patternName = separatorIndex >= 0 ? firePattern.Substring(0, separatorIndex) : firePattern;
+            return string.Equals(patternName.Trim(), expected, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string[] GetPatternValues(string firePattern)
+        {
+            if (string.IsNullOrWhiteSpace(firePattern))
+            {
+                return Array.Empty<string>();
+            }
+
+            var separatorIndex = firePattern.IndexOf(':');
+            if (separatorIndex < 0 || separatorIndex >= firePattern.Length - 1)
+            {
+                return Array.Empty<string>();
+            }
+
+            return firePattern.Substring(separatorIndex + 1)
+                .Split(new[] { ',', ';', '|' }, StringSplitOptions.RemoveEmptyEntries);
+        }
+
+        private static void TryReadFloat(string[] values, int index, Action<float> apply)
+        {
+            if (TryGetFloat(values, index, out var result))
+            {
+                apply(result);
+            }
+        }
+
+        private static bool TryGetFloat(string[] values, int index, out float result)
+        {
+            result = 0f;
+            return values != null
+                && index >= 0
+                && index < values.Length
+                && float.TryParse(
+                    values[index],
+                    System.Globalization.NumberStyles.Float,
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    out result);
         }
 
         private static Sprite LoadConfiguredSprite(string spritePath)

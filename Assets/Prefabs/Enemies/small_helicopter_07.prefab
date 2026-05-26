@@ -442,7 +442,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d2e22b7df52c46b5a3a93c0772796e4f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  degreesPerSecond: -1200
+  degreesPerSecond: -100
   useUnscaledTime: 0
   spinOnlyDuringGameplay: 1
 --- !u!1 &1641924433800383029

@@ -115,18 +115,5 @@
     "movementRangeX": 1.5,
     "movementRangeY": 0.18,
     "movementSpeed": 1.3
-  },
-  {
-    "index": 10,
-    "id": "boss_level1_enemy_08_phase_01",
-    "bossId": "boss_level1_enemy_08",
-    "displayName": "关卡1小型BOSS",
-    "triggerHpPercent": 1,
-    "attackInterval": 1.2,
-    "burstCount": 1,
-    "burstInterval": 0.1,
-    "movementRangeX": 0.85,
-    "movementRangeY": 0.1,
-    "movementSpeed": 0.95
   }
 ]

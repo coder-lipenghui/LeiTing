@@ -393,8 +393,8 @@
   },
   {
     "index": 29,
-    "id": "boss_level1_enemy_08",
-    "displayName": "关卡1小型BOSS机",
+    "id": "level1_enemy_08",
+    "displayName": "关卡1测试 enemy_08",
     "prefabPath": "Assets/Prefabs/Enemies/enemy_08.prefab",
     "hp": 120,
     "moveSpeed": 1.2,
