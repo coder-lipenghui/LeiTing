@@ -16,6 +16,7 @@ namespace LeiTing.Core
     public class GameBootstrap : MonoBehaviour
     {
         [SerializeField] private bool startGameOnAwake = true;
+        [SerializeField] private bool waitForFirstBattleInput = true;
         [SerializeField] private bool createPlayerIfMissing = true;
         [SerializeField] private Vector3 defaultPlayerPosition = new Vector3(0f, -3.5f, 0f);
         [SerializeField] private Vector2Int designResolution = new Vector2Int(1080, 1920);
@@ -37,12 +38,14 @@ namespace LeiTing.Core
                 GameManager.Instance.Initialize();
                 EnsureBackgroundReady();
 
-                if (GameSceneManager.IsBattleSceneName(SceneManager.GetActiveScene().name))
+                var isBattleScene = GameSceneManager.IsBattleSceneName(SceneManager.GetActiveScene().name);
+                if (isBattleScene)
                 {
                     PlayCurrentLevelBgm();
+                    BattleTimeController.GetOrCreate().ResetForReady();
                 }
 
-                if (startGameOnAwake)
+                if (startGameOnAwake && (!isBattleScene || !waitForFirstBattleInput))
                 {
                     GameManager.Instance.StartGame();
                 }

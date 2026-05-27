@@ -1,4 +1,5 @@
 using LeiTing.Audio;
+using LeiTing.Stage;
 using LeiTing.UI;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -112,7 +113,7 @@ namespace LeiTing.Core
             {
                 GameManager.Instance.Initialize();
                 GameBootstrap.PlayCurrentLevelBgm();
-                GameManager.Instance.StartGame();
+                BattleTimeController.GetOrCreate().ResetForReady();
             }
         }
     }

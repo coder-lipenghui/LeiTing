@@ -4,6 +4,7 @@ using LeiTing.Core;
 using LeiTing.Effects;
 using LeiTing.Audio;
 using LeiTing.Missiles;
+using LeiTing.Stage;
 using LeiTing.UI;
 using TTSDK;
 using UnityEngine;
@@ -271,9 +272,10 @@ namespace LeiTing.Player
 
         private void Update()
         {
-            if (GameManager.Instance != null && GameManager.Instance.CurrentState != GameState.Playing)
+            var gameState = GameManager.Instance != null ? GameManager.Instance.CurrentState : GameState.Playing;
+            if (!CanProcessGameplayInput(gameState))
             {
-                EndPointerDrag();
+                EndPointerDrag(false);
                 UpdateInvincibleVisual();
                 return;
             }
@@ -290,7 +292,7 @@ namespace LeiTing.Player
         private void OnDisable()
         {
             UnregisterDouyinTouchEvents();
-            EndPointerDrag();
+            EndPointerDrag(false);
 
             if (spriteRenderer != null)
             {
@@ -618,6 +620,10 @@ namespace LeiTing.Player
             activePointerSource = source;
             isPointerDragging = true;
             nextPointerDiagnosticTime = 0f;
+            if (BattleTimeController.Instance != null)
+            {
+                BattleTimeController.Instance.NotifyPointerDown(this);
+            }
 
             if (logPointerInputDiagnostics)
             {
@@ -627,11 +633,16 @@ namespace LeiTing.Player
             }
         }
 
-        private void EndPointerDrag()
+        private void EndPointerDrag(bool notifyBattleTime = true)
         {
             if (logPointerInputDiagnostics && isPointerDragging)
             {
                 Debug.Log($"[PlayerInput] End source={activePointerSource}.");
+            }
+
+            if (notifyBattleTime && isPointerDragging && BattleTimeController.Instance != null)
+            {
+                BattleTimeController.Instance.NotifyPointerUp(this);
             }
 
             isPointerDragging = false;
@@ -968,6 +979,11 @@ namespace LeiTing.Player
         private bool HasRuntimeConfig()
         {
             return config != null && !string.IsNullOrEmpty(config.id);
+        }
+
+        private static bool CanProcessGameplayInput(GameState state)
+        {
+            return state == GameState.Ready || state == GameState.Playing;
         }
 
         private float GetMoveSpeed()

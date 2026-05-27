@@ -61,6 +61,10 @@ MonoBehaviour:
     prefab: {fileID: 100000, guid: 26672fe7dd4fe481997e755590e0a058, type: 3}
   - path: Assets/Prefabs/Enemies/small_helicopter_05.prefab
     prefab: {fileID: 100000, guid: 44e865aabc12a46848b536a3457eea8e, type: 3}
+  - path: Assets/Prefabs/Missiles/level1_split_child.prefab
+    prefab: {fileID: 100000, guid: c66b7116df2046e3b843fac921d36272, type: 3}
+  - path: Assets/Prefabs/Missiles/level1_split_parent.prefab
+    prefab: {fileID: 100000, guid: 2245350d92114890bfe70ecedf9b4e69, type: 3}
   - path: Assets/Prefabs/Missiles/missile_01_straight.prefab
     prefab: {fileID: 100000, guid: 0b059b8e3c13cabb9aec2aff6ff0a0c0, type: 3}
   - path: Assets/Prefabs/Missiles/missile_03_weak_homing.prefab
@@ -86,8 +90,12 @@ MonoBehaviour:
     sprite: {fileID: 21300000, guid: 7061789d426f74cecbba946337ad4ab8, type: 3}
   - path: Assets/Art/Sprites/Bullets/enemy_bullet_01.png
     sprite: {fileID: 21300000, guid: 6b07a0cd9ca8f44088f4cf651dbcff97, type: 3}
+  - path: Assets/Art/Sprites/Bullets/enemy_bullet_3.png
+    sprite: {fileID: 21300000, guid: b807897e1383b4d21824bfc8d9056489, type: 3}
   - path: Assets/Art/Sprites/Bullets/enemy_bullet_43.png
     sprite: {fileID: 21300000, guid: 881490422961144179c61fce1a59aa38, type: 3}
+  - path: Assets/Art/Sprites/Bullets/enemy_bullet_5.png
+    sprite: {fileID: 21300000, guid: b0ef569330f034d8eac7b5153066ec4a, type: 3}
   - path: Assets/Art/Sprites/Bullets/missile_01.png
     sprite: {fileID: 21300000, guid: d04d3f7d4dea84760b954e08e4d2c7ef, type: 3}
   - path: Assets/Art/Sprites/Bullets/missile_03.png
