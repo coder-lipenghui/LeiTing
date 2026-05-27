@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tag: 0
   wasmResourceUrl: http://
-  OutputDir: /Users/lipenghui/LeanProject/LeiTing/tt-minigame
+  OutputDir: D:\LeiTing\tt-minigame
   useByteAudioAPI: 0
   wasmMemorySize: 128
   isWebGL2: 0
@@ -54,12 +54,12 @@ MonoBehaviour:
   _appId: tt3aac4c11a4cbb7cf07
   version: 
   autoVersion: 0
-  _webglPackagePath: /Users/lipenghui/LeanProject/LeiTing/tt-minigame/webgl_package-20260523_180647.zip
+  _webglPackagePath: D:\LeiTing\tt-minigame\webgl_package-20260526_235242.zip
   _orientation: 0
   _iOSPerformancePlus: 0
   _menuButtonStyle: 0
   _publishType: 0
   publishDesc: 
-  idePath: "/Applications/\u6296\u97F3\u5F00\u53D1\u8005\u5DE5\u5177.app"
+  idePath: "C:\\Program Files\\@bytedminiprogram-ide\\\u6296\u97F3\u5F00\u53D1\u8005\u5DE5\u5177.exe"
   isConvert: 0
   isOldBuildFormat: 1

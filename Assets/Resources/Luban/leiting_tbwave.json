@@ -214,5 +214,11 @@
     "id": "wave_level_01_side_helis_110",
     "levelId": "level_01",
     "startTime": 110
+  },
+  {
+    "index": 37,
+    "id": "wave_level_01_split_fighters_130",
+    "levelId": "level_01",
+    "startTime": 130
   }
 ]

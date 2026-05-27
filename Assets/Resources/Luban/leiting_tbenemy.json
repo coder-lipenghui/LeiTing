@@ -74,7 +74,7 @@
     "id": "boss_01",
     "displayName": "雷核重装舰",
     "prefabPath": "Assets/Prefabs/Enemies/boss_01.prefab",
-    "hp": 160,
+    "hp": 320,
     "moveSpeed": 1.2,
     "attackInterval": 1.6,
     "bulletId": "enemy_bullet_02",
@@ -403,6 +403,20 @@
     "bulletPatternId": "",
     "hitScaleFeedback": false,
     "score": 1800,
+    "hitSoundPath": "Assets/Art/Sound/SFX/Enemy/SFX_Enemy_Hit_01.wav"
+  },
+  {
+    "index": 30,
+    "id": "level1_split_fighter",
+    "displayName": "关卡1分裂导弹战斗机",
+    "prefabPath": "Assets/Prefabs/Enemies/enemy_02.prefab",
+    "hp": 18,
+    "moveSpeed": 1.35,
+    "attackInterval": 3,
+    "bulletId": "enemy_bullet_01",
+    "bulletPatternId": "level1_split_fighter_split@3+0.6",
+    "hitScaleFeedback": false,
+    "score": 300,
     "hitSoundPath": "Assets/Art/Sound/SFX/Enemy/SFX_Enemy_Hit_01.wav"
   }
 ]

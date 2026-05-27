@@ -4,28 +4,28 @@
     "id": "boss_phase_pattern_boss_phase_01_01",
     "bossPhaseId": "boss_phase_01",
     "sort": 1,
-    "patternId": "boss_p1_fan_09"
+    "patternId": "boss_p1_fan_dense_5@1.15+0.2"
   },
   {
     "index": 2,
     "id": "boss_phase_pattern_boss_phase_01_02",
     "bossPhaseId": "boss_phase_01",
     "sort": 2,
-    "patternId": "boss_p1_sweep_single"
+    "patternId": "boss_p1_slow_homing_5@5+1.8"
   },
   {
     "index": 3,
     "id": "boss_phase_pattern_boss_phase_02_01",
     "bossPhaseId": "boss_phase_02",
     "sort": 1,
-    "patternId": "boss_p2_ring_20"
+    "patternId": "boss_p2_s_windmill_dense@1+0.2"
   },
   {
     "index": 4,
     "id": "boss_phase_pattern_boss_phase_02_02",
     "bossPhaseId": "boss_phase_02",
     "sort": 2,
-    "patternId": "boss_p2_aim_03"
+    "patternId": "boss_p2_lock_dash_5@5+1.5"
   },
   {
     "index": 5,
@@ -53,14 +53,14 @@
     "id": "boss_phase_pattern_boss_phase_03_01",
     "bossPhaseId": "boss_phase_03",
     "sort": 1,
-    "patternId": "boss_p3_rotating_11"
+    "patternId": "boss_p3_s_windmill_dense_big@0.8+0.1"
   },
   {
     "index": 9,
     "id": "boss_phase_pattern_boss_phase_03_02",
     "bossPhaseId": "boss_phase_03",
     "sort": 2,
-    "patternId": "boss_p3_aim_05"
+    "patternId": "boss_p3_split_5@3+1.0"
   },
   {
     "index": 10,

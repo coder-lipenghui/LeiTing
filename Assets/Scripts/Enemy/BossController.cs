@@ -40,7 +40,7 @@ namespace LeiTing.Enemy
         private ActorMounts mounts;
         private Color originalColor = Color.white;
         private Vector3 anchorPosition;
-        private float aliveTime;
+        private float phaseMovementTime;
         private float nextAttackTime;
         private int currentPhaseIndex = -1;
         private int volleyCursor;
@@ -63,7 +63,7 @@ namespace LeiTing.Enemy
 
             transform.position = position;
             anchorPosition = new Vector3(0f, EntryTargetY, 0f);
-            aliveTime = 0f;
+            phaseMovementTime = 0f;
             nextAttackTime = Time.time + 1.4f;
             currentPhaseIndex = -1;
             volleyCursor = 0;
@@ -102,8 +102,6 @@ namespace LeiTing.Enemy
             {
                 return;
             }
-
-            aliveTime += Time.deltaTime;
 
             if (isEntering)
             {
@@ -233,6 +231,8 @@ namespace LeiTing.Enemy
         private void SetPhase(int phaseIndex, bool isInitial)
         {
             currentPhaseIndex = Mathf.Clamp(phaseIndex, 0, Mathf.Max(0, GetPhaseCount() - 1));
+            anchorPosition = transform.position;
+            phaseMovementTime = 0f;
             nextAttackTime = Time.time + (isInitial ? 0.65f : 1.1f);
             volleyCursor = 0;
             ConfigureScheduledPatterns(GetCurrentPhase());
@@ -260,9 +260,10 @@ namespace LeiTing.Enemy
             var phase = GetCurrentPhase();
             var range = phase != null ? phase.movementRange : new Vector2(1.2f, 0.15f);
             var speed = Mathf.Max(0.1f, phase != null ? phase.movementSpeed : 1.0f);
+            phaseMovementTime += Time.deltaTime;
             var position = anchorPosition;
-            position.x += Mathf.Sin(aliveTime * speed) * Mathf.Max(0f, range.x);
-            position.y += Mathf.Sin(aliveTime * speed * 0.55f) * Mathf.Max(0f, range.y);
+            position.x += Mathf.Sin(phaseMovementTime * speed) * Mathf.Max(0f, range.x);
+            position.y += Mathf.Sin(phaseMovementTime * speed * 0.55f) * Mathf.Max(0f, range.y);
             transform.position = position;
         }
 

@@ -1406,5 +1406,37 @@
     "pathAmplitude": 0,
     "pathSpeed": 0,
     "holdDuration": 0
+  },
+  {
+    "index": 107,
+    "id": "wave_spawn_wave_level_01_split_fighters_130_left_pair",
+    "waveId": "wave_level_01_split_fighters_130",
+    "sort": 1,
+    "enemyId": "level1_split_fighter",
+    "count": 2,
+    "interval": 0.32,
+    "startPositionX": -1.45,
+    "startPositionY": 6.15,
+    "attackPatternId": "level1_split_fighter_split@3+0.65",
+    "movementPath": "Straight:rotateToPath=true,rotationOffset=90",
+    "pathAmplitude": 0,
+    "pathSpeed": 0,
+    "holdDuration": 0
+  },
+  {
+    "index": 108,
+    "id": "wave_spawn_wave_level_01_split_fighters_130_right_pair",
+    "waveId": "wave_level_01_split_fighters_130",
+    "sort": 2,
+    "enemyId": "level1_split_fighter",
+    "count": 2,
+    "interval": 0.32,
+    "startPositionX": 1.45,
+    "startPositionY": 6.75,
+    "attackPatternId": "level1_split_fighter_split@3+0.65",
+    "movementPath": "Straight:rotateToPath=true,rotationOffset=90",
+    "pathAmplitude": 0,
+    "pathSpeed": 0,
+    "holdDuration": 0
   }
 ]

@@ -1,4 +1,3 @@
-using System;
 using LeiTing.Core;
 using TMPro;
 using UnityEngine;
@@ -253,7 +252,12 @@ namespace LeiTing.UI
                 return defaultFont;
             }
 
-            defaultFont = LoadProjectFont() ?? TryGetBuiltinFont("Arial.ttf") ?? TryGetBuiltinFont("LegacyRuntime.ttf");
+            defaultFont = LoadProjectFont();
+            if (defaultFont == null)
+            {
+                Debug.LogError($"Default UI font is missing: {DefaultFontAssetPath}");
+            }
+
             return defaultFont;
         }
 
@@ -289,25 +293,7 @@ namespace LeiTing.UI
             }
 #endif
 
-            var catalogFont = RuntimeAssetCatalog.LoadFont(DefaultFontAssetPath);
-            if (catalogFont != null)
-            {
-                return catalogFont;
-            }
-
-            return Resources.Load<Font>("Font/simhei") ?? Resources.Load<Font>("simhei");
-        }
-
-        private static Font TryGetBuiltinFont(string path)
-        {
-            try
-            {
-                return Resources.GetBuiltinResource<Font>(path);
-            }
-            catch (ArgumentException)
-            {
-                return null;
-            }
+            return RuntimeAssetCatalog.LoadFont(DefaultFontAssetPath);
         }
 
         public static T FindComponentInChildren<T>(Transform root, string childName) where T : Component

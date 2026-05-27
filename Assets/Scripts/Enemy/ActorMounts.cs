@@ -43,6 +43,11 @@ namespace LeiTing.Enemy
                 return Array.Empty<Transform>();
             }
 
+            if (groupName.IndexOf(',') >= 0 || groupName.IndexOf('|') >= 0)
+            {
+                return ResolveCompositeFirePoints(groupName);
+            }
+
             var group = firePointsRoot.Find(groupName);
             if (group != null)
             {
@@ -62,6 +67,32 @@ namespace LeiTing.Enemy
 
             var directPoint = FindDeepChild(firePointsRoot, groupName);
             return directPoint != null ? new[] { directPoint } : Array.Empty<Transform>();
+        }
+
+        private Transform[] ResolveCompositeFirePoints(string groupName)
+        {
+            var points = new List<Transform>();
+            var names = groupName.Split(new[] { ',', '|' }, StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (var rawName in names)
+            {
+                var name = rawName.Trim();
+                if (string.IsNullOrEmpty(name))
+                {
+                    continue;
+                }
+
+                var resolved = ResolveFirePoints(name);
+                for (var index = 0; index < resolved.Length; index++)
+                {
+                    if (resolved[index] != null && !points.Contains(resolved[index]))
+                    {
+                        points.Add(resolved[index]);
+                    }
+                }
+            }
+
+            return points.ToArray();
         }
 
         private static Transform FindDeepChild(Transform root, string childName)

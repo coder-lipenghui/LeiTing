@@ -576,7 +576,7 @@ namespace LeiTing.UI
             rect.anchoredPosition = localPosition;
 
             var text = popupObject.AddComponent<Text>();
-            text.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            text.font = UIFactory.GetDefaultFont();
             text.fontSize = 34;
             text.fontStyle = FontStyle.Bold;
             text.alignment = TextAnchor.MiddleCenter;
@@ -1611,7 +1611,7 @@ namespace LeiTing.UI
             rect.sizeDelta = new Vector2(560f, 132f);
 
             hudText = hudObject.AddComponent<Text>();
-            hudText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            hudText.font = UIFactory.GetDefaultFont();
             hudText.fontSize = 32;
             hudText.fontStyle = FontStyle.Bold;
             hudText.alignment = TextAnchor.UpperLeft;
@@ -1632,7 +1632,7 @@ namespace LeiTing.UI
             rect.sizeDelta = new Vector2(360f, 64f);
 
             stageTimerText = timerObject.AddComponent<Text>();
-            stageTimerText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            stageTimerText.font = UIFactory.GetDefaultFont();
             stageTimerText.fontSize = 34;
             stageTimerText.fontStyle = FontStyle.Bold;
             stageTimerText.alignment = TextAnchor.MiddleCenter;
@@ -1667,7 +1667,7 @@ namespace LeiTing.UI
             rect.offsetMax = new Vector2(-48f, -48f);
 
             settlementText = settlementObject.AddComponent<Text>();
-            settlementText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            settlementText.font = UIFactory.GetDefaultFont();
             settlementText.fontSize = 50;
             settlementText.fontStyle = FontStyle.Bold;
             settlementText.alignment = TextAnchor.MiddleCenter;
@@ -1740,7 +1740,7 @@ namespace LeiTing.UI
 
             var text = labelObject.AddComponent<Text>();
             text.text = label;
-            text.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            text.font = UIFactory.GetDefaultFont();
             text.fontSize = 34;
             text.fontStyle = FontStyle.Bold;
             text.alignment = TextAnchor.MiddleCenter;
@@ -1770,7 +1770,7 @@ namespace LeiTing.UI
             nameRect.sizeDelta = new Vector2(0f, 42f);
 
             bossNameText = nameObject.AddComponent<Text>();
-            bossNameText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            bossNameText.font = UIFactory.GetDefaultFont();
             bossNameText.fontSize = 32;
             bossNameText.fontStyle = FontStyle.Bold;
             bossNameText.alignment = TextAnchor.MiddleLeft;
@@ -1787,7 +1787,7 @@ namespace LeiTing.UI
             phaseRect.sizeDelta = new Vector2(0f, 28f);
 
             bossPhaseText = phaseObject.AddComponent<Text>();
-            bossPhaseText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            bossPhaseText.font = UIFactory.GetDefaultFont();
             bossPhaseText.fontSize = 22;
             bossPhaseText.fontStyle = FontStyle.Bold;
             bossPhaseText.alignment = TextAnchor.MiddleRight;
@@ -1838,7 +1838,7 @@ namespace LeiTing.UI
             rect.sizeDelta = new Vector2(900f, 180f);
 
             bossNoticeText = noticeObject.AddComponent<Text>();
-            bossNoticeText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            bossNoticeText.font = UIFactory.GetDefaultFont();
             bossNoticeText.fontSize = 58;
             bossNoticeText.fontStyle = FontStyle.Bold;
             bossNoticeText.alignment = TextAnchor.MiddleCenter;
