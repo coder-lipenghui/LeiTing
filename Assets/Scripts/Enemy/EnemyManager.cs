@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using LeiTing.Config;
 using LeiTing.Core;
+using LeiTing.Progress;
 using UnityEngine;
 
 #if UNITY_EDITOR
@@ -128,6 +129,8 @@ namespace LeiTing.Enemy
                 Debug.LogWarning($"Enemy config not found: {enemyId}");
                 return null;
             }
+
+            LevelProgressService.RecordEnemySpawned();
 
             var enemyObject = CreateEnemyObject(enemyConfig);
             enemyObject.transform.SetParent(transform, false);

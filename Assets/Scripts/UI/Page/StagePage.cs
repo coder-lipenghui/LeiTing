@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using LeiTing.Config;
 using LeiTing.Core;
+using LeiTing.Progress;
 using Luban.SimpleJSON;
 using UnityEngine;
 using UnityEngine.UI;
@@ -318,11 +319,13 @@ namespace LeiTing.UI
             if (label != null)
             {
                 var labelRect = label.rectTransform;
-                labelRect.anchorMin = new Vector2(0f, 0f);
+                labelRect.anchorMin = new Vector2(0f, 0.2f);
                 labelRect.anchorMax = new Vector2(1f, 0.48f);
-                labelRect.offsetMin = new Vector2(12f, 18f);
+                labelRect.offsetMin = new Vector2(12f, 0f);
                 labelRect.offsetMax = new Vector2(-12f, 0f);
             }
+
+            var achievementStars = CreateAchievementStarTexts(rect);
 
             var lockOverlay = UIFactory.CreatePanel("LockedOverlay", rect, new Color(0f, 0f, 0f, 0.48f));
             UIFactory.Stretch(lockOverlay.rectTransform);
@@ -344,10 +347,35 @@ namespace LeiTing.UI
                 image = image,
                 titleText = label,
                 numberText = numberText,
+                achievementStars = achievementStars,
                 lockOverlay = lockOverlay.gameObject,
                 outline = outline,
                 levelNumber = levelNumber
             };
+        }
+
+        private static Text[] CreateAchievementStarTexts(RectTransform parent)
+        {
+            var root = UIFactory.CreateRect("AchievementStars", parent);
+            root.anchorMin = new Vector2(0f, 0f);
+            root.anchorMax = new Vector2(1f, 0.18f);
+            root.offsetMin = new Vector2(40f, 10f);
+            root.offsetMax = new Vector2(-40f, 0f);
+
+            var stars = new Text[LevelProgressService.AchievementCount];
+            for (var index = 0; index < stars.Length; index++)
+            {
+                var starText = UIFactory.CreateText($"Star_{index + 1}", root, "★", 28f, TextAnchor.MiddleCenter, UIFactory.MutedTextColor);
+                var rect = starText.rectTransform;
+                rect.anchorMin = new Vector2(index / (float)stars.Length, 0f);
+                rect.anchorMax = new Vector2((index + 1) / (float)stars.Length, 1f);
+                rect.offsetMin = Vector2.zero;
+                rect.offsetMax = Vector2.zero;
+                starText.raycastTarget = false;
+                stars[index] = starText;
+            }
+
+            return stars;
         }
 
         private static string FormatLevelLabel(int levelNumber, LevelConfig levelConfig)
@@ -389,6 +417,7 @@ namespace LeiTing.UI
                 var textColor = unlocked ? Color.white : new Color(0.68f, 0.72f, 0.78f, 1f);
                 item.titleText.color = textColor;
                 item.numberText.color = textColor;
+                UpdateAchievementStars(item, unlocked);
             }
 
             UpdateSelectedStageText();
@@ -412,6 +441,29 @@ namespace LeiTing.UI
             if (startButton != null)
             {
                 startButton.interactable = interactable;
+            }
+        }
+
+        private static void UpdateAchievementStars(LevelItemView item, bool unlocked)
+        {
+            if (item?.achievementStars == null)
+            {
+                return;
+            }
+
+            var record = unlocked ? LevelProgressService.GetRecord(item.levelNumber) : null;
+            for (var index = 0; index < item.achievementStars.Length; index++)
+            {
+                var star = item.achievementStars[index];
+                if (star == null)
+                {
+                    continue;
+                }
+
+                var earned = record != null && (record.achievementMask & (1 << index)) != 0;
+                star.color = earned
+                    ? new Color(1f, 0.78f, 0.18f, 1f)
+                    : new Color(0.28f, 0.36f, 0.48f, unlocked ? 0.92f : 0.46f);
             }
         }
 
@@ -617,6 +669,7 @@ namespace LeiTing.UI
             public Image image;
             public Text titleText;
             public Text numberText;
+            public Text[] achievementStars;
             public GameObject lockOverlay;
             public Outline outline;
             public int levelNumber;

@@ -3,6 +3,7 @@ using LeiTing.Config;
 using LeiTing.Core;
 using LeiTing.Enemy;
 using LeiTing.Player;
+using LeiTing.Progress;
 using UnityEngine;
 
 namespace LeiTing.Pickups
@@ -157,6 +158,11 @@ namespace LeiTing.Pickups
 
             var pickup = pickupObject.AddComponent<PickupItemController>();
             pickup.Initialize(pickupConfig);
+            if (LevelProgressService.IsStarPickup(pickupConfig))
+            {
+                LevelProgressService.RecordStarSpawned(LevelProgressService.GetPickupStarValue(pickupConfig));
+            }
+
             return pickup;
         }
 

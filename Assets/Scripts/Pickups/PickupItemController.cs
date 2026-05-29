@@ -2,6 +2,7 @@ using LeiTing.Audio;
 using LeiTing.Config;
 using LeiTing.Core;
 using LeiTing.Player;
+using LeiTing.Progress;
 using UnityEngine;
 
 #if UNITY_EDITOR
@@ -231,7 +232,9 @@ namespace LeiTing.Pickups
 
             if (IsStarPickup)
             {
-                player.AddStars(GetStarValue());
+                var starValue = GetStarValue();
+                player.AddStars(starValue);
+                LevelProgressService.RecordStarsCollected(starValue);
                 PlayPickupSound(StarPickupSoundPath);
             }
             else if (IsCoinPickup)

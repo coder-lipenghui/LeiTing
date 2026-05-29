@@ -1,13 +1,20 @@
+using LeiTing.Core;
 using UnityEngine;
 using UnityEngine.UI;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace LeiTing.UI
 {
     public class SettingPage : BasePage
     {
+        private const string CloseButtonSpritePath = "Assets/Art/Sprites/UI/btnClose.png";
+
         [SerializeField] private Toggle musicToggle;
         [SerializeField] private Toggle soundToggle;
         [SerializeField] private Toggle vibrationToggle;
+        [SerializeField] private Button closeButton;
 
         public override void OnCreate()
         {
@@ -59,6 +66,8 @@ namespace LeiTing.UI
             layout.childForceExpandHeight = false;
             layout.childForceExpandWidth = true;
 
+            closeButton = CreateCloseButton(transform);
+
             musicToggle = UIFactory.CreateToggle("MusicToggle", panelRect, "音乐", out _);
             soundToggle = UIFactory.CreateToggle("SoundToggle", panelRect, "音效", out _);
             vibrationToggle = UIFactory.CreateToggle("VibrationToggle", panelRect, "震动", out _);
@@ -66,6 +75,9 @@ namespace LeiTing.UI
 
         private void BindPrefabView()
         {
+            closeButton = closeButton != null
+                ? closeButton
+                : UIFactory.FindComponentInChildren<Button>(transform, "BtnClose") ?? CreateCloseButton(transform);
             musicToggle = musicToggle != null
                 ? musicToggle
                 : UIFactory.FindComponentInChildren<Toggle>(transform, "MusicToggle");
@@ -96,6 +108,12 @@ namespace LeiTing.UI
                 vibrationToggle.onValueChanged.RemoveListener(OnVibrationToggleChanged);
                 vibrationToggle.onValueChanged.AddListener(OnVibrationToggleChanged);
             }
+
+            if (closeButton != null)
+            {
+                closeButton.onClick.RemoveListener(OnClickClose);
+                closeButton.onClick.AddListener(OnClickClose);
+            }
         }
 
         private void RefreshToggles()
@@ -118,6 +136,50 @@ namespace LeiTing.UI
         private static void OnVibrationToggleChanged(bool value)
         {
             GameSettingManager.VibrationEnabled = value;
+        }
+
+        private static void OnClickClose()
+        {
+            UIManager.Instance?.ClosePage(UIPageType.Setting);
+        }
+
+        private static Button CreateCloseButton(Transform parent)
+        {
+            var button = UIFactory.CreateButton("BtnClose", parent, "X", Color.white, out var label, out var image);
+            label.fontSize = 34;
+
+            var sprite = LoadSprite(CloseButtonSpritePath);
+            if (sprite != null)
+            {
+                image.sprite = sprite;
+                image.color = Color.white;
+                label.text = string.Empty;
+            }
+            else
+            {
+                image.color = new Color(0f, 0f, 0f, 0.42f);
+            }
+
+            var rect = button.GetComponent<RectTransform>();
+            rect.anchorMin = new Vector2(1f, 1f);
+            rect.anchorMax = new Vector2(1f, 1f);
+            rect.pivot = new Vector2(1f, 1f);
+            rect.anchoredPosition = new Vector2(-42f, -42f);
+            rect.sizeDelta = new Vector2(86f, 86f);
+            return button;
+        }
+
+        private static Sprite LoadSprite(string assetPath)
+        {
+#if UNITY_EDITOR
+            var editorSprite = AssetDatabase.LoadAssetAtPath<Sprite>(assetPath);
+            if (editorSprite != null)
+            {
+                return editorSprite;
+            }
+#endif
+
+            return RuntimeAssetCatalog.LoadSprite(assetPath);
         }
     }
 }

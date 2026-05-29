@@ -795,7 +795,7 @@ MonoBehaviour:
   currentState: 0
   score: 0
   currentLevelNumber: 1
-  invincibleMode: 0
+  invincibleMode: 1
 --- !u!114 &1949508814
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -821,6 +821,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   startGameOnAwake: 0
+  waitForFirstBattleInput: 1
   createPlayerIfMissing: 1
   defaultPlayerPosition: {x: 0, y: -3.5, z: 0}
   designResolution: {x: 1080, y: 1920}

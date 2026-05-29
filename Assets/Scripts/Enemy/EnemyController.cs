@@ -10,6 +10,7 @@ using LeiTing.Enemy.Movement;
 using LeiTing.Missiles;
 using LeiTing.Pickups;
 using LeiTing.Player;
+using LeiTing.Progress;
 using LeiTing.UI;
 using UnityEngine;
 
@@ -757,6 +758,7 @@ namespace LeiTing.Enemy
 
             isDead = true;
             ExplosionEffect.Spawn(transform.position, IsEnemyType("enemy_b") ? 1.0f : 0.7f);
+            LevelProgressService.RecordEnemyKilled();
 
             if (GameManager.Instance != null && config != null)
             {

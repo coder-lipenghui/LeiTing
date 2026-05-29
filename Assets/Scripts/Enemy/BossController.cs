@@ -9,6 +9,7 @@ using LeiTing.Core;
 using LeiTing.Effects;
 using LeiTing.Missiles;
 using LeiTing.Pickups;
+using LeiTing.Progress;
 using LeiTing.UI;
 using UnityEngine;
 
@@ -523,6 +524,7 @@ namespace LeiTing.Enemy
 
             isDead = true;
             hitbox.enabled = false;
+            LevelProgressService.RecordEnemyKilled();
 
             if (config != null)
             {

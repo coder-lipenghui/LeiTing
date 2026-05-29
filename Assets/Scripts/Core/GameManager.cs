@@ -4,6 +4,7 @@ using UnityEngine.SceneManagement;
 using LeiTing.Config;
 using LeiTing.Pickups;
 using LeiTing.Player;
+using LeiTing.Progress;
 using LeiTing.Storage;
 
 #if UNITY_EDITOR
@@ -32,6 +33,7 @@ namespace LeiTing.Core
         [SerializeField] private bool invincibleMode;
 
         private Coroutine pendingVictoryRoutine;
+        private bool levelProgressFinished;
 
         public GameState CurrentState => currentState;
         public int Score => score;
@@ -52,6 +54,8 @@ namespace LeiTing.Core
             currentLevelNumber = Mathf.Clamp(ResolveRequestedLevelNumber(), 1, MaxLevelCount);
             currentState = GameState.Ready;
             score = 0;
+            levelProgressFinished = false;
+            LevelProgressService.BeginLevel(currentLevelNumber);
         }
 
         public void StartGame()
@@ -83,6 +87,7 @@ namespace LeiTing.Core
             }
 
             currentState = GameState.Victory;
+            FinishCurrentLevelProgress();
             UnlockNextLevel();
         }
 
@@ -90,6 +95,7 @@ namespace LeiTing.Core
         {
             CancelPendingVictory();
             currentState = GameState.Defeat;
+            FinishCurrentLevelProgress();
         }
 
         public void RestartCurrentScene()
@@ -241,6 +247,7 @@ namespace LeiTing.Core
             if (currentState == GameState.Playing)
             {
                 currentState = GameState.Victory;
+                FinishCurrentLevelProgress();
                 UnlockNextLevel();
             }
         }
@@ -271,6 +278,17 @@ namespace LeiTing.Core
 
             GameStorage.SetInt(LatestUnlockedLevelKey, nextUnlockedLevel);
             GameStorage.Save();
+        }
+
+        private void FinishCurrentLevelProgress()
+        {
+            if (levelProgressFinished)
+            {
+                return;
+            }
+
+            levelProgressFinished = true;
+            LevelProgressService.CompleteLevel(currentLevelNumber, score);
         }
     }
 }

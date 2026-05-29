@@ -30,32 +30,12 @@ namespace LeiTing.UI
             new Dictionary<UIPageType, UIPageConfig>
             {
                 {
-                    UIPageType.Hangar,
-                    new UIPageConfig
-                    {
-                        pageType = UIPageType.Hangar,
-                        index = 1,
-                        prefabPath = "UI/Page/HangarPage",
-                        cache = true
-                    }
-                },
-                {
                     UIPageType.Lobby,
                     new UIPageConfig
                     {
                         pageType = UIPageType.Lobby,
-                        index = 2,
-                        prefabPath = "Assets/Prefabs/UI/UIHall.prefab",
-                        cache = true
-                    }
-                },
-                {
-                    UIPageType.Stage,
-                    new UIPageConfig
-                    {
-                        pageType = UIPageType.Stage,
-                        index = 3,
-                        prefabPath = "Assets/Prefabs/UI/UIStage.prefab",
+                        index = 1,
+                        prefabPath = "Assets/Prefabs/UI/UILobby.prefab",
                         cache = true
                     }
                 },
@@ -64,7 +44,7 @@ namespace LeiTing.UI
                     new UIPageConfig
                     {
                         pageType = UIPageType.Setting,
-                        index = 4,
+                        index = 2,
                         prefabPath = "UI/Page/SettingPage",
                         cache = true
                     }

@@ -14,12 +14,9 @@ namespace LeiTing.Editor
     public sealed class RuntimeAssetCatalogBuilder : IPreprocessBuildWithReport
     {
         private const string CatalogPath = "Assets/Resources/RuntimeAssetCatalog.asset";
-        private const string BottomBarPrefabPath = "Assets/Prefabs/UI/UIBottom.prefab";
-        private const string HallPrefabPath = "Assets/Prefabs/UI/UIHall.prefab";
-        private const string StagePrefabPath = "Assets/Prefabs/UI/UIStage.prefab";
+        private const string LobbyPrefabPath = "Assets/Prefabs/UI/UILobby.prefab";
         private const string DefaultFontPath = "Assets/Art/Font/simhei.ttf";
-        private const string MainUiBackgroundPath = "Assets/Art/Sprites/UI/backgroundH.png";
-        private const string PlayerUiSpriteFolder = "Assets/Art/Sprites/UI/Player";
+        private const string UiSpriteFolder = "Assets/Art/Sprites/UI";
         private const string CoinPickupSoundPath = "Assets/Art/Sound/SFX/Item/coin.wav";
         private const string StarPickupSoundPath = "Assets/Art/Sound/SFX/Item/star.wav";
         private const string SpecialPickupSoundPath = "Assets/Art/Sound/SFX/Item/SFX_Item_Pickup_Special_01.wav";
@@ -106,12 +103,9 @@ namespace LeiTing.Editor
         {
             AddPath(prefabPaths, config.player?.prefabPath);
             AddPath(audioPaths, config.player?.fireSoundPath);
-            AddPath(prefabPaths, BottomBarPrefabPath);
-            AddPath(prefabPaths, HallPrefabPath);
-            AddPath(prefabPaths, StagePrefabPath);
+            AddPath(prefabPaths, LobbyPrefabPath);
             AddPath(fontPaths, DefaultFontPath);
-            AddPath(spritePaths, MainUiBackgroundPath);
-            CollectFolderSpritePaths(PlayerUiSpriteFolder, spritePaths);
+            CollectFolderSpritePaths(UiSpriteFolder, spritePaths);
             AddPath(audioPaths, CoinPickupSoundPath);
             AddPath(audioPaths, StarPickupSoundPath);
             AddPath(audioPaths, SpecialPickupSoundPath);

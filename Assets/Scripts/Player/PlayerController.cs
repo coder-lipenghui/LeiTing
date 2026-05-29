@@ -4,6 +4,7 @@ using LeiTing.Core;
 using LeiTing.Effects;
 using LeiTing.Audio;
 using LeiTing.Missiles;
+using LeiTing.Progress;
 using LeiTing.Stage;
 using LeiTing.UI;
 using TTSDK;
@@ -138,6 +139,7 @@ namespace LeiTing.Player
                 currentHp = Mathf.Max(0, currentHp - remainingDamage);
             }
 
+            LevelProgressService.RecordPlayerHit();
             BeginInvincible();
             PlayDamageVibration();
 
