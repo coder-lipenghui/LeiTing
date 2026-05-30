@@ -45,7 +45,10 @@ namespace LeiTing.UI
         private bool mainUiInitialized;
 
         private RectTransform canvasRoot;
+        private RectTransform scoreRect;
+        private RectTransform stageTimerRect;
         private Text hudText;
+        private Text scoreText;
         private Text stageTimerText;
         private GameObject settlementRoot;
         private Text settlementText;
@@ -92,6 +95,7 @@ namespace LeiTing.UI
             }
 
             UpdateHud();
+            UpdateBattleHudSafeAreaLayout();
             UpdateStageTimer();
             UpdateSettlement();
         }
@@ -1228,33 +1232,58 @@ namespace LeiTing.UI
             canvasRoot = canvasObject.GetComponent<RectTransform>();
 
             CreateHud(canvasObject.transform);
+            CreateScoreText(canvasObject.transform);
             CreateStageTimer(canvasObject.transform);
             CreateBossHud(canvasObject.transform);
             CreateBossNotice(canvasObject.transform);
             CreateSettlementText(canvasObject.transform);
             CreateRestartChallengeButton(canvasObject.transform);
             CreateNextLevelButton(canvasObject.transform);
+            UpdateBattleHudSafeAreaLayout();
         }
 
         private void CreateHud(Transform parent)
         {
-            var hudObject = new GameObject("HudText", typeof(RectTransform));
+            var hudObject = new GameObject("BulletTimeHudText", typeof(RectTransform));
             hudObject.transform.SetParent(parent, false);
 
             var rect = hudObject.GetComponent<RectTransform>();
-            rect.anchorMin = new Vector2(0f, 1f);
-            rect.anchorMax = new Vector2(0f, 1f);
-            rect.pivot = new Vector2(0f, 1f);
-            rect.anchoredPosition = new Vector2(36f, -148f);
-            rect.sizeDelta = new Vector2(560f, 132f);
+            rect.anchorMin = new Vector2(0.5f, 0.5f);
+            rect.anchorMax = new Vector2(0.5f, 0.5f);
+            rect.pivot = new Vector2(0.5f, 0.5f);
+            rect.anchoredPosition = Vector2.zero;
+            rect.sizeDelta = new Vector2(560f, 260f);
 
             hudText = hudObject.AddComponent<Text>();
             hudText.font = UIFactory.GetDefaultFont();
-            hudText.fontSize = 32;
+            hudText.fontSize = 36;
             hudText.fontStyle = FontStyle.Bold;
-            hudText.alignment = TextAnchor.UpperLeft;
+            hudText.alignment = TextAnchor.MiddleCenter;
             hudText.color = Color.white;
             hudText.raycastTarget = false;
+            hudText.enabled = false;
+        }
+
+        private void CreateScoreText(Transform parent)
+        {
+            var scoreObject = new GameObject("ScoreText", typeof(RectTransform));
+            scoreObject.transform.SetParent(parent, false);
+
+            scoreRect = scoreObject.GetComponent<RectTransform>();
+            scoreRect.anchorMin = new Vector2(0.5f, 1f);
+            scoreRect.anchorMax = new Vector2(0.5f, 1f);
+            scoreRect.pivot = new Vector2(0.5f, 1f);
+            scoreRect.anchoredPosition = new Vector2(0f, -32f);
+            scoreRect.sizeDelta = new Vector2(420f, 56f);
+
+            scoreText = scoreObject.AddComponent<Text>();
+            scoreText.font = UIFactory.GetDefaultFont();
+            scoreText.fontSize = 36;
+            scoreText.fontStyle = FontStyle.Bold;
+            scoreText.alignment = TextAnchor.MiddleCenter;
+            scoreText.color = new Color(1f, 0.9f, 0.34f, 1f);
+            scoreText.raycastTarget = false;
+            scoreText.text = "SCORE 0";
         }
 
         private void CreateStageTimer(Transform parent)
@@ -1262,16 +1291,16 @@ namespace LeiTing.UI
             var timerObject = new GameObject("StageTimer", typeof(RectTransform));
             timerObject.transform.SetParent(parent, false);
 
-            var rect = timerObject.GetComponent<RectTransform>();
-            rect.anchorMin = new Vector2(0.5f, 1f);
-            rect.anchorMax = new Vector2(0.5f, 1f);
-            rect.pivot = new Vector2(0.5f, 1f);
-            rect.anchoredPosition = new Vector2(0f, -36f);
-            rect.sizeDelta = new Vector2(360f, 64f);
+            stageTimerRect = timerObject.GetComponent<RectTransform>();
+            stageTimerRect.anchorMin = new Vector2(0.5f, 1f);
+            stageTimerRect.anchorMax = new Vector2(0.5f, 1f);
+            stageTimerRect.pivot = new Vector2(0.5f, 1f);
+            stageTimerRect.anchoredPosition = new Vector2(0f, -88f);
+            stageTimerRect.sizeDelta = new Vector2(360f, 56f);
 
             stageTimerText = timerObject.AddComponent<Text>();
             stageTimerText.font = UIFactory.GetDefaultFont();
-            stageTimerText.fontSize = 34;
+            stageTimerText.fontSize = 30;
             stageTimerText.fontStyle = FontStyle.Bold;
             stageTimerText.alignment = TextAnchor.MiddleCenter;
             stageTimerText.color = new Color(0.78f, 0.96f, 1f, 1f);
@@ -1554,21 +1583,62 @@ namespace LeiTing.UI
 
         private void UpdateHud()
         {
-            if (hudText == null)
+            if (hudText == null && scoreText == null)
             {
                 return;
             }
 
             var player = FindObjectOfType<PlayerController>();
             var hp = player != null ? player.CurrentHp : 0;
-            var shield = player != null ? player.CurrentShield : 0;
             var stars = player != null ? player.CurrentStars : 0;
             var coins = player != null ? player.CurrentCoins : 0;
             var score = GameManager.Instance != null ? GameManager.Instance.Score : 0;
             var levelText = GameManager.Instance != null
                 ? $"LEVEL {GameManager.Instance.CurrentLevelNumber}/{GameManager.Instance.MaxLevelCount}"
                 : "LEVEL -";
-            hudText.text = $"{levelText}\nHP {hp}  SH {shield}  STAR {stars}  COIN {coins}\nSCORE {score}";
+
+            if (scoreText != null)
+            {
+                scoreText.text = $"SCORE {score}";
+            }
+
+            if (hudText == null)
+            {
+                return;
+            }
+
+            var showBulletTimeHud = BattleTimeController.Instance != null && BattleTimeController.Instance.IsBulletTimeActive;
+            hudText.enabled = showBulletTimeHud;
+            if (!showBulletTimeHud)
+            {
+                return;
+            }
+
+            hudText.text = $"{levelText}\nHP {hp}\nSTAR {stars}\nCOIN {coins}";
+        }
+
+        private void UpdateBattleHudSafeAreaLayout()
+        {
+            if (canvasRoot == null)
+            {
+                return;
+            }
+
+            var screenHeight = Mathf.Max(1, Screen.height);
+            var safeArea = Screen.safeArea;
+            var canvasHeight = Mathf.Max(1f, canvasRoot.rect.height);
+            var topInset = Mathf.Max(0f, screenHeight - safeArea.yMax) * canvasHeight / screenHeight;
+            var scoreTopOffset = topInset + 28f;
+
+            if (scoreRect != null)
+            {
+                scoreRect.anchoredPosition = new Vector2(0f, -scoreTopOffset);
+            }
+
+            if (stageTimerRect != null)
+            {
+                stageTimerRect.anchoredPosition = new Vector2(0f, -(scoreTopOffset + 56f));
+            }
         }
 
         private void UpdateStageTimer()

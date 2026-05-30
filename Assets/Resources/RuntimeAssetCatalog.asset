@@ -75,14 +75,8 @@ MonoBehaviour:
     prefab: {fileID: 100000, guid: 49ebd469ffd5c9677656d5aa4130eb83, type: 3}
   - path: Assets/Prefabs/Player/warplane-01.prefab
     prefab: {fileID: 100000, guid: 9a1d4e2b8a144d9589ae5a4f8e72404b, type: 3}
-  - path: Assets/Prefabs/UI/UIBottom.prefab
-    prefab: {fileID: 6221101000000000001, guid: 86935af36fb8418eab3cd7c04318d14e, type: 3}
-  - path: Assets/Prefabs/UI/UIHall.prefab
-    prefab: {fileID: 6221102000000000001, guid: bedc2e9e43ec42aa88a035018677a668, type: 3}
   - path: Assets/Prefabs/UI/UILobby.prefab
     prefab: {fileID: 2644241041284139834, guid: 846cd746f9cf570ffe5658b2d941300a, type: 3}
-  - path: Assets/Prefabs/UI/UIStage.prefab
-    prefab: {fileID: 2644241041284139834, guid: e90da74bc4d4e436881279fb327604cc, type: 3}
   sprites:
   - path: Assets/Art/Animations/Enemies/BOSS-1.png
     sprite: {fileID: 21300000, guid: 74f8cf9601d704a4d949b53656961b17, type: 3}
@@ -174,6 +168,44 @@ MonoBehaviour:
     sprite: {fileID: 21300000, guid: 05378d3c467e88a49ad37d9cd2be9ceb, type: 3}
   - path: Assets/Art/Sprites/UI/toggleLvSmallBg02.png
     sprite: {fileID: 21300000, guid: 496811534f097af489d12fee8fa16391, type: 3}
+  - path: Assets/Art/Sprites/UI/UIHall/btn_start.png
+    sprite: {fileID: 21300000, guid: 0b297f21449e74c3ab4f5cdcc4cd666e, type: 3}
+  - path: Assets/Art/Sprites/UI/UIHall/hall_bg.png
+    sprite: {fileID: 21300000, guid: 2228449035e79423aa007b67f11799c6, type: 3}
+  - path: Assets/Art/Sprites/UI/UIHall/tab_center01.png
+    sprite: {fileID: 21300000, guid: eed7c8108fe924de0bc63c67827b9e4d, type: 3}
+  - path: Assets/Art/Sprites/UI/UIHall/tab_center02.png
+    sprite: {fileID: 21300000, guid: e3c9a50dd045c4d31b0ada0da0e930cb, type: 3}
+  - path: Assets/Art/Sprites/UI/UIHall/tab_left01.png
+    sprite: {fileID: 21300000, guid: 12958685f6ede43da85dbcf0a795daf3, type: 3}
+  - path: Assets/Art/Sprites/UI/UIHall/tab_left02.png
+    sprite: {fileID: 21300000, guid: cb5eee2cdf6b544f8b13647fb594b6b4, type: 3}
+  - path: Assets/Art/Sprites/UI/UIHall/tab_right01.png
+    sprite: {fileID: 21300000, guid: 6b028936eb74e4a39afc42118700aa42, type: 3}
+  - path: Assets/Art/Sprites/UI/UIHall/tab_right02.png
+    sprite: {fileID: 21300000, guid: c01d267aad95d4c7d9644a2ae8eea771, type: 3}
+  - path: Assets/Art/Sprites/UI/UIStage/background.png
+    sprite: {fileID: 21300000, guid: 9f94de07bf1cf49cbb26dd4a3f616375, type: 3}
+  - path: Assets/Art/Sprites/UI/UIStage/btn_back.png
+    sprite: {fileID: 21300000, guid: 3164f70169acb4fe6b74379ce2dc4f9b, type: 3}
+  - path: Assets/Art/Sprites/UI/UIStage/btn_plus.png
+    sprite: {fileID: 21300000, guid: 0c7ee5b165a0e46ef9953af128efdfed, type: 3}
+  - path: Assets/Art/Sprites/UI/UIStage/btn_start.png
+    sprite: {fileID: 21300000, guid: cf806c1fccb7e4da79bf21b285bd6919, type: 3}
+  - path: Assets/Art/Sprites/UI/UIStage/imgSettlementVictoryStar01.png
+    sprite: {fileID: 21300000, guid: 78e1f78ac80ed4f5cbfc718fc18d6d8e, type: 3}
+  - path: Assets/Art/Sprites/UI/UIStage/imgSettlementVictoryStar02.png
+    sprite: {fileID: 21300000, guid: 2068e761222764846bd7d746fd324f91, type: 3}
+  - path: Assets/Art/Sprites/UI/UIStage/img_lock.png
+    sprite: {fileID: 21300000, guid: 7272d4f6fedf74ecdacbf0d6defaa22c, type: 3}
+  - path: Assets/Art/Sprites/UI/UIStage/level_lock.png
+    sprite: {fileID: 21300000, guid: 7ab1d5dfc69524b338554ec8c8a47caf, type: 3}
+  - path: Assets/Art/Sprites/UI/UIStage/level_pass.png
+    sprite: {fileID: 21300000, guid: 043819841e2f54051bac8c3e62384853, type: 3}
+  - path: Assets/Art/Sprites/UI/UIStage/stage_inputbg.png
+    sprite: {fileID: 21300000, guid: cb19d7308dbc745b5a9b902bf92de69e, type: 3}
+  - path: Assets/Art/Sprites/UI/UIStage/stage_right.png
+    sprite: {fileID: 21300000, guid: 208a67d00b95041048acfb4d77eaafa9, type: 3}
   fonts:
   - path: Assets/Art/Font/simhei.ttf
     font: {fileID: 12800000, guid: 9f94a9364d47346d88936c0fe26c71e0, type: 3}

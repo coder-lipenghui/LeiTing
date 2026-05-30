@@ -5,7 +5,6 @@ using System.Globalization;
 using LeiTing.Config;
 using LeiTing.Core;
 using LeiTing.Progress;
-using Luban.SimpleJSON;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -60,7 +59,6 @@ namespace LeiTing.UI
         private readonly List<LevelItemView> levelItems = new List<LevelItemView>();
         private readonly List<InfoToggleView> infoItems = new List<InfoToggleView>();
         private readonly Dictionary<int, Image> lineImages = new Dictionary<int, Image>();
-        private readonly List<LevelConfig> levels = new List<LevelConfig>();
 
         private CanvasGroup stageInfoCanvasGroup;
         private Text stageLevelNameText;
@@ -228,7 +226,7 @@ namespace LeiTing.UI
 
         private void RefreshLobby(bool selectLatestUnlocked, bool animateStageInfo)
         {
-            RefreshLevelConfigs();
+            EnsureDefaultConfigLoaded();
             var latestUnlocked = GetLatestUnlockedLevel();
 
             if (selectLatestUnlocked || selectedLevelNumber < 1 || selectedLevelNumber > latestUnlocked)
@@ -243,12 +241,6 @@ namespace LeiTing.UI
             MoveStageChoseToLevel(selectedLevelNumber, false);
         }
 
-        private void RefreshLevelConfigs()
-        {
-            levels.Clear();
-            levels.AddRange(ResolveLevels());
-        }
-
         private void SelectLevel(int levelNumber, bool animate)
         {
             if (levelNumber < 1 || levelNumber > levelItems.Count)
@@ -257,7 +249,7 @@ namespace LeiTing.UI
             }
 
             selectedLevelNumber = levelNumber;
-            if (selectedLevelNumber <= GetLatestUnlockedLevel())
+            if (IsLevelUnlocked(selectedLevelNumber))
             {
                 GameManager.RequestLevel(selectedLevelNumber);
             }
@@ -279,7 +271,7 @@ namespace LeiTing.UI
                     continue;
                 }
 
-                var unlocked = item.levelNumber <= latestUnlocked;
+                var unlocked = IsLevelUnlocked(item.levelNumber, latestUnlocked);
                 var selected = item.levelNumber == selectedLevelNumber;
                 var record = unlocked ? LevelProgressService.GetRecord(item.levelNumber) : null;
                 var earnedMask = record != null ? record.achievementMask : 0;
@@ -323,10 +315,11 @@ namespace LeiTing.UI
                     continue;
                 }
 
+                var unlocked = IsLevelUnlocked(lineIndex + 1, latestUnlocked);
                 ApplyImageSprite(
                     lineImage,
-                    lineIndex + 1 <= latestUnlocked ? lineUnlockedSprite : lineLockedSprite,
-                    lineIndex + 1 <= latestUnlocked ? Color.white : new Color(0.5f, 0.34f, 0.16f, 1f));
+                    unlocked ? lineUnlockedSprite : lineLockedSprite,
+                    unlocked ? Color.white : new Color(0.5f, 0.34f, 0.16f, 1f));
                 lineImage.raycastTarget = false;
             }
         }
@@ -384,7 +377,7 @@ namespace LeiTing.UI
 
         private void UpdateStageInfoContent(int levelNumber)
         {
-            var unlocked = levelNumber <= GetLatestUnlockedLevel();
+            var unlocked = IsLevelUnlocked(levelNumber);
             var record = unlocked ? LevelProgressService.GetRecord(levelNumber) : null;
             SetStageInfoHeader(levelNumber, record != null ? record.score : 0);
             SetStageInfoLockedState(unlocked);
@@ -466,16 +459,10 @@ namespace LeiTing.UI
         {
             Canvas.ForceUpdateCanvases();
 
-            var viewport = stageViewport != null ? stageViewport : RectTransform;
-            var viewportWidth = viewport != null && viewport.rect.width > 1f
-                ? viewport.rect.width
-                : RectTransform != null && RectTransform.rect.width > 1f
-                ? RectTransform.rect.width
-                : 1080f;
             var targetX = stageChoseInitialPosition.x - levelRoot.anchoredPosition.x;
             var bounds = RectTransformUtility.CalculateRelativeRectTransformBounds(stageChose);
 
-            return GetStageChoseXRange(bounds, viewportWidth, out var minX, out var maxX)
+            return GetStageChoseXRange(bounds, GetStageViewportWidth(), out var minX, out var maxX)
                 ? Mathf.Clamp(targetX, minX, maxX)
                 : stageChoseInitialPosition.x;
         }
@@ -557,17 +544,27 @@ namespace LeiTing.UI
             }
 
             Canvas.ForceUpdateCanvases();
-            var viewport = stageViewport != null ? stageViewport : RectTransform;
-            var viewportWidth = viewport != null && viewport.rect.width > 1f
-                ? viewport.rect.width
-                : RectTransform != null && RectTransform.rect.width > 1f
-                ? RectTransform.rect.width
-                : 1080f;
             var bounds = RectTransformUtility.CalculateRelativeRectTransformBounds(stageChose);
 
-            return GetStageChoseXRange(bounds, viewportWidth, out var minX, out var maxX)
+            return GetStageChoseXRange(bounds, GetStageViewportWidth(), out var minX, out var maxX)
                 ? Mathf.Clamp(targetX, minX, maxX)
                 : stageChoseInitialPosition.x;
+        }
+
+        private float GetStageViewportWidth()
+        {
+            var viewport = stageViewport != null ? stageViewport : RectTransform;
+            if (viewport != null && viewport.rect.width > 1f)
+            {
+                return viewport.rect.width;
+            }
+
+            if (RectTransform != null && RectTransform.rect.width > 1f)
+            {
+                return RectTransform.rect.width;
+            }
+
+            return 1080f;
         }
 
         private bool GetStageChoseXRange(Bounds bounds, float viewportWidth, out float minX, out float maxX)
@@ -889,7 +886,6 @@ namespace LeiTing.UI
 
             infoItems.Add(new InfoToggleView
             {
-                root = root as RectTransform,
                 toggle = toggle,
                 texts = root.GetComponentsInChildren<Text>(true),
                 tmpTexts = root.GetComponentsInChildren<TMP_Text>(true)
@@ -1362,7 +1358,7 @@ namespace LeiTing.UI
 
         private bool IsSelectedLevelUnlocked()
         {
-            return selectedLevelNumber >= 1 && selectedLevelNumber <= GetLatestUnlockedLevel();
+            return IsLevelUnlocked(selectedLevelNumber);
         }
 
         private void OnClickCebian()
@@ -1407,9 +1403,28 @@ namespace LeiTing.UI
             UIManager.Instance?.OpenPage(UIPageType.Setting);
         }
 
+        private static void EnsureDefaultConfigLoaded()
+        {
+            var configManager = ConfigManager.Instance;
+            if (configManager != null && !configManager.IsLoaded)
+            {
+                configManager.LoadDefaultConfig();
+            }
+        }
+
         private int GetLatestUnlockedLevel()
         {
             return GameManager.GetMaxUnlockedLevel(Mathf.Max(1, levelItems.Count));
+        }
+
+        private bool IsLevelUnlocked(int levelNumber)
+        {
+            return IsLevelUnlocked(levelNumber, GetLatestUnlockedLevel());
+        }
+
+        private static bool IsLevelUnlocked(int levelNumber, int latestUnlockedLevel)
+        {
+            return levelNumber >= 1 && levelNumber <= latestUnlockedLevel;
         }
 
         private LevelItemView FindLevelItem(int levelNumber)
@@ -1534,68 +1549,6 @@ namespace LeiTing.UI
             image.color = Color.white;
         }
 
-        private static List<LevelConfig> ResolveLevels()
-        {
-            var configManager = ConfigManager.Instance;
-            if (configManager != null && !configManager.IsLoaded)
-            {
-                configManager.LoadDefaultConfig();
-            }
-
-            var sourceLevels = configManager != null && configManager.Config != null
-                ? configManager.Config.levels
-                : null;
-
-            if ((sourceLevels == null || sourceLevels.Count == 0) && LubanConfigLoader.TryLoad(out var fallbackConfig))
-            {
-                sourceLevels = fallbackConfig.levels;
-            }
-
-            if (sourceLevels == null || sourceLevels.Count == 0)
-            {
-                sourceLevels = LoadLevelsDirectlyFromResources();
-            }
-
-            return sourceLevels != null && sourceLevels.Count > 0
-                ? new List<LevelConfig>(sourceLevels)
-                : new List<LevelConfig>();
-        }
-
-        private static List<LevelConfig> LoadLevelsDirectlyFromResources()
-        {
-            var source = Resources.Load<TextAsset>("Luban/leiting_tblevel");
-            if (source == null)
-            {
-                return null;
-            }
-
-            var node = JSON.Parse(source.text);
-            if (node == null || !node.IsArray)
-            {
-                return null;
-            }
-
-            var loadedLevels = new List<LevelConfig>(node.Count);
-            foreach (JSONNode row in node.Children)
-            {
-                if (row == null || !row.IsObject)
-                {
-                    continue;
-                }
-
-                loadedLevels.Add(new LevelConfig
-                {
-                    id = row["id"],
-                    displayName = row["displayName"],
-                    backgroundSpritePath = row["backgroundSpritePath"],
-                    backgroundScrollSpeed = row["backgroundScrollSpeed"].IsNumber ? row["backgroundScrollSpeed"].AsFloat : 0f,
-                    bgmPath = row["bgmPath"]
-                });
-            }
-
-            return loadedLevels;
-        }
-
         private static Sprite LoadSprite(string assetPath)
         {
 #if UNITY_EDITOR
@@ -1684,7 +1637,6 @@ namespace LeiTing.UI
 
         private sealed class InfoToggleView
         {
-            public RectTransform root;
             public Toggle toggle;
             public Text[] texts;
             public TMP_Text[] tmpTexts;
