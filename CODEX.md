@@ -141,6 +141,10 @@ and a phone test.
 - `UIManager` provides battle HUD/settlement behavior and runtime-created UI
   where an authored view is unavailable. The page classes provide lobby,
   hangar, settings, and stage-selection views.
+- `LobbyPage` opens the `Cebianlan` panel from `BtnCebianlan`/`BtnCebian`.
+  The panel binds `BtnGod`/`BtnGo` to Douyin `TT.NavigateToScene` with
+  `scene=sidebar`, and a sidebar revisit switches the panel action from
+  `BtnGo` to `BtnClame` based on Douyin launch options.
 - `GameSettingManager` stores music, sound, and vibration preferences in
   `PlayerPrefs`. Player vibration reads that setting; menu and level BGM
   respect `MusicEnabled`, while sound effects and `AircraftEngineAudio`

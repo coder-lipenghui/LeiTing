@@ -5,6 +5,9 @@ using System.Globalization;
 using LeiTing.Config;
 using LeiTing.Core;
 using LeiTing.Progress;
+#if UNITY_WEBGL && !UNITY_EDITOR
+using LeiTing.Platform;
+#endif
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -55,6 +58,9 @@ namespace LeiTing.UI
         [SerializeField] private RectTransform stageChose;
         [SerializeField] private RectTransform stageInfo;
         [SerializeField] private GameObject cebianlan;
+        [SerializeField] private Button sidebarGoButton;
+        [SerializeField] private Button sidebarClaimButton;
+        [SerializeField] private Button sidebarCloseButton;
 
         private readonly List<LevelItemView> levelItems = new List<LevelItemView>();
         private readonly List<InfoToggleView> infoItems = new List<InfoToggleView>();
@@ -107,12 +113,14 @@ namespace LeiTing.UI
             LoadSprites();
             BindPrefabView();
             BindEvents();
+            RefreshSidebarVisitState();
             RefreshLobby(true, false);
         }
 
         public override void OnShow()
         {
             battleStartRequested = false;
+            RefreshSidebarVisitState();
             RefreshLobby(true, false);
         }
 
@@ -172,7 +180,7 @@ namespace LeiTing.UI
             EnsureStageScrollView();
             startButton = startButton != null ? startButton : FindOrCreateButton("BtnStart");
             BindStartButtonVisuals();
-            cebianButton = cebianButton != null ? cebianButton : FindOrCreateButton("BtnCebian");
+            cebianButton = cebianButton != null ? cebianButton : FindFirstButton("BtnCebianlan", "BtnCebian");
             rankButton = rankButton != null ? rankButton : FindOrCreateButton("BtnRank");
             settingButton = settingButton != null ? settingButton : FindOrCreateButton("BtnSetting");
 
@@ -182,6 +190,10 @@ namespace LeiTing.UI
             {
                 cebianlan.SetActive(false);
             }
+
+            sidebarGoButton = sidebarGoButton != null ? sidebarGoButton : FindFirstButton("BtnGod", "BtnGo");
+            sidebarClaimButton = sidebarClaimButton != null ? sidebarClaimButton : FindOrCreateButton("BtnClame");
+            sidebarCloseButton = sidebarCloseButton != null ? sidebarCloseButton : FindOrCreateButton("BtnClose");
 
             if (stageInfo != null)
             {
@@ -210,6 +222,8 @@ namespace LeiTing.UI
             BindButton(cebianButton, OnClickCebian);
             BindButton(rankButton, OnClickRank);
             BindButton(settingButton, OnClickSetting);
+            BindButton(sidebarGoButton, OnClickSidebarGo);
+            BindButton(sidebarCloseButton, OnClickSidebarClose);
 
             foreach (var item in levelItems)
             {
@@ -302,6 +316,24 @@ namespace LeiTing.UI
 
             RefreshLineVisuals(latestUnlocked);
             SetStartButtonState(selectedLevelNumber >= 1 && selectedLevelNumber <= latestUnlocked && !battleStartRequested);
+        }
+
+        private void RefreshSidebarVisitState()
+        {
+            SetSidebarRewardState(IsSidebarRevisit());
+        }
+
+        private void SetSidebarRewardState(bool revisitedFromSidebar)
+        {
+            if (sidebarGoButton != null)
+            {
+                sidebarGoButton.gameObject.SetActive(!revisitedFromSidebar);
+            }
+
+            if (sidebarClaimButton != null)
+            {
+                sidebarClaimButton.gameObject.SetActive(revisitedFromSidebar);
+            }
         }
 
         private void RefreshLineVisuals(int latestUnlocked)
@@ -1365,21 +1397,57 @@ namespace LeiTing.UI
         {
             if (cebianlan != null)
             {
+                RefreshSidebarVisitState();
                 cebianlan.SetActive(true);
+            }
+        }
+
+        private void OnClickSidebarGo()
+        {
+#if UNITY_WEBGL && !UNITY_EDITOR
+            OpenDouyinSidebar();
+#else
+            Debug.Log("[UIHall] Douyin sidebar requested.");
+#endif
+        }
+
+        private void OnClickSidebarClose()
+        {
+            if (cebianlan != null)
+            {
+                cebianlan.SetActive(false);
             }
         }
 
         private static void OnClickRank()
         {
 #if UNITY_WEBGL && !UNITY_EDITOR
+            DouyinAccountService.EnsureLogin((success, message) =>
+            {
+                if (!success)
+                {
+                    Debug.LogWarning($"[UIHall] Douyin rank open skipped: login failed: {message}");
+                    return;
+                }
+
+                OpenDouyinRank();
+            });
+#else
+            Debug.Log($"[UIHall] Douyin rank requested. Total score={LevelProgressService.GetTotalScore()}");
+#endif
+        }
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+        private static void OpenDouyinRank()
+        {
             try
             {
                 var rankData = new JsonData();
                 rankData["rankType"] = "all";
                 rankData["dataType"] = NumericRankDataType;
                 rankData["relationType"] = "all";
-                rankData["suffix"] = "分";
-                rankData["rankTitle"] = "排行榜";
+                rankData["suffix"] = "\u5206";
+                rankData["rankTitle"] = "\u6392\u884c\u699c";
                 rankData["zoneId"] = RankZoneId;
                 TT.GetImRankList(rankData, (success, message) =>
                 {
@@ -1393,15 +1461,90 @@ namespace LeiTing.UI
             {
                 Debug.LogWarning($"[UIHall] Douyin rank open failed: {exception.Message}");
             }
-#else
-            Debug.Log($"[UIHall] Douyin rank requested. Total score={LevelProgressService.GetTotalScore()}");
-#endif
         }
+#endif
 
         private static void OnClickSetting()
         {
             UIManager.Instance?.OpenPage(UIPageType.Setting);
         }
+
+        private void OnApplicationFocus(bool hasFocus)
+        {
+            if (hasFocus)
+            {
+                RefreshSidebarVisitState();
+            }
+        }
+
+        private void OnApplicationPause(bool pauseStatus)
+        {
+            if (!pauseStatus)
+            {
+                RefreshSidebarVisitState();
+            }
+        }
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+        private static void OpenDouyinSidebar()
+        {
+            try
+            {
+                var data = new JsonData();
+                data["scene"] = "sidebar";
+                TT.NavigateToScene(
+                    data,
+                    () => Debug.Log("[UIHall] Douyin sidebar opened."),
+                    () => { },
+                    (code, message) =>
+                    {
+                        Debug.LogWarning($"[UIHall] Douyin sidebar open failed: code={code}, message={message}");
+                    });
+            }
+            catch (Exception exception)
+            {
+                Debug.LogWarning($"[UIHall] Douyin sidebar open failed: {exception.Message}");
+            }
+        }
+
+        private static bool IsSidebarRevisit()
+        {
+            try
+            {
+                var launchOptions = TT.GetLaunchOptionsSync();
+                var containerEnv = TT.s_ContainerEnv;
+
+                return IsSidebarLaunchValue(containerEnv != null ? containerEnv.GetLaunchFrom() : null)
+                    || IsSidebarLaunchValue(containerEnv != null ? containerEnv.GetLocation() : null)
+                    || (launchOptions != null
+                        && (IsSidebarLaunchValue(launchOptions.Scene)
+                            || IsSidebarLaunchValue(launchOptions.SubScene)));
+            }
+            catch (Exception exception)
+            {
+                Debug.LogWarning($"[UIHall] Douyin sidebar launch check failed: {exception.Message}");
+                return false;
+            }
+        }
+
+        private static bool IsSidebarLaunchValue(object value)
+        {
+            if (value == null)
+            {
+                return false;
+            }
+
+            var text = value.ToString();
+            return string.Equals(text, "sidebar", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(text, "homepage", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(text, "home_page", StringComparison.OrdinalIgnoreCase);
+        }
+#else
+        private static bool IsSidebarRevisit()
+        {
+            return false;
+        }
+#endif
 
         private static void EnsureDefaultConfigLoaded()
         {
@@ -1434,6 +1577,25 @@ namespace LeiTing.UI
                 if (item != null && item.levelNumber == levelNumber)
                 {
                     return item;
+                }
+            }
+
+            return null;
+        }
+
+        private Button FindFirstButton(params string[] names)
+        {
+            if (names == null)
+            {
+                return null;
+            }
+
+            foreach (var name in names)
+            {
+                var button = FindOrCreateButton(name);
+                if (button != null)
+                {
+                    return button;
                 }
             }
 

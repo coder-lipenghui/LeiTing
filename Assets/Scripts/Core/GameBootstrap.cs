@@ -2,6 +2,9 @@ using LeiTing.Config;
 using LeiTing.Audio;
 using LeiTing.Pickups;
 using LeiTing.Player;
+#if UNITY_WEBGL && !UNITY_EDITOR
+using LeiTing.Platform;
+#endif
 using LeiTing.Stage;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -24,6 +27,10 @@ namespace LeiTing.Core
 
         private void Awake()
         {
+#if UNITY_WEBGL && !UNITY_EDITOR
+            DouyinAccountService.LoginOnGameEnter();
+#endif
+
             if (ConfigManager.Instance != null)
             {
                 ConfigManager.Instance.LoadDefaultConfig();

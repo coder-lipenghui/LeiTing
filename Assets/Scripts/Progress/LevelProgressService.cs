@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using LeiTing.Config;
 using LeiTing.Core;
+#if UNITY_WEBGL && !UNITY_EDITOR
+using LeiTing.Platform;
+#endif
 using LeiTing.Storage;
 using UnityEngine;
 
@@ -459,6 +462,24 @@ namespace LeiTing.Progress
         private static void SubmitLeaderboardScore(int totalScore)
         {
 #if UNITY_WEBGL && !UNITY_EDITOR
+            DouyinAccountService.EnsureLogin((success, message) =>
+            {
+                if (!success)
+                {
+                    Debug.LogWarning($"[Progress] Douyin rank save skipped: login failed: {message}");
+                    return;
+                }
+
+                SubmitLeaderboardScoreAfterLogin(totalScore);
+            });
+#else
+            Debug.Log($"[Progress] Leaderboard total score ready: {totalScore}");
+#endif
+        }
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+        private static void SubmitLeaderboardScoreAfterLogin(int totalScore)
+        {
             try
             {
                 var rankData = new JsonData();
@@ -478,10 +499,8 @@ namespace LeiTing.Progress
             {
                 Debug.LogWarning($"[Progress] Douyin rank save failed: {exception.Message}");
             }
-#else
-            Debug.Log($"[Progress] Leaderboard total score ready: {totalScore}");
-#endif
         }
+#endif
 
         [Serializable]
         private sealed class LevelProgressDocument
