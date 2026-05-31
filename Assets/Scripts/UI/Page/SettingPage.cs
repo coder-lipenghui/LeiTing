@@ -9,7 +9,7 @@ namespace LeiTing.UI
 {
     public class SettingPage : BasePage
     {
-        private const string CloseButtonSpritePath = "Assets/Art/Sprites/UI/btnClose.png";
+        private const string CloseButtonSpritePath = "Assets/Art/Sprites/UI/btnBack.png";
 
         [SerializeField] private Toggle musicToggle;
         [SerializeField] private Toggle soundToggle;
@@ -78,6 +78,7 @@ namespace LeiTing.UI
             closeButton = closeButton != null
                 ? closeButton
                 : UIFactory.FindComponentInChildren<Button>(transform, "BtnClose") ?? CreateCloseButton(transform);
+            ConfigureCloseButton(closeButton);
             musicToggle = musicToggle != null
                 ? musicToggle
                 : UIFactory.FindComponentInChildren<Toggle>(transform, "MusicToggle");
@@ -146,27 +147,62 @@ namespace LeiTing.UI
         private static Button CreateCloseButton(Transform parent)
         {
             var button = UIFactory.CreateButton("BtnClose", parent, "X", Color.white, out var label, out var image);
-            label.fontSize = 34;
+            ConfigureCloseButton(button, label, image);
+            return button;
+        }
+
+        private static void ConfigureCloseButton(Button button)
+        {
+            if (button == null)
+            {
+                return;
+            }
+
+            var label = button.GetComponentInChildren<Text>(true);
+            var image = button.targetGraphic as Image ?? button.GetComponentInChildren<Image>(true);
+            ConfigureCloseButton(button, label, image);
+        }
+
+        private static void ConfigureCloseButton(Button button, Text label, Image image)
+        {
+            if (button == null)
+            {
+                return;
+            }
+
+            if (label != null)
+            {
+                label.fontSize = 34;
+                label.text = string.Empty;
+            }
 
             var sprite = LoadSprite(CloseButtonSpritePath);
-            if (sprite != null)
+            if (image != null && sprite != null)
             {
                 image.sprite = sprite;
                 image.color = Color.white;
-                label.text = string.Empty;
             }
-            else
+            else if (image != null)
             {
                 image.color = new Color(0f, 0f, 0f, 0.42f);
             }
 
+            if (image != null)
+            {
+                button.targetGraphic = image;
+            }
+
             var rect = button.GetComponent<RectTransform>();
-            rect.anchorMin = new Vector2(1f, 1f);
-            rect.anchorMax = new Vector2(1f, 1f);
-            rect.pivot = new Vector2(1f, 1f);
-            rect.anchoredPosition = new Vector2(-42f, -42f);
-            rect.sizeDelta = new Vector2(86f, 86f);
-            return button;
+            if (rect == null)
+            {
+                return;
+            }
+
+            rect.anchorMin = new Vector2(0.5f, 0f);
+            rect.anchorMax = new Vector2(0.5f, 0f);
+            rect.pivot = new Vector2(0.5f, 0f);
+            rect.anchoredPosition = new Vector2(0f, 86f);
+            rect.sizeDelta = new Vector2(118f, 118f);
         }
 
         private static Sprite LoadSprite(string assetPath)

@@ -18,15 +18,24 @@ namespace LeiTing.Pickups
     {
         private const float DespawnViewportMargin = 0.08f;
         private const float GlowSpriteSize = 1f;
+        private const float DefaultGlowRange = 0.28f;
         private const float MagnetGlowRange = 0.34f;
         private const float TreasureGlowRange = 0.3f;
+        private const float SpecialGlowRange = 0.36f;
+        private const float GlowPulseScale = 0.1f;
+        private const float GlowPulseAlpha = 0.18f;
         private const float TreasureScaleVariance = 0.08f;
+        private const float SpecialWobblePeriod = 1.85f;
+        private const float SpecialWobbleScale = 0.13f;
+        private const float SpecialWobbleYOffset = 0.03f;
         private const string CoinPickupSoundPath = "Assets/Art/Sound/SFX/Item/coin.wav";
         private const string StarPickupSoundPath = "Assets/Art/Sound/SFX/Item/star.wav";
         private const string SpecialPickupSoundPath = "Assets/Art/Sound/SFX/Item/SFX_Item_Pickup_Special_01.wav";
 
         private static readonly Color MagnetGlowColor = new Color(0.12f, 0.58f, 1f, 0.54f);
         private static readonly Color TreasureGlowColor = new Color(1f, 0.72f, 0.08f, 0.58f);
+        private static readonly Color SpecialGlowColor = new Color(0.42f, 0.96f, 1f, 0.56f);
+        private static readonly Color DefaultGlowColor = new Color(1f, 1f, 1f, 0.42f);
         private static Sprite glowSprite;
         private static Material defaultSpriteMaterial;
 
@@ -37,10 +46,18 @@ namespace LeiTing.Pickups
         private SpriteRenderer spriteRenderer;
         private Transform glowRoot;
         private SpriteRenderer glowRenderer;
+        private Transform leftVisualRoot;
+        private Transform rightVisualRoot;
+        private SpriteRenderer leftVisualRenderer;
+        private SpriteRenderer rightVisualRenderer;
         private Camera gameplayCamera;
         private PlayerController forcedAttractTarget;
+        private Color glowBaseColor;
+        private Vector3 glowBaseScale = Vector3.one;
         private float spawnTime;
         private bool isCollected;
+        private bool glowConfigured;
+        private bool specialSplitVisual;
 
         public void Initialize(PickupItemConfig pickupConfig)
         {
@@ -57,6 +74,7 @@ namespace LeiTing.Pickups
 
         public bool IsStarPickup => IsItemType("Star") || IsItemId("star");
         private bool IsCoinPickup => IsItemType("Coin") || IsItemId("coin");
+        private bool IsSpecialPickup => !IsStarPickup && !IsCoinPickup;
         public bool IsCollected => isCollected;
 
         public void BeginForcedAttract(PlayerController player)
@@ -80,6 +98,8 @@ namespace LeiTing.Pickups
             {
                 return;
             }
+
+            UpdatePickupVisuals();
 
             if (GameManager.Instance != null && GameManager.Instance.CurrentState != GameState.Playing)
             {
@@ -155,6 +175,8 @@ namespace LeiTing.Pickups
             {
                 glowRenderer = glowRoot.gameObject.AddComponent<SpriteRenderer>();
             }
+
+            EnsureSplitVisualRenderers();
         }
 
         private bool TryAttractToPlayer(PlayerController player, bool forceAttract = false)
@@ -340,6 +362,7 @@ namespace LeiTing.Pickups
             }
 
             transform.localScale = new Vector3(scale, scale, 1f);
+            ConfigureSplitVisual(spriteRenderer.sprite);
             ApplyGlowVisual();
         }
 
@@ -367,7 +390,13 @@ namespace LeiTing.Pickups
                 return;
             }
 
-            glowRenderer.enabled = false;
+            if (IsSpecialPickup)
+            {
+                ConfigureGlow(SpecialGlowColor, SpecialGlowRange);
+                return;
+            }
+
+            ConfigureGlow(DefaultGlowColor, DefaultGlowRange);
         }
 
         private void ConfigureGlow(Color color, float glowRange)
@@ -387,7 +416,126 @@ namespace LeiTing.Pickups
             glowRenderer.sharedMaterial = GetDefaultSpriteMaterial();
             glowRoot.localPosition = Vector3.zero;
             glowRoot.localRotation = Quaternion.identity;
-            glowRoot.localScale = new Vector3(glowSize / GlowSpriteSize, glowSize / GlowSpriteSize, 1f);
+            glowBaseColor = color;
+            glowBaseScale = new Vector3(glowSize / GlowSpriteSize, glowSize / GlowSpriteSize, 1f);
+            glowRoot.localScale = glowBaseScale;
+            glowConfigured = true;
+        }
+
+        private void EnsureSplitVisualRenderers()
+        {
+            if (leftVisualRoot == null)
+            {
+                leftVisualRoot = EnsureChildTransform("VisualLeft");
+            }
+
+            if (rightVisualRoot == null)
+            {
+                rightVisualRoot = EnsureChildTransform("VisualRight");
+            }
+
+            leftVisualRenderer = leftVisualRenderer != null ? leftVisualRenderer : leftVisualRoot.GetComponent<SpriteRenderer>();
+            if (leftVisualRenderer == null)
+            {
+                leftVisualRenderer = leftVisualRoot.gameObject.AddComponent<SpriteRenderer>();
+            }
+
+            rightVisualRenderer = rightVisualRenderer != null ? rightVisualRenderer : rightVisualRoot.GetComponent<SpriteRenderer>();
+            if (rightVisualRenderer == null)
+            {
+                rightVisualRenderer = rightVisualRoot.gameObject.AddComponent<SpriteRenderer>();
+            }
+
+            leftVisualRenderer.enabled = false;
+            rightVisualRenderer.enabled = false;
+        }
+
+        private Transform EnsureChildTransform(string childName)
+        {
+            var child = transform.Find(childName);
+            if (child == null)
+            {
+                child = new GameObject(childName).transform;
+                child.SetParent(transform, false);
+            }
+
+            child.localPosition = Vector3.zero;
+            child.localRotation = Quaternion.identity;
+            child.localScale = Vector3.one;
+            return child;
+        }
+
+        private void ConfigureSplitVisual(Sprite sprite)
+        {
+            EnsureSplitVisualRenderers();
+
+            specialSplitVisual = IsSpecialPickup && sprite != null;
+            spriteRenderer.enabled = !specialSplitVisual;
+            leftVisualRenderer.enabled = specialSplitVisual;
+            rightVisualRenderer.enabled = specialSplitVisual;
+
+            if (!specialSplitVisual)
+            {
+                return;
+            }
+
+            leftVisualRenderer.sprite = CreateHalfSprite(sprite, true);
+            rightVisualRenderer.sprite = CreateHalfSprite(sprite, false);
+            leftVisualRenderer.sortingOrder = spriteRenderer.sortingOrder;
+            rightVisualRenderer.sortingOrder = spriteRenderer.sortingOrder;
+            leftVisualRenderer.color = spriteRenderer.color;
+            rightVisualRenderer.color = spriteRenderer.color;
+            leftVisualRenderer.sharedMaterial = spriteRenderer.sharedMaterial != null
+                ? spriteRenderer.sharedMaterial
+                : GetDefaultSpriteMaterial();
+            rightVisualRenderer.sharedMaterial = leftVisualRenderer.sharedMaterial;
+        }
+
+        private static Sprite CreateHalfSprite(Sprite source, bool leftHalf)
+        {
+            var rect = source.rect;
+            var halfWidth = Mathf.Max(1f, rect.width * 0.5f);
+            var halfRect = leftHalf
+                ? new Rect(rect.x, rect.y, halfWidth, rect.height)
+                : new Rect(rect.x + halfWidth, rect.y, rect.width - halfWidth, rect.height);
+            var pivot = leftHalf ? new Vector2(1f, 0.5f) : new Vector2(0f, 0.5f);
+            return Sprite.Create(source.texture, halfRect, pivot, source.pixelsPerUnit);
+        }
+
+        private void UpdatePickupVisuals()
+        {
+            UpdateGlowPulse();
+            UpdateSpecialWobble();
+        }
+
+        private void UpdateGlowPulse()
+        {
+            if (!glowConfigured || glowRenderer == null || glowRoot == null || !glowRenderer.enabled)
+            {
+                return;
+            }
+
+            var wave = (Mathf.Sin((Time.time - spawnTime) * Mathf.PI * 2f / 1.55f) + 1f) * 0.5f;
+            glowRoot.localScale = glowBaseScale * (1f + GlowPulseScale * wave);
+            glowRenderer.color = new Color(
+                glowBaseColor.r,
+                glowBaseColor.g,
+                glowBaseColor.b,
+                Mathf.Clamp01(glowBaseColor.a + GlowPulseAlpha * wave));
+        }
+
+        private void UpdateSpecialWobble()
+        {
+            if (!specialSplitVisual || leftVisualRoot == null || rightVisualRoot == null)
+            {
+                return;
+            }
+
+            var wave = Mathf.Sin((Time.time - spawnTime) * Mathf.PI * 2f / SpecialWobblePeriod);
+            var leftScale = 1f + wave * SpecialWobbleScale;
+            var rightScale = 1f - wave * SpecialWobbleScale;
+            leftVisualRoot.localScale = new Vector3(leftScale, 1f + wave * SpecialWobbleYOffset, 1f);
+            rightVisualRoot.localScale = new Vector3(rightScale, 1f - wave * SpecialWobbleYOffset, 1f);
         }
 
         private Sprite LoadPickupSprite()

@@ -30,6 +30,7 @@ namespace LeiTing.UI
         private const float GlowDuration = 0.46f;
         private const float LevelHitAreaPadding = 16f;
         private const float StageChoseHeight = 305f;
+        private const float StaminaRefreshUiInterval = 1f;
         private const string RankZoneId = "default";
         private const int NumericRankDataType = 0;
 
@@ -97,6 +98,7 @@ namespace LeiTing.UI
         private bool draggingStageChose;
         private Vector2 stageDragStartLocalPosition;
         private Vector2 stageDragStartAnchoredPosition;
+        private float nextStaminaRefreshTime;
         private Coroutine stageInfoRoutine;
         private Coroutine stageMoveRoutine;
         private Coroutine levelGlowRoutine;
@@ -128,6 +130,18 @@ namespace LeiTing.UI
         {
             battleStartRequested = false;
             StopRunningCoroutines();
+        }
+
+        private void Update()
+        {
+            if (Time.unscaledTime < nextStaminaRefreshTime)
+            {
+                return;
+            }
+
+            nextStaminaRefreshTime = Time.unscaledTime + StaminaRefreshUiInterval;
+            RefreshStartButtonStaminaText();
+            RefreshStartButtonAvailability();
         }
 
         private void BuildFallbackView()
@@ -1288,9 +1302,42 @@ namespace LeiTing.UI
         {
             if (startButton != null)
             {
+                RefreshStartButtonStaminaText();
+
                 var lockedSelection = !IsSelectedLevelUnlocked();
-                SetStartButtonLockedVisual(lockedSelection);
-                startButton.interactable = interactable && !lockedSelection;
+                var lockedStamina = !HasEnoughStamina();
+                SetStartButtonLockedVisual(lockedSelection || lockedStamina);
+                startButton.interactable = interactable && !lockedSelection && !lockedStamina;
+            }
+        }
+
+        private void RefreshStartButtonAvailability()
+        {
+            if (battleStartRequested)
+            {
+                return;
+            }
+
+            var latestUnlocked = GetLatestUnlockedLevel();
+            SetStartButtonState(selectedLevelNumber >= 1 && selectedLevelNumber <= latestUnlocked);
+        }
+
+        private bool HasEnoughStamina()
+        {
+            return StaminaService.HasEnough(StaminaService.BattleCost);
+        }
+
+        private void RefreshStartButtonStaminaText()
+        {
+            var staminaText = StaminaService.CurrentStamina.ToString(CultureInfo.InvariantCulture);
+            if (startButtonTiliText != null)
+            {
+                startButtonTiliText.text = staminaText;
+            }
+
+            if (startButtonTiliTmpText != null)
+            {
+                startButtonTiliTmpText.text = staminaText;
             }
         }
 
@@ -1379,6 +1426,12 @@ namespace LeiTing.UI
         {
             if (battleStartRequested || !IsSelectedLevelUnlocked())
             {
+                return;
+            }
+
+            if (!StaminaService.TryConsume(StaminaService.BattleCost))
+            {
+                RefreshStartButtonAvailability();
                 return;
             }
 

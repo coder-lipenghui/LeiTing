@@ -485,6 +485,12 @@ namespace LeiTing.UI
                 return;
             }
 
+            if (!StaminaService.TryConsume(StaminaService.BattleCost))
+            {
+                Debug.LogWarning("[UIStage] Not enough stamina to enter battle.");
+                return;
+            }
+
             battleStartRequested = true;
             if (startButton != null)
             {

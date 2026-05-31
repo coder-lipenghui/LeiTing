@@ -1,8 +1,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using LeiTing.Core;
 using LeiTing.Player;
+using LeiTing.Progress;
 using LeiTing.Stage;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -10,6 +12,10 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 #if UNITY_EDITOR
 using UnityEditor;
+#endif
+#if UNITY_WEBGL && !UNITY_EDITOR
+using TTSDK;
+using TTSDK.UNBridgeLib.LitJson;
 #endif
 
 namespace LeiTing.UI
@@ -51,17 +57,24 @@ namespace LeiTing.UI
         private Text scoreText;
         private Text stageTimerText;
         private GameObject settlementRoot;
-        private Text settlementText;
-        private GameObject restartChallengeRoot;
-        private Button restartChallengeButton;
-        private GameObject nextLevelRoot;
-        private Button nextLevelButton;
+        private Text settlementTitleText;
+        private Text settlementDetailText;
+        private GameObject defeatBackRoot;
+        private Button defeatBackButton;
+        private GameObject victoryContinueRoot;
+        private Button victoryContinueButton;
+        private GameObject settlementContinueRoot;
+        private Button settlementContinueButton;
+        private GameObject settlementShareRoot;
+        private Button settlementShareButton;
         private GameObject bossHudRoot;
         private Image bossHealthFill;
         private Text bossNameText;
         private Text bossPhaseText;
         private Text bossNoticeText;
         private Coroutine bossNoticeRoutine;
+        private GameState lastBattleEndState = GameState.Boot;
+        private bool victorySettlementVisible;
         private bool battleHudInitialized;
 
         protected override void Awake()
@@ -951,6 +964,24 @@ namespace LeiTing.UI
             return Resources.Load<GameObject>(ToResourcesPath(prefabPath));
         }
 
+        private static Sprite LoadSprite(string assetPath)
+        {
+            if (string.IsNullOrEmpty(assetPath))
+            {
+                return null;
+            }
+
+#if UNITY_EDITOR
+            var editorSprite = AssetDatabase.LoadAssetAtPath<Sprite>(assetPath);
+            if (editorSprite != null)
+            {
+                return editorSprite;
+            }
+#endif
+
+            return RuntimeAssetCatalog.LoadSprite(assetPath);
+        }
+
         private static string ToResourcesPath(string prefabPath)
         {
             var normalized = prefabPath.Replace("\\", "/").Trim();
@@ -1236,9 +1267,8 @@ namespace LeiTing.UI
             CreateStageTimer(canvasObject.transform);
             CreateBossHud(canvasObject.transform);
             CreateBossNotice(canvasObject.transform);
-            CreateSettlementText(canvasObject.transform);
-            CreateRestartChallengeButton(canvasObject.transform);
-            CreateNextLevelButton(canvasObject.transform);
+            CreateSettlementPanel(canvasObject.transform);
+            CreateVictoryContinueButton(canvasObject.transform);
             UpdateBattleHudSafeAreaLayout();
         }
 
@@ -1308,7 +1338,7 @@ namespace LeiTing.UI
             stageTimerText.text = "TIME 00:00";
         }
 
-        private void CreateSettlementText(Transform parent)
+        private void CreateSettlementPanel(Transform parent)
         {
             settlementRoot = new GameObject("SettlementPanel", typeof(RectTransform));
             settlementRoot.transform.SetParent(parent, false);
@@ -1318,80 +1348,140 @@ namespace LeiTing.UI
             panelRect.anchorMax = new Vector2(0.5f, 0.5f);
             panelRect.pivot = new Vector2(0.5f, 0.5f);
             panelRect.anchoredPosition = Vector2.zero;
-            panelRect.sizeDelta = new Vector2(860f, 460f);
+            panelRect.sizeDelta = new Vector2(860f, 640f);
 
             var panelImage = settlementRoot.AddComponent<Image>();
             panelImage.color = new Color(0.03f, 0.05f, 0.09f, 0.9f);
 
-            var settlementObject = new GameObject("SettlementText", typeof(RectTransform));
-            settlementObject.transform.SetParent(settlementRoot.transform, false);
+            var titleObject = new GameObject("SettlementTitle", typeof(RectTransform));
+            titleObject.transform.SetParent(settlementRoot.transform, false);
 
-            var rect = settlementObject.GetComponent<RectTransform>();
-            rect.anchorMin = Vector2.zero;
-            rect.anchorMax = Vector2.one;
-            rect.pivot = new Vector2(0.5f, 0.5f);
-            rect.offsetMin = new Vector2(48f, 120f);
-            rect.offsetMax = new Vector2(-48f, -48f);
+            var titleRect = titleObject.GetComponent<RectTransform>();
+            titleRect.anchorMin = new Vector2(0f, 1f);
+            titleRect.anchorMax = new Vector2(1f, 1f);
+            titleRect.pivot = new Vector2(0.5f, 1f);
+            titleRect.anchoredPosition = new Vector2(0f, -42f);
+            titleRect.sizeDelta = new Vector2(0f, 190f);
 
-            settlementText = settlementObject.AddComponent<Text>();
-            settlementText.font = UIFactory.GetDefaultFont();
-            settlementText.fontSize = 50;
-            settlementText.fontStyle = FontStyle.Bold;
-            settlementText.alignment = TextAnchor.MiddleCenter;
-            settlementText.color = new Color(1f, 0.95f, 0.75f, 1f);
-            settlementText.raycastTarget = false;
-            settlementText.enabled = false;
+            settlementTitleText = titleObject.AddComponent<Text>();
+            settlementTitleText.font = UIFactory.GetDefaultFont();
+            settlementTitleText.fontSize = 78;
+            settlementTitleText.fontStyle = FontStyle.Bold;
+            settlementTitleText.alignment = TextAnchor.MiddleCenter;
+            settlementTitleText.color = new Color(1f, 0.95f, 0.75f, 1f);
+            settlementTitleText.raycastTarget = false;
+            settlementTitleText.verticalOverflow = VerticalWrapMode.Overflow;
+
+            var detailObject = new GameObject("SettlementDetail", typeof(RectTransform));
+            detailObject.transform.SetParent(settlementRoot.transform, false);
+
+            var detailRect = detailObject.GetComponent<RectTransform>();
+            detailRect.anchorMin = Vector2.zero;
+            detailRect.anchorMax = Vector2.one;
+            detailRect.pivot = new Vector2(0.5f, 0.5f);
+            detailRect.offsetMin = new Vector2(90f, 166f);
+            detailRect.offsetMax = new Vector2(-90f, -250f);
+
+            settlementDetailText = detailObject.AddComponent<Text>();
+            settlementDetailText.font = UIFactory.GetDefaultFont();
+            settlementDetailText.fontSize = 34;
+            settlementDetailText.fontStyle = FontStyle.Bold;
+            settlementDetailText.alignment = TextAnchor.UpperLeft;
+            settlementDetailText.color = new Color(0.85f, 0.95f, 1f, 1f);
+            settlementDetailText.raycastTarget = false;
+            settlementDetailText.verticalOverflow = VerticalWrapMode.Overflow;
+
+            CreateDefeatBackButton(settlementRoot.transform);
+            CreateSettlementActionButtons(settlementRoot.transform);
             settlementRoot.SetActive(false);
         }
 
-        private void CreateRestartChallengeButton(Transform parent)
+        private void CreateDefeatBackButton(Transform parent)
         {
-            restartChallengeRoot = new GameObject("RestartChallengeButton", typeof(RectTransform));
-            restartChallengeRoot.transform.SetParent(parent, false);
+            defeatBackRoot = new GameObject("DefeatBackButton", typeof(RectTransform));
+            defeatBackRoot.transform.SetParent(parent, false);
 
-            var rect = restartChallengeRoot.GetComponent<RectTransform>();
-            rect.anchorMin = new Vector2(0.5f, 0.5f);
-            rect.anchorMax = new Vector2(0.5f, 0.5f);
-            rect.pivot = new Vector2(0.5f, 0.5f);
-            rect.anchoredPosition = new Vector2(0f, -152f);
-            rect.sizeDelta = new Vector2(340f, 82f);
+            var rect = defeatBackRoot.GetComponent<RectTransform>();
+            rect.anchorMin = new Vector2(0.5f, 0f);
+            rect.anchorMax = new Vector2(0.5f, 0f);
+            rect.pivot = new Vector2(0.5f, 0f);
+            rect.anchoredPosition = new Vector2(0f, 64f);
+            rect.sizeDelta = new Vector2(118f, 118f);
 
-            var image = restartChallengeRoot.AddComponent<Image>();
-            image.color = new Color(0.1f, 0.62f, 1f, 0.94f);
+            var image = defeatBackRoot.AddComponent<Image>();
+            image.sprite = LoadSprite("Assets/Art/Sprites/UI/btnBack.png");
+            image.color = image.sprite != null ? Color.white : new Color(0.1f, 0.62f, 1f, 0.94f);
 
-            restartChallengeButton = restartChallengeRoot.AddComponent<Button>();
-            restartChallengeButton.targetGraphic = image;
-            restartChallengeButton.transition = Selectable.Transition.ColorTint;
-            restartChallengeButton.colors = CreateButtonColors();
-            restartChallengeButton.onClick.AddListener(RestartChallenge);
+            defeatBackButton = defeatBackRoot.AddComponent<Button>();
+            defeatBackButton.targetGraphic = image;
+            defeatBackButton.transition = Selectable.Transition.ColorTint;
+            defeatBackButton.colors = CreateButtonColors();
+            defeatBackButton.onClick.AddListener(ReturnToLobby);
 
-            CreateBattleButtonLabel(restartChallengeRoot.transform, "重新挑战");
-            restartChallengeRoot.SetActive(false);
+            defeatBackRoot.SetActive(false);
         }
 
-        private void CreateNextLevelButton(Transform parent)
+        private void CreateVictoryContinueButton(Transform parent)
         {
-            nextLevelRoot = new GameObject("NextLevelButton", typeof(RectTransform));
-            nextLevelRoot.transform.SetParent(parent, false);
+            victoryContinueRoot = new GameObject("VictoryContinueButton", typeof(RectTransform));
+            victoryContinueRoot.transform.SetParent(parent, false);
 
-            var rect = nextLevelRoot.GetComponent<RectTransform>();
-            rect.anchorMin = new Vector2(0.5f, 0.5f);
-            rect.anchorMax = new Vector2(0.5f, 0.5f);
-            rect.pivot = new Vector2(0.5f, 0.5f);
-            rect.anchoredPosition = new Vector2(190f, -152f);
-            rect.sizeDelta = new Vector2(340f, 82f);
+            var rect = victoryContinueRoot.GetComponent<RectTransform>();
+            rect.anchorMin = new Vector2(0.5f, 0f);
+            rect.anchorMax = new Vector2(0.5f, 0f);
+            rect.pivot = new Vector2(0.5f, 0f);
+            rect.anchoredPosition = new Vector2(0f, 118f);
+            rect.sizeDelta = new Vector2(300f, 92f);
 
-            var image = nextLevelRoot.AddComponent<Image>();
+            var image = victoryContinueRoot.AddComponent<Image>();
             image.color = new Color(1f, 0.58f, 0.12f, 0.96f);
 
-            nextLevelButton = nextLevelRoot.AddComponent<Button>();
-            nextLevelButton.targetGraphic = image;
-            nextLevelButton.transition = Selectable.Transition.ColorTint;
-            nextLevelButton.colors = CreateButtonColors();
-            nextLevelButton.onClick.AddListener(LoadNextLevel);
+            victoryContinueButton = victoryContinueRoot.AddComponent<Button>();
+            victoryContinueButton.targetGraphic = image;
+            victoryContinueButton.transition = Selectable.Transition.ColorTint;
+            victoryContinueButton.colors = CreateButtonColors();
+            victoryContinueButton.onClick.AddListener(ShowVictorySettlement);
 
-            CreateBattleButtonLabel(nextLevelRoot.transform, "下一关");
-            nextLevelRoot.SetActive(false);
+            CreateBattleButtonLabel(victoryContinueRoot.transform, "继续");
+            victoryContinueRoot.SetActive(false);
+        }
+
+        private void CreateSettlementActionButtons(Transform parent)
+        {
+            settlementContinueRoot = CreateSettlementActionButton(parent, "SettlementContinueButton", "继续", new Vector2(-164f, 68f));
+            settlementContinueButton = settlementContinueRoot.GetComponent<Button>();
+            settlementContinueButton.onClick.AddListener(ReturnToLobby);
+
+            settlementShareRoot = CreateSettlementActionButton(parent, "SettlementShareButton", "分享", new Vector2(164f, 68f));
+            settlementShareButton = settlementShareRoot.GetComponent<Button>();
+            settlementShareButton.onClick.AddListener(ShareVictorySettlement);
+
+            settlementContinueRoot.SetActive(false);
+            settlementShareRoot.SetActive(false);
+        }
+
+        private static GameObject CreateSettlementActionButton(Transform parent, string name, string label, Vector2 anchoredPosition)
+        {
+            var root = new GameObject(name, typeof(RectTransform));
+            root.transform.SetParent(parent, false);
+
+            var rect = root.GetComponent<RectTransform>();
+            rect.anchorMin = new Vector2(0.5f, 0f);
+            rect.anchorMax = new Vector2(0.5f, 0f);
+            rect.pivot = new Vector2(0.5f, 0f);
+            rect.anchoredPosition = anchoredPosition;
+            rect.sizeDelta = new Vector2(260f, 86f);
+
+            var image = root.AddComponent<Image>();
+            image.color = new Color(0.1f, 0.62f, 1f, 0.94f);
+
+            var button = root.AddComponent<Button>();
+            button.targetGraphic = image;
+            button.transition = Selectable.Transition.ColorTint;
+            button.colors = CreateButtonColors();
+
+            CreateBattleButtonLabel(root.transform, label);
+            return root;
         }
 
         private static void CreateBattleButtonLabel(Transform parent, string label)
@@ -1666,96 +1756,157 @@ namespace LeiTing.UI
 
         private void UpdateSettlement()
         {
-            if (settlementText == null || GameManager.Instance == null)
+            if (settlementTitleText == null || GameManager.Instance == null)
             {
                 return;
             }
 
             var state = GameManager.Instance.CurrentState;
-            var finished = state == GameState.Defeat || state == GameState.Victory;
-            var isVictory = state == GameState.Victory;
-            var showNextLevel = isVictory && GameManager.Instance.HasNextLevel;
-            if (settlementRoot != null && settlementRoot.activeSelf != finished)
+            if (state != lastBattleEndState)
             {
-                settlementRoot.SetActive(finished);
+                lastBattleEndState = state;
+                victorySettlementVisible = false;
             }
 
-            settlementText.enabled = finished;
-            SetSettlementButtonsVisible(finished, showNextLevel);
+            var finished = state == GameState.Defeat || state == GameState.Victory;
+            var isVictory = state == GameState.Victory;
 
             if (!finished)
             {
+                HideBattleEndUi();
                 return;
             }
 
-            var title = isVictory
-                ? GameManager.Instance.HasNextLevel ? "CLEAR" : "ALL CLEAR"
-                : "GAME OVER";
-            var level = $"{GameManager.Instance.CurrentLevelDisplayName}  {GameManager.Instance.CurrentLevelNumber}/{GameManager.Instance.MaxLevelCount}";
-            var boss = isVictory ? $"\n击破 {GameManager.Instance.CurrentLevelBossDisplayName}" : string.Empty;
-            settlementText.text = $"{level}\n{title}{boss}\nSCORE {GameManager.Instance.Score}";
-        }
-
-        private void SetSettlementButtonsVisible(bool showRestart, bool showNextLevel)
-        {
-            if (restartChallengeRoot != null && restartChallengeRoot.activeSelf != showRestart)
+            if (isVictory)
             {
-                restartChallengeRoot.SetActive(showRestart);
+                UpdateVictoryEndUi();
             }
-
-            if (restartChallengeButton != null)
+            else
             {
-                restartChallengeButton.interactable = showRestart;
-            }
-
-            if (nextLevelRoot != null && nextLevelRoot.activeSelf != showNextLevel)
-            {
-                nextLevelRoot.SetActive(showNextLevel);
-            }
-
-            if (nextLevelButton != null)
-            {
-                nextLevelButton.interactable = showNextLevel;
-            }
-
-            UpdateSettlementButtonLayout(showNextLevel);
-        }
-
-        private void UpdateSettlementButtonLayout(bool showNextLevel)
-        {
-            if (restartChallengeRoot != null)
-            {
-                var rect = restartChallengeRoot.GetComponent<RectTransform>();
-                if (rect != null)
-                {
-                    rect.anchoredPosition = showNextLevel ? new Vector2(-190f, -152f) : new Vector2(0f, -152f);
-                }
-            }
-
-            if (nextLevelRoot != null)
-            {
-                var rect = nextLevelRoot.GetComponent<RectTransform>();
-                if (rect != null)
-                {
-                    rect.anchoredPosition = new Vector2(190f, -152f);
-                }
+                UpdateDefeatEndUi();
             }
         }
 
-        private static void RestartChallenge()
+        private void HideBattleEndUi()
         {
-            if (GameManager.Instance != null)
+            SetObjectActive(settlementRoot, false);
+            SetButtonVisible(victoryContinueRoot, victoryContinueButton, false);
+            SetButtonVisible(defeatBackRoot, defeatBackButton, false);
+            SetButtonVisible(settlementContinueRoot, settlementContinueButton, false);
+            SetButtonVisible(settlementShareRoot, settlementShareButton, false);
+        }
+
+        private void UpdateVictoryEndUi()
+        {
+            SetButtonVisible(victoryContinueRoot, victoryContinueButton, !victorySettlementVisible);
+            SetObjectActive(settlementRoot, victorySettlementVisible);
+            SetButtonVisible(defeatBackRoot, defeatBackButton, false);
+
+            if (!victorySettlementVisible)
             {
-                GameManager.Instance.RestartCurrentScene();
+                SetButtonVisible(settlementContinueRoot, settlementContinueButton, false);
+                SetButtonVisible(settlementShareRoot, settlementShareButton, false);
+                return;
+            }
+
+            settlementTitleText.text = "胜利结算";
+            settlementTitleText.fontSize = 58;
+            settlementDetailText.enabled = true;
+            settlementDetailText.text = BuildVictorySettlementDetails();
+            SetButtonVisible(settlementContinueRoot, settlementContinueButton, true);
+            SetButtonVisible(settlementShareRoot, settlementShareButton, true);
+        }
+
+        private void UpdateDefeatEndUi()
+        {
+            SetButtonVisible(victoryContinueRoot, victoryContinueButton, false);
+            SetObjectActive(settlementRoot, true);
+            settlementTitleText.text = "GAME\nOVER";
+            settlementTitleText.fontSize = 82;
+            settlementDetailText.enabled = false;
+            SetButtonVisible(defeatBackRoot, defeatBackButton, true);
+            SetButtonVisible(settlementContinueRoot, settlementContinueButton, false);
+            SetButtonVisible(settlementShareRoot, settlementShareButton, false);
+        }
+
+        private static void SetObjectActive(GameObject target, bool active)
+        {
+            if (target != null && target.activeSelf != active)
+            {
+                target.SetActive(active);
             }
         }
 
-        private static void LoadNextLevel()
+        private static void SetButtonVisible(GameObject root, Button button, bool visible)
         {
-            if (GameManager.Instance != null)
+            SetObjectActive(root, visible);
+            if (button != null)
             {
-                GameManager.Instance.LoadNextLevel();
+                button.interactable = visible;
             }
+        }
+
+        private void ShowVictorySettlement()
+        {
+            victorySettlementVisible = true;
+            UpdateSettlement();
+        }
+
+        private static void ReturnToLobby()
+        {
+            GameSceneManager.GetOrCreate().EnterLobby();
+        }
+
+        private static string BuildVictorySettlementDetails()
+        {
+            var gameManager = GameManager.Instance;
+            var record = LevelProgressService.LastCompletedRecord;
+            var score = record != null ? record.score : gameManager != null ? gameManager.Score : 0;
+            var builder = new StringBuilder();
+
+            if (gameManager != null)
+            {
+                builder.AppendLine($"关卡：{gameManager.CurrentLevelDisplayName}");
+                builder.AppendLine($"击破：{gameManager.CurrentLevelBossDisplayName}");
+            }
+
+            builder.AppendLine($"本关积分：{score}");
+            builder.AppendLine($"累计积分：{LevelProgressService.GetTotalScore()}");
+
+            if (record != null)
+            {
+                builder.AppendLine($"击毁敌机：{record.enemyKillCount}/{Mathf.Max(0, record.totalEnemyCount)}");
+                builder.AppendLine($"收集星星：{record.starCount}/{Mathf.Max(0, record.totalStarCount)}");
+                builder.AppendLine($"达成目标：{record.EarnedAchievementCount}/{LevelProgressService.AchievementCount}");
+                builder.AppendLine($"受击情况：{(record.wasHit ? "已受击" : "无伤")}");
+            }
+
+            return builder.ToString().TrimEnd();
+        }
+
+        private static void ShareVictorySettlement()
+        {
+#if UNITY_WEBGL && !UNITY_EDITOR
+            try
+            {
+                var score = GameManager.Instance != null ? GameManager.Instance.Score : 0;
+                var shareData = new JsonData();
+                shareData["title"] = "雷霆战机";
+                shareData["desc"] = $"本关积分 {score}";
+                shareData["query"] = $"level={(GameManager.Instance != null ? GameManager.Instance.CurrentLevelNumber : 1)}&score={score}";
+                TT.ShareAppMessage(
+                    shareData,
+                    () => Debug.Log("[BattleHud] Douyin share success."),
+                    message => Debug.LogWarning($"[BattleHud] Douyin share failed: {message}"),
+                    () => Debug.Log("[BattleHud] Douyin share cancelled."));
+            }
+            catch (Exception exception)
+            {
+                Debug.LogWarning($"[BattleHud] Douyin share failed: {exception.Message}");
+            }
+#else
+            Debug.Log("[BattleHud] Douyin share requested.");
+#endif
         }
 
         private static ColorBlock CreateButtonColors()
