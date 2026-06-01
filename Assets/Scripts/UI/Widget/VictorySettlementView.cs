@@ -108,6 +108,7 @@ namespace LeiTing.UI
             continueButtonImage.sprite = sprite;
             continueButtonImage.color = Color.white;
             continueButtonImage.preserveAspect = true;
+            continueButtonImage.raycastTarget = true;
         }
 
         public void BindButtons(UnityAction onContinue, UnityAction onShare)
@@ -121,12 +122,28 @@ namespace LeiTing.UI
 
             if (ContinueButton != null && onContinue != null)
             {
+                EnsureButtonRaycastTarget(ContinueButton);
                 ContinueButton.onClick.AddListener(onContinue);
             }
 
             if (ShareButton != null && onShare != null)
             {
+                EnsureButtonRaycastTarget(ShareButton);
                 ShareButton.onClick.AddListener(onShare);
+            }
+        }
+
+        private static void EnsureButtonRaycastTarget(Button button)
+        {
+            if (button == null)
+            {
+                return;
+            }
+
+            var targetGraphic = button.targetGraphic;
+            if (targetGraphic != null)
+            {
+                targetGraphic.raycastTarget = true;
             }
         }
 

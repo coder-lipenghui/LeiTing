@@ -116,6 +116,8 @@ MonoBehaviour:
     sprite: {fileID: 21300000, guid: 0c239b385a642488982e36de47da2e62, type: 3}
   - path: Assets/Art/Sprites/Item/item_star.png
     sprite: {fileID: 21300000, guid: e7730ea40d6044b0f939ea9d3b66374a, type: 3}
+  - path: Assets/Art/Sprites/UI/A.png
+    sprite: {fileID: 21300000, guid: a4a8f34e4b2946afa921ea31af27d091, type: 3}
   - path: Assets/Art/Sprites/UI/backgroundH.png
     sprite: {fileID: 21300000, guid: 1dbd6e063d403410b9f566bd45872809, type: 3}
   - path: Assets/Art/Sprites/UI/btnBack.png
@@ -138,8 +140,10 @@ MonoBehaviour:
     sprite: {fileID: 21300000, guid: 2885073a13166c04a82f97825175eb97, type: 3}
   - path: Assets/Art/Sprites/UI/btnStart.png
     sprite: {fileID: 21300000, guid: 1405557cfeac6f740b984e30651c982c, type: 3}
-  - path: Assets/Art/Sprites/UI/GAME.png
-    sprite: {fileID: 21300000, guid: 0629706c0deac3748be6dbe8a908152e, type: 3}
+  - path: Assets/Art/Sprites/UI/E.png
+    sprite: {fileID: 21300000, guid: dd8c92fc7a7a46ac8a145fcb497da6a2, type: 3}
+  - path: Assets/Art/Sprites/UI/G.png
+    sprite: {fileID: 21300000, guid: b1f75d2e24f94e6d9c11e6b6e778cc01, type: 3}
   - path: Assets/Art/Sprites/UI/imgAlertBg.png
     sprite: {fileID: 21300000, guid: 0b08c8f38a6275348904bec02f32dacf, type: 3}
   - path: Assets/Art/Sprites/UI/imgBgCell.png
@@ -158,14 +162,24 @@ MonoBehaviour:
     sprite: {fileID: 21300000, guid: 6e91e63aaf7282144b063a404d7fca97, type: 3}
   - path: Assets/Art/Sprites/UI/lineZong.png
     sprite: {fileID: 21300000, guid: 3aa5a4f74f6251142bd323b4e0fbf087, type: 3}
-  - path: Assets/Art/Sprites/UI/OVER.png
-    sprite: {fileID: 21300000, guid: 7c22ed29aedec7c4a883a5dd2db8cbc0, type: 3}
+  - path: Assets/Art/Sprites/UI/M.png
+    sprite: {fileID: 21300000, guid: 84f54cbb54ea4c1b94c4418c496cdf37, type: 3}
+  - path: Assets/Art/Sprites/UI/O.png
+    sprite: {fileID: 21300000, guid: 6bc69fed79f8439faa8057bcd1cb8f97, type: 3}
   - path: Assets/Art/Sprites/UI/Player/warplane-01.png
     sprite: {fileID: 21300000, guid: c046cc64a80994e7bb4a593a75c3f1de, type: 3}
   - path: Assets/Art/Sprites/UI/progress_bar.png
     sprite: {fileID: 21300000, guid: 546dc03407c5b624792a80204b4b9fae, type: 3}
+  - path: Assets/Art/Sprites/UI/progress_bar_enemy.png
+    sprite: {fileID: 21300000, guid: f5b79220b7810b443b165b407dd9f565, type: 3}
+  - path: Assets/Art/Sprites/UI/progress_bar_notouch.png
+    sprite: {fileID: 21300000, guid: 04b088bd1cf410d4f94d2ee1ce1686f4, type: 3}
+  - path: Assets/Art/Sprites/UI/progress_bar_star.png
+    sprite: {fileID: 21300000, guid: 91db1698e3cb1b34c8450bd7168000bc, type: 3}
   - path: Assets/Art/Sprites/UI/progress_bg.png
     sprite: {fileID: 21300000, guid: 4f91b4333dfa4b2448c2fa05474042c0, type: 3}
+  - path: Assets/Art/Sprites/UI/R.png
+    sprite: {fileID: 21300000, guid: e6453c2c1e534de7af0cc5f80f651f4e, type: 3}
   - path: Assets/Art/Sprites/UI/toggerProgress01.png
     sprite: {fileID: 21300000, guid: 47ed2d0ec58f65f418345211849ced3e, type: 3}
   - path: Assets/Art/Sprites/UI/toggerProgress02.png
@@ -180,44 +194,28 @@ MonoBehaviour:
     sprite: {fileID: 21300000, guid: 05378d3c467e88a49ad37d9cd2be9ceb, type: 3}
   - path: Assets/Art/Sprites/UI/toggleLvSmallBg02.png
     sprite: {fileID: 21300000, guid: 496811534f097af489d12fee8fa16391, type: 3}
-  - path: Assets/Art/Sprites/UI/UIHall/btn_start.png
-    sprite: {fileID: 21300000, guid: 0b297f21449e74c3ab4f5cdcc4cd666e, type: 3}
-  - path: Assets/Art/Sprites/UI/UIHall/hall_bg.png
-    sprite: {fileID: 21300000, guid: 2228449035e79423aa007b67f11799c6, type: 3}
-  - path: Assets/Art/Sprites/UI/UIHall/tab_center01.png
-    sprite: {fileID: 21300000, guid: eed7c8108fe924de0bc63c67827b9e4d, type: 3}
-  - path: Assets/Art/Sprites/UI/UIHall/tab_center02.png
-    sprite: {fileID: 21300000, guid: e3c9a50dd045c4d31b0ada0da0e930cb, type: 3}
-  - path: Assets/Art/Sprites/UI/UIHall/tab_left01.png
-    sprite: {fileID: 21300000, guid: 12958685f6ede43da85dbcf0a795daf3, type: 3}
-  - path: Assets/Art/Sprites/UI/UIHall/tab_left02.png
-    sprite: {fileID: 21300000, guid: cb5eee2cdf6b544f8b13647fb594b6b4, type: 3}
-  - path: Assets/Art/Sprites/UI/UIHall/tab_right01.png
-    sprite: {fileID: 21300000, guid: 6b028936eb74e4a39afc42118700aa42, type: 3}
-  - path: Assets/Art/Sprites/UI/UIHall/tab_right02.png
-    sprite: {fileID: 21300000, guid: c01d267aad95d4c7d9644a2ae8eea771, type: 3}
-  - path: Assets/Art/Sprites/UI/UIStage/background.png
-    sprite: {fileID: 21300000, guid: 9f94de07bf1cf49cbb26dd4a3f616375, type: 3}
-  - path: Assets/Art/Sprites/UI/UIStage/btn_back.png
-    sprite: {fileID: 21300000, guid: 3164f70169acb4fe6b74379ce2dc4f9b, type: 3}
-  - path: Assets/Art/Sprites/UI/UIStage/btn_plus.png
-    sprite: {fileID: 21300000, guid: 0c7ee5b165a0e46ef9953af128efdfed, type: 3}
-  - path: Assets/Art/Sprites/UI/UIStage/btn_start.png
-    sprite: {fileID: 21300000, guid: cf806c1fccb7e4da79bf21b285bd6919, type: 3}
-  - path: Assets/Art/Sprites/UI/UIStage/imgSettlementVictoryStar01.png
-    sprite: {fileID: 21300000, guid: 78e1f78ac80ed4f5cbfc718fc18d6d8e, type: 3}
-  - path: Assets/Art/Sprites/UI/UIStage/imgSettlementVictoryStar02.png
-    sprite: {fileID: 21300000, guid: 2068e761222764846bd7d746fd324f91, type: 3}
-  - path: Assets/Art/Sprites/UI/UIStage/img_lock.png
-    sprite: {fileID: 21300000, guid: 7272d4f6fedf74ecdacbf0d6defaa22c, type: 3}
-  - path: Assets/Art/Sprites/UI/UIStage/level_lock.png
-    sprite: {fileID: 21300000, guid: 7ab1d5dfc69524b338554ec8c8a47caf, type: 3}
-  - path: Assets/Art/Sprites/UI/UIStage/level_pass.png
-    sprite: {fileID: 21300000, guid: 043819841e2f54051bac8c3e62384853, type: 3}
-  - path: Assets/Art/Sprites/UI/UIStage/stage_inputbg.png
-    sprite: {fileID: 21300000, guid: cb19d7308dbc745b5a9b902bf92de69e, type: 3}
-  - path: Assets/Art/Sprites/UI/UIStage/stage_right.png
-    sprite: {fileID: 21300000, guid: 208a67d00b95041048acfb4d77eaafa9, type: 3}
+  - path: Assets/Art/Sprites/UI/V.png
+    sprite: {fileID: 21300000, guid: 1d45811ce63f4a02af32c6f0a7d63b56, type: 3}
+  - path: Assets/Art/Sprites/UI/win/C.png
+    sprite: {fileID: 21300000, guid: 0a4305064b3b27e4d9b9b0635955fe54, type: 3}
+  - path: Assets/Art/Sprites/UI/win/E.png
+    sprite: {fileID: 21300000, guid: 0326301dddf76d845b9f79157c06123d, type: 3}
+  - path: Assets/Art/Sprites/UI/win/I.png
+    sprite: {fileID: 21300000, guid: ce590de81353a3645b7b642039d45020, type: 3}
+  - path: Assets/Art/Sprites/UI/win/L.png
+    sprite: {fileID: 21300000, guid: c77d0312cdaa0cc419ef3df13b4bbe21, type: 3}
+  - path: Assets/Art/Sprites/UI/win/M.png
+    sprite: {fileID: 21300000, guid: 9965b1acb40ebe348b0327cc7dc8b90b, type: 3}
+  - path: Assets/Art/Sprites/UI/win/N.png
+    sprite: {fileID: 21300000, guid: 199f0c804eb67754f839bf1488c86c0f, type: 3}
+  - path: Assets/Art/Sprites/UI/win/O.png
+    sprite: {fileID: 21300000, guid: ee34944161c83ab49aeca4b6e48e6422, type: 3}
+  - path: Assets/Art/Sprites/UI/win/P.png
+    sprite: {fileID: 21300000, guid: 5fb7d1d96467eaa4690d56b1d09b9b02, type: 3}
+  - path: Assets/Art/Sprites/UI/win/S.png
+    sprite: {fileID: 21300000, guid: 3c7c537eba9e5a544a37742e0e04592a, type: 3}
+  - path: Assets/Art/Sprites/UI/win/T.png
+    sprite: {fileID: 21300000, guid: 3e94721f5432fb141b3c8dcb188c953f, type: 3}
   fonts:
   - path: Assets/Art/Font/simhei.ttf
     font: {fileID: 12800000, guid: 9f94a9364d47346d88936c0fe26c71e0, type: 3}

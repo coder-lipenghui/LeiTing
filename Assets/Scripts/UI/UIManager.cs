@@ -29,6 +29,8 @@ namespace LeiTing.UI
         private const string VictorySettlementPrefabPath = "Assets/Prefabs/UI/UIVictorySettlement.prefab";
         private const string VictoryContinueSpritePath = "Assets/Art/Sprites/UI/btnNext.png";
         private const string UiSpriteFolderPath = "Assets/Art/Sprites/UI";
+        private const string WinUiSpriteFolderPath = UiSpriteFolderPath + "/win";
+        private const float MissionCompleteAnimationSpeed = 0.58f;
 
         private static readonly Color BossHealthColor = new Color32(0x86, 0x28, 0x00, 0xFF);
 
@@ -71,6 +73,7 @@ namespace LeiTing.UI
         private Text settlementDetailText;
         private GameObject defeatGameOverRoot;
         private DefeatGameOverView defeatGameOverView;
+        private DefeatGameOverView missionCompleteView;
         private GameObject defeatBackRoot;
         private Button defeatBackButton;
         private GameObject victoryContinueRoot;
@@ -606,6 +609,16 @@ namespace LeiTing.UI
             }
 
             bossNoticeRoutine = StartCoroutine(AnimateBossNotice(message));
+        }
+
+        public void ShowMissionComplete()
+        {
+            if (missionCompleteView == null)
+            {
+                return;
+            }
+
+            missionCompleteView.Play(false, MissionCompleteAnimationSpeed);
         }
 
         private IEnumerator SwitchPageCoroutine(UIPageType targetPageType)
@@ -1291,6 +1304,7 @@ namespace LeiTing.UI
             CreateBossNotice(canvasObject.transform);
             CreateSettlementPanel(canvasObject.transform);
             CreateVictorySettlementPanel(canvasObject.transform);
+            CreateMissionCompleteView(canvasObject.transform);
             CreateVictoryContinueButton(canvasObject.transform);
             UpdateBattleHudSafeAreaLayout();
         }
@@ -1424,6 +1438,19 @@ namespace LeiTing.UI
             defeatGameOverView.Build(
                 LoadLetterSprites("GAME"),
                 LoadLetterSprites("OVER"));
+        }
+
+        private void CreateMissionCompleteView(Transform parent)
+        {
+            var missionCompleteRoot = new GameObject("MissionComplete", typeof(RectTransform));
+            missionCompleteRoot.transform.SetParent(parent, false);
+
+            missionCompleteView = missionCompleteRoot.AddComponent<DefeatGameOverView>();
+            missionCompleteView.Build(
+                "MISSION",
+                LoadLetterSprites("MISSION", WinUiSpriteFolderPath),
+                "COMPLETE",
+                LoadLetterSprites("COMPLETE", WinUiSpriteFolderPath));
         }
 
         private void CreateVictorySettlementPanel(Transform parent)
@@ -1610,15 +1637,21 @@ namespace LeiTing.UI
 
         private static Sprite[] LoadLetterSprites(string text)
         {
+            return LoadLetterSprites(text, UiSpriteFolderPath);
+        }
+
+        private static Sprite[] LoadLetterSprites(string text, string folderPath)
+        {
             if (string.IsNullOrEmpty(text))
             {
                 return Array.Empty<Sprite>();
             }
 
+            folderPath = string.IsNullOrEmpty(folderPath) ? UiSpriteFolderPath : folderPath;
             var sprites = new Sprite[text.Length];
             for (var index = 0; index < text.Length; index++)
             {
-                sprites[index] = LoadSprite($"{UiSpriteFolderPath}/{text[index]}.png");
+                sprites[index] = LoadSprite($"{folderPath}/{text[index]}.png");
             }
 
             return sprites;
@@ -2040,6 +2073,11 @@ namespace LeiTing.UI
             SetButtonVisible(defeatBackRoot, defeatBackButton, false);
             SetButtonVisible(settlementContinueRoot, settlementContinueButton, false);
             SetButtonVisible(settlementShareRoot, settlementShareButton, false);
+
+            if (GameManager.Instance == null || GameManager.Instance.CurrentState != GameState.Playing)
+            {
+                HideMissionComplete();
+            }
         }
 
         private void UpdateVictoryEndUi()
@@ -2052,6 +2090,11 @@ namespace LeiTing.UI
             HideDefeatGameOver();
             defeatAnimationStarted = false;
             SetButtonVisible(defeatBackRoot, defeatBackButton, false);
+
+            if (victorySettlementVisible)
+            {
+                HideMissionComplete();
+            }
 
             if (!victorySettlementVisible)
             {
@@ -2072,6 +2115,7 @@ namespace LeiTing.UI
         private void UpdateDefeatEndUi()
         {
             SetVictorySlowMotionActive(false);
+            HideMissionComplete();
             SetButtonVisible(victoryContinueRoot, victoryContinueButton, false);
             SetObjectActive(victorySettlementRoot, false);
             SetObjectActive(settlementRoot, true);
@@ -2105,6 +2149,14 @@ namespace LeiTing.UI
             if (defeatGameOverView != null)
             {
                 defeatGameOverView.Hide();
+            }
+        }
+
+        private void HideMissionComplete()
+        {
+            if (missionCompleteView != null)
+            {
+                missionCompleteView.Hide();
             }
         }
 
@@ -2164,6 +2216,7 @@ namespace LeiTing.UI
         private void ShowVictorySettlement()
         {
             SetVictorySlowMotionActive(false);
+            HideMissionComplete();
             victorySettlementVisible = true;
             UpdateSettlement();
         }

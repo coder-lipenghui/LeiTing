@@ -123,6 +123,20 @@ namespace LeiTing.Pickups
             return false;
         }
 
+        public bool HasActiveStarOrCoinPickups()
+        {
+            var pickups = FindObjectsOfType<PickupItemController>();
+            foreach (var pickup in pickups)
+            {
+                if (pickup != null && !pickup.IsCollected && pickup.IsStarOrCoinPickup)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         public void KillAllMinions()
         {
             var enemies = FindObjectsOfType<EnemyController>();

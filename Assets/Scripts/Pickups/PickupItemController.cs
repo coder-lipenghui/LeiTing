@@ -75,6 +75,7 @@ namespace LeiTing.Pickups
         public bool IsStarPickup => IsItemType("Star") || IsItemId("star");
         private bool IsCoinPickup => IsItemType("Coin") || IsItemId("coin");
         private bool IsSpecialPickup => !IsStarPickup && !IsCoinPickup;
+        public bool IsStarOrCoinPickup => IsStarPickup || IsCoinPickup;
         public bool IsCollected => isCollected;
 
         public void BeginForcedAttract(PlayerController player)

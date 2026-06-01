@@ -3,9 +3,9 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using LeiTing.Config;
 using LeiTing.Pickups;
-using LeiTing.Player;
 using LeiTing.Progress;
 using LeiTing.Storage;
+using LeiTing.UI;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -81,14 +81,17 @@ namespace LeiTing.Core
                 return;
             }
 
+            if (currentState == GameState.Playing)
+            {
+                UIManager.Instance?.ShowMissionComplete();
+            }
+
             if (currentState == GameState.Playing && TryDelayVictoryForPickups())
             {
                 return;
             }
 
-            currentState = GameState.Victory;
-            FinishCurrentLevelProgress();
-            UnlockNextLevel();
+            CompleteVictory();
         }
 
         public void LoseGame()
@@ -208,37 +211,19 @@ namespace LeiTing.Core
         private bool TryDelayVictoryForPickups()
         {
             var pickupManager = PickupManager.Instance;
-            if (pickupManager == null || !pickupManager.HasActivePickups())
+            if (pickupManager == null || !pickupManager.HasActiveStarOrCoinPickups())
             {
                 return false;
             }
 
-            var player = FindObjectOfType<PlayerController>();
-            if (player == null)
-            {
-                return false;
-            }
-
-            pendingVictoryRoutine = StartCoroutine(CompleteVictoryAfterPickups(pickupManager, player));
+            pendingVictoryRoutine = StartCoroutine(CompleteVictoryAfterPickups(pickupManager));
             return true;
         }
 
-        private IEnumerator CompleteVictoryAfterPickups(PickupManager pickupManager, PlayerController player)
+        private IEnumerator CompleteVictoryAfterPickups(PickupManager pickupManager)
         {
-            pickupManager.AttractAllPickupsToPlayer(player);
-
-            while (currentState == GameState.Playing && pickupManager != null && pickupManager.HasActivePickups())
+            while (currentState == GameState.Playing && pickupManager != null && pickupManager.HasActiveStarOrCoinPickups())
             {
-                if (player == null)
-                {
-                    player = FindObjectOfType<PlayerController>();
-                }
-
-                if (player != null)
-                {
-                    pickupManager.AttractAllPickupsToPlayer(player);
-                }
-
                 yield return null;
             }
 
@@ -246,10 +231,15 @@ namespace LeiTing.Core
 
             if (currentState == GameState.Playing)
             {
-                currentState = GameState.Victory;
-                FinishCurrentLevelProgress();
-                UnlockNextLevel();
+                CompleteVictory();
             }
+        }
+
+        private void CompleteVictory()
+        {
+            currentState = GameState.Victory;
+            FinishCurrentLevelProgress();
+            UnlockNextLevel();
         }
 
         private void CancelPendingVictory()

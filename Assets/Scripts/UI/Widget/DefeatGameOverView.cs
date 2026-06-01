@@ -18,6 +18,7 @@ namespace LeiTing.UI
         private const float WobbleYOffset = 11f;
         private const float LetterDisappearDelay = 0.12f;
         private const float LetterDisappearDuration = 0.42f;
+        private const float MaxGroupWidth = 920f;
 
         private readonly List<LetterVisual> letters = new List<LetterVisual>();
 
@@ -25,11 +26,20 @@ namespace LeiTing.UI
         private RectTransform overGroup;
         private Vector2 gameBasePosition;
         private Vector2 overBasePosition;
+        private Vector3 gameBaseScale = Vector3.one;
+        private Vector3 overBaseScale = Vector3.one;
         private float animationAge;
+        private float animationSpeed = 1f;
         private bool isPlaying;
         private bool hasBuilt;
+        private bool disappearLettersOnComplete = true;
 
         public void Build(Sprite[] gameSprites, Sprite[] overSprites)
+        {
+            Build("GAME", gameSprites, "OVER", overSprites);
+        }
+
+        public void Build(string firstLine, Sprite[] firstLineSprites, string secondLine, Sprite[] secondLineSprites)
         {
             if (hasBuilt)
             {
@@ -44,19 +54,28 @@ namespace LeiTing.UI
             root.anchorMax = new Vector2(0.5f, 0.5f);
             root.pivot = new Vector2(0.5f, 0.5f);
             root.anchoredPosition = Vector2.zero;
-            root.sizeDelta = new Vector2(760f, 360f);
+            root.sizeDelta = new Vector2(960f, 360f);
 
-            gameGroup = CreateGroup("GAME", transform, new Vector2(0f, GroupVerticalOffset));
-            overGroup = CreateGroup("OVER", transform, new Vector2(0f, -GroupVerticalOffset));
+            firstLine = string.IsNullOrEmpty(firstLine) ? "GAME" : firstLine;
+            secondLine = string.IsNullOrEmpty(secondLine) ? "OVER" : secondLine;
+            gameGroup = CreateGroup(firstLine, transform, new Vector2(0f, GroupVerticalOffset));
+            overGroup = CreateGroup(secondLine, transform, new Vector2(0f, -GroupVerticalOffset));
             gameBasePosition = gameGroup.anchoredPosition;
             overBasePosition = overGroup.anchoredPosition;
 
-            BuildLetters(gameGroup, "GAME", gameSprites);
-            BuildLetters(overGroup, "OVER", overSprites);
+            var gameWidth = BuildLetters(gameGroup, firstLine, firstLineSprites);
+            var overWidth = BuildLetters(overGroup, secondLine, secondLineSprites);
+            gameBaseScale = ApplyGroupFit(gameGroup, gameWidth);
+            overBaseScale = ApplyGroupFit(overGroup, overWidth);
             gameObject.SetActive(false);
         }
 
         public void Play()
+        {
+            Play(true, 1f);
+        }
+
+        public void Play(bool disappearLetters, float speedMultiplier)
         {
             if (!hasBuilt)
             {
@@ -65,6 +84,8 @@ namespace LeiTing.UI
 
             gameObject.SetActive(true);
             animationAge = 0f;
+            animationSpeed = Mathf.Max(0.05f, speedMultiplier);
+            disappearLettersOnComplete = disappearLetters;
             isPlaying = true;
             ResetLetters();
             ApplyWobble(0f);
@@ -83,7 +104,7 @@ namespace LeiTing.UI
                 return;
             }
 
-            animationAge += Time.unscaledDeltaTime;
+            animationAge += Time.unscaledDeltaTime * animationSpeed;
 
             if (animationAge <= WobbleDuration)
             {
@@ -92,6 +113,11 @@ namespace LeiTing.UI
             }
 
             ApplyWobble(animationAge);
+            if (!disappearLettersOnComplete)
+            {
+                return;
+            }
+
             UpdateDisappear(animationAge - WobbleDuration);
         }
 
@@ -105,11 +131,11 @@ namespace LeiTing.UI
             rect.anchorMax = new Vector2(0.5f, 0.5f);
             rect.pivot = new Vector2(0.5f, 0.5f);
             rect.anchoredPosition = anchoredPosition;
-            rect.sizeDelta = new Vector2(540f, 150f);
+            rect.sizeDelta = new Vector2(MaxGroupWidth, 150f);
             return rect;
         }
 
-        private void BuildLetters(RectTransform group, string word, Sprite[] sprites)
+        private float BuildLetters(RectTransform group, string word, Sprite[] sprites)
         {
             var widths = new float[word.Length];
             var totalWidth = 0f;
@@ -146,6 +172,20 @@ namespace LeiTing.UI
                 letters.Add(new LetterVisual(rect, image));
                 cursor += widths[index] + LetterSpacing;
             }
+
+            return totalWidth;
+        }
+
+        private static Vector3 ApplyGroupFit(RectTransform group, float width)
+        {
+            if (group == null)
+            {
+                return Vector3.one;
+            }
+
+            var scale = width > MaxGroupWidth ? MaxGroupWidth / width : 1f;
+            group.localScale = new Vector3(scale, scale, 1f);
+            return group.localScale;
         }
 
         private void ResetLetters()
@@ -159,11 +199,11 @@ namespace LeiTing.UI
         private void ApplyWobble(float age)
         {
             var phase = age * Mathf.PI * 2f / WobblePeriod;
-            ApplyGroupWobble(gameGroup, gameBasePosition, phase);
-            ApplyGroupWobble(overGroup, overBasePosition, phase);
+            ApplyGroupWobble(gameGroup, gameBasePosition, gameBaseScale, phase);
+            ApplyGroupWobble(overGroup, overBasePosition, overBaseScale, phase);
         }
 
-        private static void ApplyGroupWobble(RectTransform group, Vector2 basePosition, float phase)
+        private static void ApplyGroupWobble(RectTransform group, Vector2 basePosition, Vector3 baseScale, float phase)
         {
             if (group == null)
             {
@@ -178,9 +218,9 @@ namespace LeiTing.UI
                 wave * WobbleTilt * 0.62f,
                 WobbleAngle + wave * WobbleAngle);
             group.localScale = new Vector3(
-                1f + wave * WobbleScale,
-                1f - wave * WobbleScale * 0.36f,
-                1f);
+                baseScale.x * (1f + wave * WobbleScale),
+                baseScale.y * (1f - wave * WobbleScale * 0.36f),
+                baseScale.z);
         }
 
         private void UpdateDisappear(float disappearAge)
