@@ -3,7 +3,7 @@
     "projectname": "LeiTing",
     "unity": {
         "build": {
-            "webgl": "/Users/lipenghui/LeanProject/LeiTing/tt-minigame/webgl_package-20260523_180647.zip",
+            "webgl": "D:\\LeiTing\\tt-minigame\\webgl_package-20260601_121102.zip",
             "native": {
                 "il2cpp": "",
                 "apk": "",

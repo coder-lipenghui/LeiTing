@@ -134,8 +134,12 @@ MonoBehaviour:
     sprite: {fileID: 21300000, guid: c4db43c0d3f96a44fa742b5783a67315, type: 3}
   - path: Assets/Art/Sprites/UI/btnSetting.png
     sprite: {fileID: 21300000, guid: 85b02bb9c938ceb448c116d56196cdd5, type: 3}
+  - path: Assets/Art/Sprites/UI/btnShare.png
+    sprite: {fileID: 21300000, guid: 2885073a13166c04a82f97825175eb97, type: 3}
   - path: Assets/Art/Sprites/UI/btnStart.png
     sprite: {fileID: 21300000, guid: 1405557cfeac6f740b984e30651c982c, type: 3}
+  - path: Assets/Art/Sprites/UI/GAME.png
+    sprite: {fileID: 21300000, guid: 0629706c0deac3748be6dbe8a908152e, type: 3}
   - path: Assets/Art/Sprites/UI/imgAlertBg.png
     sprite: {fileID: 21300000, guid: 0b08c8f38a6275348904bec02f32dacf, type: 3}
   - path: Assets/Art/Sprites/UI/imgBgCell.png
@@ -154,6 +158,8 @@ MonoBehaviour:
     sprite: {fileID: 21300000, guid: 6e91e63aaf7282144b063a404d7fca97, type: 3}
   - path: Assets/Art/Sprites/UI/lineZong.png
     sprite: {fileID: 21300000, guid: 3aa5a4f74f6251142bd323b4e0fbf087, type: 3}
+  - path: Assets/Art/Sprites/UI/OVER.png
+    sprite: {fileID: 21300000, guid: 7c22ed29aedec7c4a883a5dd2db8cbc0, type: 3}
   - path: Assets/Art/Sprites/UI/Player/warplane-01.png
     sprite: {fileID: 21300000, guid: c046cc64a80994e7bb4a593a75c3f1de, type: 3}
   - path: Assets/Art/Sprites/UI/toggerProgress01.png

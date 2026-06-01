@@ -795,7 +795,7 @@ MonoBehaviour:
   currentState: 0
   score: 0
   currentLevelNumber: 1
-  invincibleMode: 0
+  invincibleMode: 1
 --- !u!114 &1949508814
 MonoBehaviour:
   m_ObjectHideFlags: 0

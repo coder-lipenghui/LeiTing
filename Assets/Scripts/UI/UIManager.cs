@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Text;
 using LeiTing.Core;
 using LeiTing.Player;
 using LeiTing.Progress;
@@ -2025,7 +2024,7 @@ namespace LeiTing.UI
 
             if (victorySettlementView != null)
             {
-                victorySettlementView.SetContent("胜利结算", BuildVictorySettlementDetails());
+                victorySettlementView.SetContent("胜利结算", BuildVictorySettlementInfo());
             }
 
             SetButtonVisible(settlementContinueRoot, settlementContinueButton, true);
@@ -2133,31 +2132,35 @@ namespace LeiTing.UI
             }
         }
 
-        private static string BuildVictorySettlementDetails()
+        private static VictorySettlementView.SettlementInfo BuildVictorySettlementInfo()
         {
             var gameManager = GameManager.Instance;
             var record = LevelProgressService.LastCompletedRecord;
             var score = record != null ? record.score : gameManager != null ? gameManager.Score : 0;
-            var builder = new StringBuilder();
+            var player = UnityEngine.Object.FindObjectOfType<PlayerController>();
 
-            if (gameManager != null)
+            var info = new VictorySettlementView.SettlementInfo
             {
-                builder.AppendLine($"关卡：{gameManager.CurrentLevelDisplayName}");
-                builder.AppendLine($"击破：{gameManager.CurrentLevelBossDisplayName}");
-            }
-
-            builder.AppendLine($"本关积分：{score}");
-            builder.AppendLine($"累计积分：{LevelProgressService.GetTotalScore()}");
+                levelName = gameManager != null ? gameManager.CurrentLevelDisplayName : string.Empty,
+                bossName = gameManager != null ? gameManager.CurrentLevelBossDisplayName : string.Empty,
+                score = score.ToString(),
+                totalScore = LevelProgressService.GetTotalScore().ToString(),
+                coins = player != null ? player.CurrentCoins.ToString() : "0",
+                enemyKills = "0/0",
+                stars = "0/0",
+                achievements = $"0/{LevelProgressService.AchievementCount}",
+                hitStatus = string.Empty
+            };
 
             if (record != null)
             {
-                builder.AppendLine($"击毁敌机：{record.enemyKillCount}/{Mathf.Max(0, record.totalEnemyCount)}");
-                builder.AppendLine($"收集星星：{record.starCount}/{Mathf.Max(0, record.totalStarCount)}");
-                builder.AppendLine($"达成目标：{record.EarnedAchievementCount}/{LevelProgressService.AchievementCount}");
-                builder.AppendLine($"受击情况：{(record.wasHit ? "已受击" : "无伤")}");
+                info.enemyKills = $"{record.enemyKillCount}/{Mathf.Max(0, record.totalEnemyCount)}";
+                info.stars = $"{record.starCount}/{Mathf.Max(0, record.totalStarCount)}";
+                info.achievements = $"{record.EarnedAchievementCount}/{LevelProgressService.AchievementCount}";
+                info.hitStatus = record.wasHit ? "已受击" : "无伤";
             }
 
-            return builder.ToString().TrimEnd();
+            return info;
         }
 
         private static void ShareVictorySettlement()
