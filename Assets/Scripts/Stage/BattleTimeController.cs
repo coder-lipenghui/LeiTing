@@ -14,6 +14,7 @@ namespace LeiTing.Stage
         private const float StartPromptMaxScale = 1.9f;
         private const float BulletTimeScale = 0.25f;
         private const float BulletTimeMaskAlpha = 0.38f;
+        private const float VictorySlowMotionRampDuration = 1.2f;
         private const int StartPromptSortingOrder = 42;
         private const int BulletTimeMaskSortingOrder = 120;
 
@@ -33,9 +34,13 @@ namespace LeiTing.Stage
         private bool isPointerHeld;
         private bool isBulletTimeActive;
         private bool isBattleControlActive;
+        private bool isVictorySlowMotionActive;
+        private float victorySlowMotionElapsed;
+        private float victorySlowMotionStartScale = 1f;
 
         public bool BattleStarted => battleStarted;
         public bool IsBulletTimeActive => isBulletTimeActive;
+        public bool IsVictorySlowMotionActive => isVictorySlowMotionActive;
 
         public static BattleTimeController GetOrCreate()
         {
@@ -79,6 +84,7 @@ namespace LeiTing.Stage
             battleStarted = false;
             isPointerHeld = false;
             readyStartedAt = Time.unscaledTime;
+            StopVictorySlowMotion();
             ExitBulletTime(true);
             HideStartPrompt();
             EnsureBulletTimeMask();
@@ -131,6 +137,7 @@ namespace LeiTing.Stage
         {
             if (!IsBattleControlActive())
             {
+                StopVictorySlowMotion();
                 ExitBulletTime();
                 HideStartPrompt();
                 return;
@@ -146,12 +153,22 @@ namespace LeiTing.Stage
                 HideStartPrompt();
             }
 
+            if (state != GameState.Victory && isVictorySlowMotionActive)
+            {
+                StopVictorySlowMotion();
+            }
+
+            if (isVictorySlowMotionActive)
+            {
+                UpdateVictorySlowMotion();
+            }
+
             if (state != GameState.Playing && isBulletTimeActive)
             {
                 ExitBulletTime();
             }
 
-            if (isBulletTimeActive)
+            if (isBulletTimeActive || isVictorySlowMotionActive)
             {
                 FitBulletTimeMaskToCamera();
             }
@@ -159,37 +176,98 @@ namespace LeiTing.Stage
 
         private void OnDisable()
         {
+            StopVictorySlowMotion();
             ExitBulletTime();
         }
 
         private void OnDestroy()
         {
+            StopVictorySlowMotion();
             ExitBulletTime();
+        }
+
+        public void StartVictorySlowMotion()
+        {
+            if (isVictorySlowMotionActive)
+            {
+                return;
+            }
+
+            isBulletTimeActive = false;
+            isVictorySlowMotionActive = true;
+            victorySlowMotionElapsed = 0f;
+            victorySlowMotionStartScale = Mathf.Clamp(Time.timeScale > 0f ? Time.timeScale : 1f, BulletTimeScale, 1f);
+            SetBulletTimeMaskVisible(true);
+            SetBulletTimeMaskAlpha(0f);
+            UpdateVictorySlowMotion();
+        }
+
+        public void StopVictorySlowMotion()
+        {
+            if (!isVictorySlowMotionActive)
+            {
+                return;
+            }
+
+            isVictorySlowMotionActive = false;
+            ResetTimeScale();
+            SetBulletTimeMaskVisible(false);
         }
 
         private void EnterBulletTime()
         {
-            if (isBulletTimeActive || isPointerHeld)
+            if (isBulletTimeActive || isVictorySlowMotionActive || isPointerHeld)
             {
                 return;
             }
 
             isBulletTimeActive = true;
-            Time.timeScale = BulletTimeScale;
-            Time.fixedDeltaTime = defaultFixedDeltaTime * BulletTimeScale;
+            SetTimeScale(BulletTimeScale);
             SetBulletTimeMaskVisible(true);
+            SetBulletTimeMaskAlpha(BulletTimeMaskAlpha);
         }
 
         private void ExitBulletTime(bool force = false)
         {
+            if (isVictorySlowMotionActive && !force)
+            {
+                isBulletTimeActive = false;
+                return;
+            }
+
             if (isBulletTimeActive || force)
             {
-                Time.timeScale = 1f;
-                Time.fixedDeltaTime = defaultFixedDeltaTime > 0f ? defaultFixedDeltaTime : 0.02f;
+                ResetTimeScale();
             }
 
             isBulletTimeActive = false;
             SetBulletTimeMaskVisible(false);
+        }
+
+        private void UpdateVictorySlowMotion()
+        {
+            victorySlowMotionElapsed += Time.unscaledDeltaTime;
+            var t = VictorySlowMotionRampDuration > 0f
+                ? Mathf.Clamp01(victorySlowMotionElapsed / VictorySlowMotionRampDuration)
+                : 1f;
+            var eased = Mathf.SmoothStep(0f, 1f, t);
+
+            SetTimeScale(Mathf.Lerp(victorySlowMotionStartScale, BulletTimeScale, eased));
+            SetBulletTimeMaskVisible(true);
+            SetBulletTimeMaskAlpha(Mathf.Lerp(0f, BulletTimeMaskAlpha, eased));
+        }
+
+        private void SetTimeScale(float timeScale)
+        {
+            var safeTimeScale = Mathf.Max(0.01f, timeScale);
+            Time.timeScale = safeTimeScale;
+            Time.fixedDeltaTime = (defaultFixedDeltaTime > 0f ? defaultFixedDeltaTime : 0.02f) * safeTimeScale;
+        }
+
+        private void ResetTimeScale()
+        {
+            Time.timeScale = 1f;
+            Time.fixedDeltaTime = defaultFixedDeltaTime > 0f ? defaultFixedDeltaTime : 0.02f;
         }
 
         private void UpdateStartPrompt()
@@ -294,6 +372,18 @@ namespace LeiTing.Stage
             {
                 FitBulletTimeMaskToCamera();
             }
+        }
+
+        private void SetBulletTimeMaskAlpha(float alpha)
+        {
+            if (bulletTimeMaskRenderer == null)
+            {
+                return;
+            }
+
+            var color = bulletTimeMaskRenderer.color;
+            color.a = Mathf.Clamp01(alpha);
+            bulletTimeMaskRenderer.color = color;
         }
 
         private void FitBulletTimeMaskToCamera()

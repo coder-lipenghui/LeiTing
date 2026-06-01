@@ -15,6 +15,7 @@ namespace LeiTing.Editor
     {
         private const string CatalogPath = "Assets/Resources/RuntimeAssetCatalog.asset";
         private const string LobbyPrefabPath = "Assets/Prefabs/UI/UILobby.prefab";
+        private const string VictorySettlementPrefabPath = "Assets/Prefabs/UI/UIVictorySettlement.prefab";
         private const string DefaultFontPath = "Assets/Art/Font/simhei.ttf";
         private const string UiSpriteFolder = "Assets/Art/Sprites/UI";
         private const string CoinPickupSoundPath = "Assets/Art/Sound/SFX/Item/coin.wav";
@@ -104,6 +105,7 @@ namespace LeiTing.Editor
             AddPath(prefabPaths, config.player?.prefabPath);
             AddPath(audioPaths, config.player?.fireSoundPath);
             AddPath(prefabPaths, LobbyPrefabPath);
+            AddPath(prefabPaths, VictorySettlementPrefabPath);
             AddPath(fontPaths, DefaultFontPath);
             CollectFolderSpritePaths(UiSpriteFolder, spritePaths);
             AddPath(audioPaths, CoinPickupSoundPath);

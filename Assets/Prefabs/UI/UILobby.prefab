@@ -733,7 +733,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 55, y: 60}
+  m_AnchoredPosition: {x: 81, y: 49}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &5292937885196793678
@@ -6609,6 +6609,9 @@ MonoBehaviour:
   stageChose: {fileID: 0}
   stageInfo: {fileID: 0}
   cebianlan: {fileID: 0}
+  sidebarGoButton: {fileID: 0}
+  sidebarClaimButton: {fileID: 0}
+  sidebarCloseButton: {fileID: 0}
 --- !u!1 &2663597292981971579
 GameObject:
   m_ObjectHideFlags: 0
@@ -8413,7 +8416,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 28, y: -24}
   m_SizeDelta: {x: 74, y: 74}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2050410127055543479
@@ -16199,7 +16202,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -27, y: 26}
+  m_AnchoredPosition: {x: 1, y: 1}
   m_SizeDelta: {x: 24, y: 33}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3710932806379633367
@@ -19785,8 +19788,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -413, y: 492}
-  m_SizeDelta: {x: 100, y: 100}
+  m_AnchoredPosition: {x: -435, y: 514}
+  m_SizeDelta: {x: 74, y: 74}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &7989106395528239940
 GameObject:

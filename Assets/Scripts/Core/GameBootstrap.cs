@@ -48,6 +48,7 @@ namespace LeiTing.Core
                 var isBattleScene = GameSceneManager.IsBattleSceneName(SceneManager.GetActiveScene().name);
                 if (isBattleScene)
                 {
+                    EnsureReadyCloudLayer();
                     PlayCurrentLevelBgm();
                     BattleTimeController.GetOrCreate().ResetForReady();
                 }
@@ -163,6 +164,11 @@ namespace LeiTing.Core
             {
                 scroller.Configure(LoadBackgroundSprite(levelConfig.backgroundSpritePath), levelConfig.backgroundScrollSpeed);
             }
+        }
+
+        private void EnsureReadyCloudLayer()
+        {
+            ReadyCloudLayer.GetOrCreate();
         }
 
         private static LevelConfig GetCurrentLevelConfig()

@@ -139,8 +139,12 @@ and a phone test.
   behavior. Magnet attracts stars, bomb removes non-boss enemies, and star
   and coin pickups play configured sound paths currently defined in code.
 - `UIManager` provides battle HUD/settlement behavior and runtime-created UI
-  where an authored view is unavailable. The page classes provide lobby,
-  hangar, settings, and stage-selection views.
+  where an authored view is unavailable. In battle, score, timer, and the
+  10-segment Boss HP bar are stacked from a fixed 65-pixel top offset instead
+  of using safe-area inset positioning; the Boss HP fill uses `#862800` and
+  updates immediately when damage is applied. The defeat overlay places
+  `GAME/OVER` near the upper third and its back button near the lower third.
+  The page classes provide lobby, hangar, settings, and stage-selection views.
 - `LobbyPage` opens the `Cebianlan` panel from `BtnCebianlan`/`BtnCebian`.
   The panel binds `BtnGod`/`BtnGo` to Douyin `TT.NavigateToScene` with
   `scene=sidebar`, and a sidebar revisit switches the panel action from

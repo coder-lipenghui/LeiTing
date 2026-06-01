@@ -503,6 +503,7 @@ namespace LeiTing.Enemy
             }
 
             currentHp = Mathf.Max(0, currentHp - damage);
+            UpdateBossUi();
 
             if (AudioManager.Instance != null && config != null)
             {

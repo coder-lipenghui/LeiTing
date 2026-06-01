@@ -28,6 +28,9 @@ namespace LeiTing.UI
         private const float StageInfoFadeDuration = 0.16f;
         private const float StageMoveDuration = 0.28f;
         private const float GlowDuration = 0.46f;
+        private const float LevelGlowInterval = 3f;
+        private const float LevelGlowPulseGap = 0.08f;
+        private const int LevelGlowPulseCount = 3;
         private const float LevelHitAreaPadding = 16f;
         private const float StageChoseHeight = 305f;
         private const float StaminaRefreshUiInterval = 1f;
@@ -44,6 +47,9 @@ namespace LeiTing.UI
         private static readonly Color StageInfoAchievedColor = FromHex(0xD7, 0xC1, 0x80);
         private static readonly Color StageInfoUnachievedColor = FromHex(0xBF, 0x7A, 0x02);
         private static readonly Color StartButtonLockedTiliColor = FromHex(0x57, 0x2E, 0x27);
+        private static readonly Color LevelLabelDefaultColor = FromHex(0x00, 0xAE, 0xE7);
+        private static readonly Color LevelLabelSelectedColor = FromHex(0x09, 0x09, 0x09);
+        private static readonly Color LevelGlowColor = FromHex(0x00, 0xAE, 0xE7);
         private static readonly string[] AchievementDescriptions =
         {
             "击毁70%敌机",
@@ -102,7 +108,9 @@ namespace LeiTing.UI
         private Coroutine stageInfoRoutine;
         private Coroutine stageMoveRoutine;
         private Coroutine levelGlowRoutine;
+        private Coroutine startButtonGlowRoutine;
         private Image activeLevelGlow;
+        private Image activeStartButtonGlow;
 
         public override void OnCreate()
         {
@@ -184,7 +192,7 @@ namespace LeiTing.UI
             toggleLockedSprite = LoadSprite(ToggleLockedSpritePath);
             lineUnlockedSprite = LoadSprite(LineUnlockedSpritePath);
             lineLockedSprite = LoadSprite(LineLockedSpritePath);
-            glowSprite = LoadSprite(GlowSpritePath) ?? CreateGlowSprite();
+            glowSprite = CreateGlowSprite();
         }
 
         private void BindPrefabView()
@@ -267,6 +275,7 @@ namespace LeiTing.UI
             RefreshLevelVisuals();
             RefreshStageInfo(selectedLevelNumber, animateStageInfo);
             MoveStageChoseToLevel(selectedLevelNumber, false);
+            PlayLevelGlow(selectedLevelNumber);
         }
 
         private void SelectLevel(int levelNumber, bool animate)
@@ -323,7 +332,7 @@ namespace LeiTing.UI
                     selected ? toggleSelectedSprite : unlocked ? toggleUnlockedSprite : toggleLockedSprite,
                     selected || unlocked ? Color.white : new Color(0.55f, 0.55f, 0.55f, 1f));
 
-                SetLevelLabel(item, unlocked ? item.levelNumber.ToString("00") : string.Empty, unlocked);
+                SetLevelLabel(item, unlocked ? item.levelNumber.ToString("00") : string.Empty, unlocked, selected);
                 SetLockImages(item, !unlocked);
                 SetProgressToggles(item, unlocked, earnedMask);
             }
@@ -656,49 +665,169 @@ namespace LeiTing.UI
                 activeLevelGlow = null;
             }
 
-            var glowRect = UIFactory.CreateRect("LevelSelectGlow", item.root);
+            StopStartButtonGlowPulse();
+
+            var glowParent = item.glowRoot != null ? item.glowRoot : item.root;
+            var parentSize = glowParent.rect.size;
+            var glowRect = UIFactory.CreateRect("LevelSelectGlow", glowParent);
             glowRect.SetAsFirstSibling();
             glowRect.anchorMin = new Vector2(0.5f, 0.5f);
             glowRect.anchorMax = new Vector2(0.5f, 0.5f);
             glowRect.pivot = new Vector2(0.5f, 0.5f);
             glowRect.anchoredPosition = Vector2.zero;
-            glowRect.sizeDelta = Vector2.one * Mathf.Max(120f, Mathf.Max(item.root.rect.width, item.root.rect.height) * 1.55f);
+            glowRect.sizeDelta = Vector2.one * Mathf.Max(120f, Mathf.Max(parentSize.x, parentSize.y) * 1.72f);
 
             activeLevelGlow = glowRect.gameObject.AddComponent<Image>();
             activeLevelGlow.sprite = glowSprite;
             activeLevelGlow.raycastTarget = false;
-            activeLevelGlow.color = new Color(0.5f, 0.86f, 1f, 0.82f);
-            levelGlowRoutine = StartCoroutine(PlayLevelGlowCoroutine(glowRect, activeLevelGlow));
+            activeLevelGlow.color = new Color(LevelGlowColor.r, LevelGlowColor.g, LevelGlowColor.b, 0f);
+            levelGlowRoutine = StartCoroutine(PlayPulseGlowCoroutine(glowRect, activeLevelGlow, LevelGlowPulseCount, LevelGlowInterval));
         }
 
-        private IEnumerator PlayLevelGlowCoroutine(RectTransform glowRect, Image glowImage)
+        private void PulseStartButtonGlowOnce()
+        {
+            if (!IsSelectedLevelUnlocked())
+            {
+                StopStartButtonGlowPulse();
+                return;
+            }
+
+            var glowRect = EnsureStartButtonGlow();
+            if (glowRect == null || activeStartButtonGlow == null)
+            {
+                return;
+            }
+
+            if (startButtonGlowRoutine != null)
+            {
+                StopCoroutine(startButtonGlowRoutine);
+                startButtonGlowRoutine = null;
+            }
+
+            activeStartButtonGlow.color = new Color(LevelGlowColor.r, LevelGlowColor.g, LevelGlowColor.b, 0f);
+            glowRect.localScale = Vector3.one;
+            startButtonGlowRoutine = StartCoroutine(PlayStartButtonPulseOnceCoroutine(glowRect, activeStartButtonGlow));
+        }
+
+        private RectTransform EnsureStartButtonGlow()
+        {
+            var startRect = startButton != null ? startButton.GetComponent<RectTransform>() : null;
+            if (startRect == null || glowSprite == null)
+            {
+                return null;
+            }
+
+            if (activeStartButtonGlow != null)
+            {
+                var existingRect = activeStartButtonGlow.rectTransform;
+                if (existingRect != null && existingRect.parent == startRect)
+                {
+                    return existingRect;
+                }
+
+                Destroy(activeStartButtonGlow.gameObject);
+                activeStartButtonGlow = null;
+            }
+
+            var glowRect = UIFactory.CreateRect("BtnStartGlow", startRect);
+            glowRect.SetAsFirstSibling();
+            glowRect.anchorMin = new Vector2(0.5f, 0.5f);
+            glowRect.anchorMax = new Vector2(0.5f, 0.5f);
+            glowRect.pivot = new Vector2(0.5f, 0.5f);
+            glowRect.anchoredPosition = Vector2.zero;
+            glowRect.sizeDelta = Vector2.one * Mathf.Max(160f, Mathf.Max(startRect.rect.width, startRect.rect.height) * 1.35f);
+
+            activeStartButtonGlow = glowRect.gameObject.AddComponent<Image>();
+            activeStartButtonGlow.sprite = glowSprite;
+            activeStartButtonGlow.raycastTarget = false;
+            activeStartButtonGlow.color = new Color(LevelGlowColor.r, LevelGlowColor.g, LevelGlowColor.b, 0f);
+            return glowRect;
+        }
+
+        private void StopStartButtonGlowPulse()
+        {
+            if (startButtonGlowRoutine != null)
+            {
+                StopCoroutine(startButtonGlowRoutine);
+                startButtonGlowRoutine = null;
+            }
+
+            if (activeStartButtonGlow != null)
+            {
+                activeStartButtonGlow.color = new Color(LevelGlowColor.r, LevelGlowColor.g, LevelGlowColor.b, 0f);
+                activeStartButtonGlow.rectTransform.localScale = Vector3.one;
+            }
+        }
+
+        private IEnumerator PlayStartButtonPulseOnceCoroutine(RectTransform glowRect, Image glowImage)
         {
             var timer = 0f;
             while (timer < GlowDuration && glowRect != null && glowImage != null)
             {
                 timer += Time.deltaTime;
                 var t = Mathf.Clamp01(timer / GlowDuration);
-                var scale = Mathf.Lerp(0.72f, 1.42f, t);
+                var scale = Mathf.Lerp(0.62f, 1.48f, t);
                 glowRect.localScale = Vector3.one * scale;
-                glowRect.localEulerAngles = new Vector3(0f, 0f, t * 70f);
 
                 var color = glowImage.color;
-                color.a = Mathf.Lerp(0.82f, 0f, t);
+                color.a = Mathf.Lerp(0.9f, 0f, t);
                 glowImage.color = color;
                 yield return null;
             }
 
             if (glowImage != null)
             {
-                Destroy(glowImage.gameObject);
+                glowImage.color = new Color(LevelGlowColor.r, LevelGlowColor.g, LevelGlowColor.b, 0f);
             }
 
-            if (activeLevelGlow == glowImage)
+            if (startButtonGlowRoutine != null)
             {
-                activeLevelGlow = null;
+                startButtonGlowRoutine = null;
             }
+        }
 
-            levelGlowRoutine = null;
+        private IEnumerator PlayPulseGlowCoroutine(RectTransform glowRect, Image glowImage, int pulseCount, float interval)
+        {
+            while (glowRect != null && glowImage != null)
+            {
+                var cycleElapsed = 0f;
+                for (var pulse = 0; pulse < pulseCount; pulse++)
+                {
+                    var timer = 0f;
+                    while (timer < GlowDuration && glowRect != null && glowImage != null)
+                    {
+                        timer += Time.deltaTime;
+                        cycleElapsed += Time.deltaTime;
+                        var t = Mathf.Clamp01(timer / GlowDuration);
+                        var scale = Mathf.Lerp(0.62f, 1.48f, t);
+                        glowRect.localScale = Vector3.one * scale;
+
+                        var color = glowImage.color;
+                        color.a = Mathf.Lerp(0.9f, 0f, t);
+                        glowImage.color = color;
+                        yield return null;
+                    }
+
+                    if (glowImage != null)
+                    {
+                        glowImage.color = new Color(LevelGlowColor.r, LevelGlowColor.g, LevelGlowColor.b, 0f);
+                    }
+
+                    if (pulse < pulseCount - 1)
+                    {
+                        cycleElapsed += LevelGlowPulseGap;
+                        yield return new WaitForSeconds(LevelGlowPulseGap);
+                    }
+                }
+
+                PulseStartButtonGlowOnce();
+
+                var restDuration = Mathf.Max(0f, interval - cycleElapsed);
+                if (restDuration > 0f)
+                {
+                    yield return new WaitForSeconds(restDuration);
+                }
+            }
         }
 
         private void BindLevelItems()
@@ -714,11 +843,13 @@ namespace LeiTing.UI
                 }
 
                 var toggleRoot = FindChildRecursive(levelRoot, "ToggleLv");
+                var backgroundRoot = toggleRoot != null ? FindDirectChild(toggleRoot, "Background") as RectTransform : null;
                 var progressRoot = FindChildRecursive(levelRoot, "Progress");
                 var item = new LevelItemView
                 {
                     root = levelRoot,
                     levelNumber = levelNumber,
+                    glowRoot = backgroundRoot != null ? backgroundRoot : toggleRoot as RectTransform,
                     levelToggle = toggleRoot != null ? toggleRoot.GetComponent<Toggle>() : null,
                     levelImage = ResolveLevelImage(toggleRoot),
                     levelText = toggleRoot != null ? toggleRoot.GetComponentInChildren<Text>(true) : null,
@@ -1130,9 +1261,11 @@ namespace LeiTing.UI
             return result;
         }
 
-        private void SetLevelLabel(LevelItemView item, string text, bool unlocked)
+        private void SetLevelLabel(LevelItemView item, string text, bool unlocked, bool selected)
         {
-            var color = unlocked ? Color.white : new Color(0.45f, 0.45f, 0.45f, 1f);
+            var color = unlocked
+                ? selected ? LevelLabelSelectedColor : LevelLabelDefaultColor
+                : new Color(0.45f, 0.45f, 0.45f, 1f);
             if (item.levelText != null)
             {
                 item.levelText.text = text;
@@ -1308,6 +1441,11 @@ namespace LeiTing.UI
                 var lockedStamina = !HasEnoughStamina();
                 SetStartButtonLockedVisual(lockedSelection || lockedStamina);
                 startButton.interactable = interactable && !lockedSelection && !lockedStamina;
+
+                if (lockedSelection)
+                {
+                    StopStartButtonGlowPulse();
+                }
             }
         }
 
@@ -1329,7 +1467,11 @@ namespace LeiTing.UI
 
         private void RefreshStartButtonStaminaText()
         {
-            var staminaText = StaminaService.CurrentStamina.ToString(CultureInfo.InvariantCulture);
+            var staminaText = string.Format(
+                CultureInfo.InvariantCulture,
+                "{0}/{1}",
+                StaminaService.CurrentStamina,
+                StaminaService.MaxStamina);
             if (startButtonTiliText != null)
             {
                 startButtonTiliText.text = staminaText;
@@ -1791,9 +1933,9 @@ namespace LeiTing.UI
                 for (var x = 0; x < size; x++)
                 {
                     var distance = Vector2.Distance(new Vector2(x, y), center) / (size * 0.5f);
-                    var ring = 1f - Mathf.Clamp01(Mathf.Abs(distance - 0.58f) / 0.075f);
-                    var glow = Mathf.Pow(Mathf.Clamp01(1f - distance), 1.35f) * 0.52f;
-                    var alpha = distance < 0.32f || distance > 1f ? 0f : Mathf.Clamp01(Mathf.Max(ring, glow));
+                    var outward = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(0.16f, 0.82f, distance));
+                    var edgeFade = 1f - Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(0.86f, 1f, distance));
+                    var alpha = distance > 1f ? 0f : Mathf.Clamp01(outward * edgeFade);
                     texture.SetPixel(x, y, new Color(1f, 1f, 1f, alpha));
                 }
             }
@@ -1829,16 +1971,29 @@ namespace LeiTing.UI
                 levelGlowRoutine = null;
             }
 
+            if (startButtonGlowRoutine != null)
+            {
+                StopCoroutine(startButtonGlowRoutine);
+                startButtonGlowRoutine = null;
+            }
+
             if (activeLevelGlow != null)
             {
                 Destroy(activeLevelGlow.gameObject);
                 activeLevelGlow = null;
+            }
+
+            if (activeStartButtonGlow != null)
+            {
+                Destroy(activeStartButtonGlow.gameObject);
+                activeStartButtonGlow = null;
             }
         }
 
         private sealed class LevelItemView
         {
             public RectTransform root;
+            public RectTransform glowRoot;
             public Button button;
             public Toggle levelToggle;
             public Image levelImage;
