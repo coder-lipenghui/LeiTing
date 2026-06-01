@@ -2214,7 +2214,10 @@ namespace LeiTing.UI
                 enemyKills = "0/0",
                 stars = "0%",
                 achievements = $"0/{LevelProgressService.AchievementCount}",
-                hitStatus = string.Empty
+                hitStatus = string.Empty,
+                enemyProgress = 0f,
+                starProgress = 0f,
+                noTouchProgress = 0f
             };
 
             if (record != null)
@@ -2223,7 +2226,16 @@ namespace LeiTing.UI
                 info.destroyPercent = FormatSettlementPercent(record.enemyKillCount, record.totalEnemyCount);
                 info.stars = FormatSettlementPercent(record.starCount, record.totalStarCount);
                 info.achievements = $"{record.EarnedAchievementCount}/{LevelProgressService.AchievementCount}";
+                info.enemyProgress = CalculateSettlementProgress(record.enemyKillCount, record.totalEnemyCount);
+                info.starProgress = CalculateSettlementProgress(record.starCount, record.totalStarCount);
+                info.noTouchProgress = record.wasHit ? 0f : 1f;
+                /*
                 info.hitStatus = record.wasHit ? "已受击" : "无伤";
+                */
+                /*
+                info.hitStatus = record.wasHit ? "已受击" : "无伤";
+                */
+                info.hitStatus = record.wasHit ? "\u5DF2\u53D7\u51FB" : "\u65E0\u4F24";
             }
 
             return info;
@@ -2249,6 +2261,11 @@ namespace LeiTing.UI
 
             var percent = Mathf.RoundToInt(Mathf.Clamp01(value / (float)total) * 100f);
             return string.Format(CultureInfo.InvariantCulture, "{0}%", percent);
+        }
+
+        private static float CalculateSettlementProgress(int value, int total)
+        {
+            return total > 0 ? Mathf.Clamp01(value / (float)total) : 0f;
         }
 
         private static void ShareVictorySettlement()

@@ -14,6 +14,9 @@ namespace LeiTing.UI
         [SerializeField] private Button continueButton;
         [SerializeField] private Button shareButton;
         [SerializeField] private Image continueButtonImage;
+        [SerializeField] private CircularProgress starProgress;
+        [SerializeField] private CircularProgress enemyProgress;
+        [SerializeField] private CircularProgress noTouchProgress;
 
         [Header("结算信息显示控制")]
         [SerializeField] private SettlementInfoBinding scoreInfo = new SettlementInfoBinding("Score", "TextScore", "本关积分：{0}");
@@ -73,6 +76,10 @@ namespace LeiTing.UI
             boundInfoCount += enemyKillInfo.Apply(transform, info.enemyKills) ? 1 : 0;
             boundInfoCount += achievementInfo.Apply(transform, info.achievements) ? 1 : 0;
             boundInfoCount += hitInfo.Apply(transform, info.hitStatus) ? 1 : 0;
+
+            ApplyCircularProgress(ref starProgress, "Star", info.starProgress);
+            ApplyCircularProgress(ref enemyProgress, "Enemy", info.enemyProgress);
+            ApplyCircularProgress(ref noTouchProgress, "NoTouch", info.noTouchProgress);
 
             if (DetailText != null)
             {
@@ -167,6 +174,48 @@ namespace LeiTing.UI
             }
         }
 
+        private void ApplyCircularProgress(ref CircularProgress progress, string rootName, string value)
+        {
+            ApplyCircularProgress(ref progress, rootName, CircularProgress.ParseProgressText(value));
+        }
+
+        private void ApplyCircularProgress(ref CircularProgress progress, string rootName, float value)
+        {
+            if (progress == null)
+            {
+                progress = ResolveCircularProgress(rootName);
+            }
+
+            if (progress != null)
+            {
+                progress.SetProgress(value);
+            }
+        }
+
+        private CircularProgress ResolveCircularProgress(string rootName)
+        {
+            var root = FindTransform(transform, rootName);
+            return root != null ? root.GetComponentInChildren<CircularProgress>(true) : null;
+        }
+
+        private static Transform FindTransform(Transform owner, string childName)
+        {
+            if (owner == null || string.IsNullOrEmpty(childName))
+            {
+                return null;
+            }
+
+            foreach (var child in owner.GetComponentsInChildren<Transform>(true))
+            {
+                if (child != null && child.name == childName)
+                {
+                    return child;
+                }
+            }
+
+            return null;
+        }
+
         [Serializable]
         public struct SettlementInfo
         {
@@ -182,6 +231,9 @@ namespace LeiTing.UI
             public string stars;
             public string achievements;
             public string hitStatus;
+            public float enemyProgress;
+            public float starProgress;
+            public float noTouchProgress;
         }
 
         [Serializable]

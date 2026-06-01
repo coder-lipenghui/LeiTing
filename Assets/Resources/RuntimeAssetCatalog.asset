@@ -162,6 +162,10 @@ MonoBehaviour:
     sprite: {fileID: 21300000, guid: 7c22ed29aedec7c4a883a5dd2db8cbc0, type: 3}
   - path: Assets/Art/Sprites/UI/Player/warplane-01.png
     sprite: {fileID: 21300000, guid: c046cc64a80994e7bb4a593a75c3f1de, type: 3}
+  - path: Assets/Art/Sprites/UI/progress_bar.png
+    sprite: {fileID: 21300000, guid: 546dc03407c5b624792a80204b4b9fae, type: 3}
+  - path: Assets/Art/Sprites/UI/progress_bg.png
+    sprite: {fileID: 21300000, guid: 4f91b4333dfa4b2448c2fa05474042c0, type: 3}
   - path: Assets/Art/Sprites/UI/toggerProgress01.png
     sprite: {fileID: 21300000, guid: 47ed2d0ec58f65f418345211849ced3e, type: 3}
   - path: Assets/Art/Sprites/UI/toggerProgress02.png
