@@ -686,7 +686,7 @@ namespace LeiTing.UI
 
         private void PulseStartButtonGlowOnce()
         {
-            if (!IsSelectedLevelUnlocked())
+            if (!CanStartSelectedLevel())
             {
                 StopStartButtonGlowPulse();
                 return;
@@ -1442,7 +1442,7 @@ namespace LeiTing.UI
                 SetStartButtonLockedVisual(lockedSelection || lockedStamina);
                 startButton.interactable = interactable && !lockedSelection && !lockedStamina;
 
-                if (lockedSelection)
+                if (lockedSelection || lockedStamina)
                 {
                     StopStartButtonGlowPulse();
                 }
@@ -1586,6 +1586,11 @@ namespace LeiTing.UI
         private bool IsSelectedLevelUnlocked()
         {
             return IsLevelUnlocked(selectedLevelNumber);
+        }
+
+        private bool CanStartSelectedLevel()
+        {
+            return IsSelectedLevelUnlocked() && HasEnoughStamina() && !battleStartRequested;
         }
 
         private void OnClickCebian()

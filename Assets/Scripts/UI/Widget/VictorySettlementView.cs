@@ -9,6 +9,7 @@ namespace LeiTing.UI
     public sealed class VictorySettlementView : MonoBehaviour
     {
         [SerializeField] private Text titleText;
+        [SerializeField] private Text stageTitleText;
         [SerializeField] private Text detailText;
         [SerializeField] private Button continueButton;
         [SerializeField] private Button shareButton;
@@ -19,6 +20,7 @@ namespace LeiTing.UI
         [SerializeField] private SettlementInfoBinding coinInfo = new SettlementInfoBinding("Coin", "TextCoin", "金币：{0}");
         [SerializeField] private SettlementInfoBinding starInfo = new SettlementInfoBinding("Star", "TextStar", "收集星星：{0}");
         [SerializeField] private SettlementInfoBinding bossInfo = new SettlementInfoBinding("Enemy", "TextEnemy", "击破：{0}");
+        [SerializeField] private SettlementInfoBinding finalScoreInfo = new SettlementInfoBinding("Final", "TextFinalScore", "最终积分：{0}");
         [SerializeField] private SettlementInfoBinding levelInfo = new SettlementInfoBinding("Level", "TextLevel", "关卡：{0}", false);
         [SerializeField] private SettlementInfoBinding totalScoreInfo = new SettlementInfoBinding("TotalScore", "TextTotalScore", "累计积分：{0}", false);
         [SerializeField] private SettlementInfoBinding enemyKillInfo = new SettlementInfoBinding("EnemyKill", "TextEnemyKill", "击毁敌机：{0}", false, "EnemyKills", "TextEnemyKills");
@@ -28,6 +30,7 @@ namespace LeiTing.UI
         private bool buttonsBound;
 
         public Text TitleText => titleText = Resolve(titleText, "TitleText");
+        public Text StageTitleText => stageTitleText = Resolve(stageTitleText, "TitleStage");
         public Text DetailText => detailText = Resolve(detailText, "DetailText");
         public Button ContinueButton => continueButton = Resolve(continueButton, "ContinueButton");
         public Button ShareButton => shareButton = Resolve(shareButton, "ShareButton");
@@ -47,16 +50,24 @@ namespace LeiTing.UI
 
         public void SetContent(string title, SettlementInfo info)
         {
+            EnsureRuntimeBindings();
+
             if (TitleText != null)
             {
                 TitleText.text = title;
+            }
+
+            if (StageTitleText != null)
+            {
+                StageTitleText.text = info.stageTitle ?? string.Empty;
             }
 
             var boundInfoCount = 0;
             boundInfoCount += scoreInfo.Apply(transform, info.score) ? 1 : 0;
             boundInfoCount += coinInfo.Apply(transform, info.coins) ? 1 : 0;
             boundInfoCount += starInfo.Apply(transform, info.stars) ? 1 : 0;
-            boundInfoCount += bossInfo.Apply(transform, info.bossName) ? 1 : 0;
+            boundInfoCount += bossInfo.Apply(transform, info.destroyPercent) ? 1 : 0;
+            boundInfoCount += finalScoreInfo.Apply(transform, info.finalScore) ? 1 : 0;
             boundInfoCount += levelInfo.Apply(transform, info.levelName) ? 1 : 0;
             boundInfoCount += totalScoreInfo.Apply(transform, info.totalScore) ? 1 : 0;
             boundInfoCount += enemyKillInfo.Apply(transform, info.enemyKills) ? 1 : 0;
@@ -132,10 +143,13 @@ namespace LeiTing.UI
 
         private string BuildDetails(SettlementInfo info)
         {
+            EnsureRuntimeBindings();
+
             var builder = new StringBuilder();
-            levelInfo.AppendDetailLine(builder, info.levelName);
-            bossInfo.AppendDetailLine(builder, info.bossName);
+            levelInfo.AppendDetailLine(builder, string.IsNullOrEmpty(info.levelName) ? info.stageTitle : info.levelName);
+            bossInfo.AppendDetailLine(builder, info.destroyPercent);
             scoreInfo.AppendDetailLine(builder, info.score);
+            finalScoreInfo.AppendDetailLine(builder, info.finalScore);
             totalScoreInfo.AppendDetailLine(builder, info.totalScore);
             coinInfo.AppendDetailLine(builder, info.coins);
             enemyKillInfo.AppendDetailLine(builder, info.enemyKills);
@@ -145,12 +159,23 @@ namespace LeiTing.UI
             return builder.ToString().TrimEnd();
         }
 
+        private void EnsureRuntimeBindings()
+        {
+            if (finalScoreInfo == null)
+            {
+                finalScoreInfo = new SettlementInfoBinding("Final", "TextFinalScore", "最终积分：{0}");
+            }
+        }
+
         [Serializable]
         public struct SettlementInfo
         {
+            public string stageTitle;
             public string levelName;
             public string bossName;
+            public string destroyPercent;
             public string score;
+            public string finalScore;
             public string totalScore;
             public string coins;
             public string enemyKills;

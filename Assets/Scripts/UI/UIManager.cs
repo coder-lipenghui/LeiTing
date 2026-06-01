@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using LeiTing.Core;
 using LeiTing.Player;
 using LeiTing.Progress;
@@ -27,6 +28,7 @@ namespace LeiTing.UI
         private const int BossHealthSegmentCount = 10;
         private const string VictorySettlementPrefabPath = "Assets/Prefabs/UI/UIVictorySettlement.prefab";
         private const string VictoryContinueSpritePath = "Assets/Art/Sprites/UI/btnNext.png";
+        private const string UiSpriteFolderPath = "Assets/Art/Sprites/UI";
 
         private static readonly Color BossHealthColor = new Color32(0x86, 0x28, 0x00, 0xFF);
 
@@ -67,6 +69,8 @@ namespace LeiTing.UI
         private RectTransform settlementTitleRect;
         private Text settlementTitleText;
         private Text settlementDetailText;
+        private GameObject defeatGameOverRoot;
+        private DefeatGameOverView defeatGameOverView;
         private GameObject defeatBackRoot;
         private Button defeatBackButton;
         private GameObject victoryContinueRoot;
@@ -86,6 +90,7 @@ namespace LeiTing.UI
         private Coroutine bossNoticeRoutine;
         private GameState lastBattleEndState = GameState.Boot;
         private bool victorySettlementVisible;
+        private bool defeatAnimationStarted;
         private bool battleHudInitialized;
 
         protected override void Awake()
@@ -1405,8 +1410,20 @@ namespace LeiTing.UI
             settlementDetailText.raycastTarget = false;
             settlementDetailText.verticalOverflow = VerticalWrapMode.Overflow;
 
+            CreateDefeatGameOverView(settlementRoot.transform);
             CreateDefeatBackButton(parent);
             settlementRoot.SetActive(false);
+        }
+
+        private void CreateDefeatGameOverView(Transform parent)
+        {
+            defeatGameOverRoot = new GameObject("DefeatGameOver", typeof(RectTransform));
+            defeatGameOverRoot.transform.SetParent(parent, false);
+
+            defeatGameOverView = defeatGameOverRoot.AddComponent<DefeatGameOverView>();
+            defeatGameOverView.Build(
+                LoadLetterSprites("GAME"),
+                LoadLetterSprites("OVER"));
         }
 
         private void CreateVictorySettlementPanel(Transform parent)
@@ -1589,6 +1606,22 @@ namespace LeiTing.UI
             }
 
             return root;
+        }
+
+        private static Sprite[] LoadLetterSprites(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+            {
+                return Array.Empty<Sprite>();
+            }
+
+            var sprites = new Sprite[text.Length];
+            for (var index = 0; index < text.Length; index++)
+            {
+                sprites[index] = LoadSprite($"{UiSpriteFolderPath}/{text[index]}.png");
+            }
+
+            return sprites;
         }
 
         private void CreateSettlementActionButtons(Transform parent)
@@ -1974,6 +2007,7 @@ namespace LeiTing.UI
             {
                 lastBattleEndState = state;
                 victorySettlementVisible = false;
+                defeatAnimationStarted = false;
             }
 
             var finished = state == GameState.Defeat || state == GameState.Victory;
@@ -2000,6 +2034,8 @@ namespace LeiTing.UI
             SetVictorySlowMotionActive(false);
             SetObjectActive(settlementRoot, false);
             SetObjectActive(victorySettlementRoot, false);
+            HideDefeatGameOver();
+            defeatAnimationStarted = false;
             SetButtonVisible(victoryContinueRoot, victoryContinueButton, false);
             SetButtonVisible(defeatBackRoot, defeatBackButton, false);
             SetButtonVisible(settlementContinueRoot, settlementContinueButton, false);
@@ -2013,6 +2049,8 @@ namespace LeiTing.UI
             SetButtonVisible(victoryContinueRoot, victoryContinueButton, waitingForContinue);
             SetObjectActive(settlementRoot, false);
             SetObjectActive(victorySettlementRoot, victorySettlementVisible);
+            HideDefeatGameOver();
+            defeatAnimationStarted = false;
             SetButtonVisible(defeatBackRoot, defeatBackButton, false);
 
             if (!victorySettlementVisible)
@@ -2039,13 +2077,35 @@ namespace LeiTing.UI
             SetObjectActive(settlementRoot, true);
             SetSettlementPanelBackgroundVisible(false);
             ConfigureSettlementTitleForDefeat();
-            settlementTitleText.text = "GAME\nOVER";
-            settlementTitleText.fontSize = 112;
-            settlementTitleText.fontStyle = FontStyle.Bold;
+            if (settlementTitleText != null)
+            {
+                settlementTitleText.enabled = false;
+            }
+
             settlementDetailText.enabled = false;
+            PlayDefeatGameOver();
             SetButtonVisible(defeatBackRoot, defeatBackButton, true);
             SetButtonVisible(settlementContinueRoot, settlementContinueButton, false);
             SetButtonVisible(settlementShareRoot, settlementShareButton, false);
+        }
+
+        private void PlayDefeatGameOver()
+        {
+            if (defeatGameOverView == null || defeatAnimationStarted)
+            {
+                return;
+            }
+
+            defeatAnimationStarted = true;
+            defeatGameOverView.Play();
+        }
+
+        private void HideDefeatGameOver()
+        {
+            if (defeatGameOverView != null)
+            {
+                defeatGameOverView.Hide();
+            }
         }
 
         private void ConfigureSettlementTitleForVictory()
@@ -2137,17 +2197,22 @@ namespace LeiTing.UI
             var gameManager = GameManager.Instance;
             var record = LevelProgressService.LastCompletedRecord;
             var score = record != null ? record.score : gameManager != null ? gameManager.Score : 0;
+            var levelNumber = record != null ? record.levelNumber : gameManager != null ? gameManager.CurrentLevelNumber : 1;
+            var scoreText = FormatSettlementScore(score);
             var player = UnityEngine.Object.FindObjectOfType<PlayerController>();
 
             var info = new VictorySettlementView.SettlementInfo
             {
+                stageTitle = FormatSettlementStageTitle(levelNumber),
                 levelName = gameManager != null ? gameManager.CurrentLevelDisplayName : string.Empty,
                 bossName = gameManager != null ? gameManager.CurrentLevelBossDisplayName : string.Empty,
-                score = score.ToString(),
-                totalScore = LevelProgressService.GetTotalScore().ToString(),
+                destroyPercent = "0%",
+                score = scoreText,
+                finalScore = scoreText,
+                totalScore = FormatSettlementScore(LevelProgressService.GetTotalScore()),
                 coins = player != null ? player.CurrentCoins.ToString() : "0",
                 enemyKills = "0/0",
-                stars = "0/0",
+                stars = "0%",
                 achievements = $"0/{LevelProgressService.AchievementCount}",
                 hitStatus = string.Empty
             };
@@ -2155,12 +2220,35 @@ namespace LeiTing.UI
             if (record != null)
             {
                 info.enemyKills = $"{record.enemyKillCount}/{Mathf.Max(0, record.totalEnemyCount)}";
-                info.stars = $"{record.starCount}/{Mathf.Max(0, record.totalStarCount)}";
+                info.destroyPercent = FormatSettlementPercent(record.enemyKillCount, record.totalEnemyCount);
+                info.stars = FormatSettlementPercent(record.starCount, record.totalStarCount);
                 info.achievements = $"{record.EarnedAchievementCount}/{LevelProgressService.AchievementCount}";
                 info.hitStatus = record.wasHit ? "已受击" : "无伤";
             }
 
             return info;
+        }
+
+        private static string FormatSettlementStageTitle(int levelNumber)
+        {
+            return string.Format(CultureInfo.InvariantCulture, "关卡{0:00}", Mathf.Max(1, levelNumber));
+        }
+
+        private static string FormatSettlementScore(int score)
+        {
+            var paddedScore = Mathf.Clamp(score, 0, 999999999).ToString("000000000", CultureInfo.InvariantCulture);
+            return $"{paddedScore.Substring(0, 3)} {paddedScore.Substring(3, 3)} {paddedScore.Substring(6, 3)}";
+        }
+
+        private static string FormatSettlementPercent(int value, int total)
+        {
+            if (total <= 0)
+            {
+                return "0%";
+            }
+
+            var percent = Mathf.RoundToInt(Mathf.Clamp01(value / (float)total) * 100f);
+            return string.Format(CultureInfo.InvariantCulture, "{0}%", percent);
         }
 
         private static void ShareVictorySettlement()
