@@ -19,7 +19,7 @@ MonoBehaviour:
   wasmMemorySize: 128
   isWebGL2: 0
   needCompress: 1
-  symbolMode: 1
+  symbolMode: 0
   profiling: 0
   clearStreamingAssets: 0
   buildOptions: 0
@@ -40,7 +40,7 @@ MonoBehaviour:
   urlCacheList: []
   dontCacheFileNames: []
   isDevBuild: 0
-  stripEngineCode: 0
+  stripEngineCode: 1
   appHost: 2
   compressMethod: 1
   runtimeEnv: 0
@@ -54,7 +54,7 @@ MonoBehaviour:
   _appId: tt3aac4c11a4cbb7cf07
   version: 
   autoVersion: 0
-  _webglPackagePath: D:\LeiTing\tt-minigame\webgl_package-20260601_121102.zip
+  _webglPackagePath: D:\LeiTing\tt-minigame\webgl_package-20260602_003055.zip
   _orientation: 0
   _iOSPerformancePlus: 0
   _menuButtonStyle: 0
