@@ -75,6 +75,11 @@ namespace LeiTing.Pickups
             return SpawnPickup(pickupConfig, position, 0, 1);
         }
 
+        public PickupItemController SpawnPickup(string itemId, Vector3 position)
+        {
+            return SpawnPickup(ResolvePickupConfig(itemId), position, 0, 1);
+        }
+
         public void AttractAllStarsToPlayer(PlayerController player)
         {
             if (player == null)
@@ -204,6 +209,21 @@ namespace LeiTing.Pickups
                     driftSpeed = 1.1f,
                     pickupRadius = 0.22f,
                     visualScale = 0.62f
+                };
+            }
+
+            if (string.Equals(itemId, "trophy", System.StringComparison.OrdinalIgnoreCase))
+            {
+                return new PickupItemConfig
+                {
+                    id = "trophy",
+                    displayName = "Trophy",
+                    itemType = "Trophy",
+                    spritePath = "Sprites/Item/item_trophy",
+                    lifetime = 0f,
+                    driftSpeed = 0f,
+                    pickupRadius = 1.25f,
+                    visualScale = 1f
                 };
             }
 

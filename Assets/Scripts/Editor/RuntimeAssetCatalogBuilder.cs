@@ -223,7 +223,30 @@ namespace LeiTing.Editor
                 return;
             }
 
-            paths.Add(path.Trim().Replace("\\", "/"));
+            paths.Add(ResolveAssetDatabasePath(path.Trim().Replace("\\", "/")));
+        }
+
+        private static string ResolveAssetDatabasePath(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path) || path.StartsWith("Assets/", StringComparison.OrdinalIgnoreCase))
+            {
+                return path;
+            }
+
+            if (path.StartsWith("Sprites/", StringComparison.OrdinalIgnoreCase))
+            {
+                var resolvedPath = $"Assets/Art/{path}";
+                return HasExtension(resolvedPath) ? resolvedPath : $"{resolvedPath}.png";
+            }
+
+            return path;
+        }
+
+        private static bool HasExtension(string path)
+        {
+            var extensionIndex = path.LastIndexOf(".", StringComparison.Ordinal);
+            var slashIndex = path.LastIndexOf("/", StringComparison.Ordinal);
+            return extensionIndex > slashIndex;
         }
 
         private static RuntimeAssetCatalog.PrefabEntry CreatePrefabEntry(string path)

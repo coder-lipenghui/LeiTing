@@ -54,5 +54,13 @@
     "startTime": 178,
     "message": "{BOSS}\\nENGAGING",
     "clearEnemyBullets": true
+  },
+  {
+    "index": 8,
+    "id": "spawn_trophy_level_01",
+    "levelId": "level_01",
+    "startTime": 3,
+    "message": "",
+    "clearEnemyBullets": false
   }
 ]

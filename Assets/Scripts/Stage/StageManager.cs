@@ -3,6 +3,7 @@ using LeiTing.Bullets;
 using LeiTing.Config;
 using LeiTing.Core;
 using LeiTing.Missiles;
+using LeiTing.Pickups;
 using LeiTing.UI;
 using UnityEngine;
 
@@ -10,6 +11,9 @@ namespace LeiTing.Stage
 {
     public class StageManager : MonoSingleton<StageManager>
     {
+        private const string SpawnTrophyEventId = "spawn_trophy_level_01";
+        private const string TrophyItemId = "trophy";
+
         private readonly HashSet<string> triggeredEvents = new HashSet<string>();
         private float stageTime;
 
@@ -60,6 +64,11 @@ namespace LeiTing.Stage
             if (stageEvent.clearEnemyBullets && MissileManager.Instance != null)
             {
                 MissileManager.Instance.ClearEnemyMissiles();
+            }
+
+            if (string.Equals(stageEvent.id, SpawnTrophyEventId, System.StringComparison.OrdinalIgnoreCase))
+            {
+                PickupManager.GetOrCreate().SpawnPickup(TrophyItemId, Vector3.zero);
             }
 
             var message = ResolveStageMessage(stageEvent.message);

@@ -28,6 +28,11 @@ namespace LeiTing.Pickups
         private const float SpecialWobblePeriod = 1.85f;
         private const float SpecialWobbleScale = 0.13f;
         private const float SpecialWobbleYOffset = 0.03f;
+        private const float TrophyHoldDuration = 3f;
+        private const float TrophyProgressPadding = 0.18f;
+        private const float TrophyProgressLineWidth = 0.035f;
+        private const float TrophyConnectionLineWidth = 0.025f;
+        private const int TrophyProgressSegments = 64;
         private const string CoinPickupSoundPath = "Assets/Art/Sound/SFX/Item/coin.wav";
         private const string StarPickupSoundPath = "Assets/Art/Sound/SFX/Item/star.wav";
         private const string SpecialPickupSoundPath = "Assets/Art/Sound/SFX/Item/SFX_Item_Pickup_Special_01.wav";
@@ -35,6 +40,10 @@ namespace LeiTing.Pickups
         private static readonly Color MagnetGlowColor = new Color(0.12f, 0.58f, 1f, 0.54f);
         private static readonly Color TreasureGlowColor = new Color(1f, 0.72f, 0.08f, 0.58f);
         private static readonly Color SpecialGlowColor = new Color(0.42f, 0.96f, 1f, 0.56f);
+        private static readonly Color TrophyGlowColor = new Color(1f, 0.78f, 0.16f, 0.62f);
+        private static readonly Color TrophyProgressBackColor = new Color(1f, 1f, 1f, 0.22f);
+        private static readonly Color TrophyProgressColor = new Color(1f, 0.83f, 0.18f, 0.95f);
+        private static readonly Color TrophyConnectionColor = new Color(1f, 0.83f, 0.18f, 0.62f);
         private static readonly Color DefaultGlowColor = new Color(1f, 1f, 1f, 0.42f);
         private static Sprite glowSprite;
         private static Material defaultSpriteMaterial;
@@ -48,13 +57,18 @@ namespace LeiTing.Pickups
         private SpriteRenderer glowRenderer;
         private Transform leftVisualRoot;
         private Transform rightVisualRoot;
+        private Transform trophyProgressRoot;
         private SpriteRenderer leftVisualRenderer;
         private SpriteRenderer rightVisualRenderer;
+        private LineRenderer trophyProgressBackRenderer;
+        private LineRenderer trophyProgressRenderer;
+        private LineRenderer trophyConnectionRenderer;
         private Camera gameplayCamera;
         private PlayerController forcedAttractTarget;
         private Color glowBaseColor;
         private Vector3 glowBaseScale = Vector3.one;
         private float spawnTime;
+        private float trophyHoldElapsed;
         private bool isCollected;
         private bool glowConfigured;
         private bool specialSplitVisual;
@@ -67,20 +81,23 @@ namespace LeiTing.Pickups
             spawnTime = Time.time;
             isCollected = false;
             forcedAttractTarget = null;
+            trophyHoldElapsed = 0f;
             gameObject.name = config != null && !string.IsNullOrEmpty(config.id) ? config.id : "Pickup";
             ApplyVisual();
             ApplyCollider();
+            HideTrophyHoldVisuals();
         }
 
         public bool IsStarPickup => IsItemType("Star") || IsItemId("star");
         private bool IsCoinPickup => IsItemType("Coin") || IsItemId("coin");
+        private bool IsTrophyPickup => IsItemType("Trophy") || IsItemId("trophy");
         private bool IsSpecialPickup => !IsStarPickup && !IsCoinPickup;
         public bool IsStarOrCoinPickup => IsStarPickup || IsCoinPickup;
         public bool IsCollected => isCollected;
 
         public void BeginForcedAttract(PlayerController player)
         {
-            if (isCollected || player == null)
+            if (isCollected || player == null || IsTrophyPickup)
             {
                 return;
             }
@@ -108,6 +125,12 @@ namespace LeiTing.Pickups
             }
 
             var player = FindObjectOfType<PlayerController>();
+            if (IsTrophyPickup)
+            {
+                UpdateTrophyHold(player);
+                return;
+            }
+
             if (forcedAttractTarget != null)
             {
                 if (TryAttractToPlayer(forcedAttractTarget, true))
@@ -133,7 +156,7 @@ namespace LeiTing.Pickups
             }
 
             var player = other.GetComponentInParent<PlayerController>();
-            if (player != null)
+            if (player != null && !IsTrophyPickup)
             {
                 Collect(player);
             }
@@ -391,6 +414,12 @@ namespace LeiTing.Pickups
                 return;
             }
 
+            if (IsTrophyPickup)
+            {
+                ConfigureGlow(TrophyGlowColor, SpecialGlowRange);
+                return;
+            }
+
             if (IsSpecialPickup)
             {
                 ConfigureGlow(SpecialGlowColor, SpecialGlowRange);
@@ -470,7 +499,7 @@ namespace LeiTing.Pickups
         {
             EnsureSplitVisualRenderers();
 
-            specialSplitVisual = IsSpecialPickup && sprite != null;
+            specialSplitVisual = IsSpecialPickup && !IsTrophyPickup && sprite != null;
             spriteRenderer.enabled = !specialSplitVisual;
             leftVisualRenderer.enabled = specialSplitVisual;
             rightVisualRenderer.enabled = specialSplitVisual;
@@ -507,6 +536,161 @@ namespace LeiTing.Pickups
         {
             UpdateGlowPulse();
             UpdateSpecialWobble();
+        }
+
+        private void UpdateTrophyHold(PlayerController player)
+        {
+            if (player == null)
+            {
+                ResetTrophyHold();
+                return;
+            }
+
+            var distance = Vector3.Distance(transform.position, player.transform.position);
+            if (distance > GetCollectDistance(player))
+            {
+                ResetTrophyHold();
+                return;
+            }
+
+            trophyHoldElapsed = Mathf.Min(TrophyHoldDuration, trophyHoldElapsed + Time.deltaTime);
+            UpdateTrophyHoldVisuals(player, Mathf.Clamp01((TrophyHoldDuration - trophyHoldElapsed) / TrophyHoldDuration));
+
+            if (trophyHoldElapsed >= TrophyHoldDuration)
+            {
+                Collect(player);
+            }
+        }
+
+        private void ResetTrophyHold()
+        {
+            trophyHoldElapsed = 0f;
+            HideTrophyHoldVisuals();
+        }
+
+        private void EnsureTrophyHoldVisuals()
+        {
+            if (trophyProgressRoot == null)
+            {
+                trophyProgressRoot = EnsureChildTransform("TrophyHoldProgress");
+            }
+
+            trophyProgressBackRenderer = trophyProgressBackRenderer != null
+                ? trophyProgressBackRenderer
+                : EnsureLineRenderer(trophyProgressRoot, "BackRing", TrophyProgressBackColor, TrophyProgressLineWidth, false, spriteRenderer.sortingOrder + 2);
+            trophyProgressRenderer = trophyProgressRenderer != null
+                ? trophyProgressRenderer
+                : EnsureLineRenderer(trophyProgressRoot, "RemainingRing", TrophyProgressColor, TrophyProgressLineWidth, false, spriteRenderer.sortingOrder + 3);
+            trophyConnectionRenderer = trophyConnectionRenderer != null
+                ? trophyConnectionRenderer
+                : EnsureLineRenderer(transform, "TrophyConnection", TrophyConnectionColor, TrophyConnectionLineWidth, true, spriteRenderer.sortingOrder + 1);
+        }
+
+        private LineRenderer EnsureLineRenderer(
+            Transform parent,
+            string childName,
+            Color color,
+            float width,
+            bool useWorldSpace,
+            int sortingOrder)
+        {
+            var lineRoot = parent.Find(childName);
+            if (lineRoot == null)
+            {
+                lineRoot = new GameObject(childName).transform;
+                lineRoot.SetParent(parent, false);
+            }
+
+            lineRoot.localPosition = Vector3.zero;
+            lineRoot.localRotation = Quaternion.identity;
+            lineRoot.localScale = Vector3.one;
+
+            var lineRenderer = lineRoot.GetComponent<LineRenderer>();
+            if (lineRenderer == null)
+            {
+                lineRenderer = lineRoot.gameObject.AddComponent<LineRenderer>();
+            }
+
+            lineRenderer.sharedMaterial = GetDefaultSpriteMaterial();
+            lineRenderer.useWorldSpace = useWorldSpace;
+            lineRenderer.startWidth = width;
+            lineRenderer.endWidth = width;
+            lineRenderer.startColor = color;
+            lineRenderer.endColor = color;
+            lineRenderer.numCapVertices = 4;
+            lineRenderer.numCornerVertices = 4;
+            lineRenderer.alignment = LineAlignment.View;
+            lineRenderer.sortingOrder = sortingOrder;
+            lineRenderer.enabled = false;
+            return lineRenderer;
+        }
+
+        private void UpdateTrophyHoldVisuals(PlayerController player, float remainingFraction)
+        {
+            EnsureTrophyHoldVisuals();
+
+            var radius = GetTrophyProgressRadius();
+            UpdateCircularLine(trophyProgressBackRenderer, radius, 1f);
+            UpdateCircularLine(trophyProgressRenderer, radius, remainingFraction);
+
+            if (trophyConnectionRenderer != null && player != null)
+            {
+                trophyConnectionRenderer.enabled = true;
+                trophyConnectionRenderer.positionCount = 2;
+                trophyConnectionRenderer.SetPosition(0, transform.position);
+                trophyConnectionRenderer.SetPosition(1, player.transform.position);
+            }
+        }
+
+        private void HideTrophyHoldVisuals()
+        {
+            SetLineVisible(trophyProgressBackRenderer, false);
+            SetLineVisible(trophyProgressRenderer, false);
+            SetLineVisible(trophyConnectionRenderer, false);
+        }
+
+        private static void SetLineVisible(LineRenderer lineRenderer, bool visible)
+        {
+            if (lineRenderer != null)
+            {
+                lineRenderer.enabled = visible;
+            }
+        }
+
+        private float GetTrophyProgressRadius()
+        {
+            var spriteSize = spriteRenderer != null && spriteRenderer.sprite != null
+                ? spriteRenderer.sprite.bounds.size
+                : Vector3.one * 0.5f;
+            return Mathf.Max(spriteSize.x, spriteSize.y) * 0.5f + TrophyProgressPadding;
+        }
+
+        private static void UpdateCircularLine(LineRenderer lineRenderer, float radius, float fraction)
+        {
+            if (lineRenderer == null)
+            {
+                return;
+            }
+
+            fraction = Mathf.Clamp01(fraction);
+            if (fraction <= 0.001f)
+            {
+                lineRenderer.enabled = false;
+                return;
+            }
+
+            lineRenderer.enabled = true;
+            var segmentCount = Mathf.Max(3, Mathf.CeilToInt(TrophyProgressSegments * fraction));
+            lineRenderer.positionCount = segmentCount + 1;
+
+            const float startAngle = Mathf.PI * 0.5f;
+            var arc = Mathf.PI * 2f * fraction;
+            for (var index = 0; index <= segmentCount; index++)
+            {
+                var t = index / (float)segmentCount;
+                var angle = startAngle - arc * t;
+                lineRenderer.SetPosition(index, new Vector3(Mathf.Cos(angle) * radius, Mathf.Sin(angle) * radius, 0f));
+            }
         }
 
         private void UpdateGlowPulse()
@@ -547,9 +731,10 @@ namespace LeiTing.Pickups
             }
 
 #if UNITY_EDITOR
-            if (config.spritePath.StartsWith("Assets/", System.StringComparison.OrdinalIgnoreCase))
+            var editorSpritePath = ResolveEditorSpritePath(config.spritePath);
+            if (!string.IsNullOrEmpty(editorSpritePath))
             {
-                var editorSprite = AssetDatabase.LoadAssetAtPath<Sprite>(config.spritePath);
+                var editorSprite = AssetDatabase.LoadAssetAtPath<Sprite>(editorSpritePath);
                 if (editorSprite != null)
                 {
                     return editorSprite;
@@ -560,6 +745,37 @@ namespace LeiTing.Pickups
             return RuntimeAssetCatalog.LoadSprite(config.spritePath)
                 ?? Resources.Load<Sprite>(NormalizeResourcesPath(config.spritePath));
         }
+
+#if UNITY_EDITOR
+        private static string ResolveEditorSpritePath(string assetPath)
+        {
+            if (string.IsNullOrWhiteSpace(assetPath))
+            {
+                return string.Empty;
+            }
+
+            var normalized = assetPath.Replace("\\", "/").Trim();
+            if (normalized.StartsWith("Assets/", System.StringComparison.OrdinalIgnoreCase))
+            {
+                return normalized;
+            }
+
+            if (normalized.StartsWith("Sprites/", System.StringComparison.OrdinalIgnoreCase))
+            {
+                var resolvedPath = $"Assets/Art/{normalized}";
+                return HasExtension(resolvedPath) ? resolvedPath : $"{resolvedPath}.png";
+            }
+
+            return string.Empty;
+        }
+
+        private static bool HasExtension(string path)
+        {
+            var extensionIndex = path.LastIndexOf(".", System.StringComparison.Ordinal);
+            var slashIndex = path.LastIndexOf("/", System.StringComparison.Ordinal);
+            return extensionIndex > slashIndex;
+        }
+#endif
 
         private static string NormalizeResourcesPath(string assetPath)
         {

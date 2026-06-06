@@ -238,6 +238,13 @@ namespace LeiTing.Core
             {
                 yield return NormalizeKey(normalized.Substring(assetsPrefix.Length));
             }
+
+            const string spritesSegment = "/Sprites/";
+            var spritesIndex = normalized.IndexOf(spritesSegment, StringComparison.OrdinalIgnoreCase);
+            if (spritesIndex >= 0)
+            {
+                yield return NormalizeKey(normalized.Substring(spritesIndex + 1));
+            }
         }
 
         private static string NormalizeKey(string assetPath)

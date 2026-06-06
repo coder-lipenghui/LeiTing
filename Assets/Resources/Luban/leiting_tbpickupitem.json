@@ -88,5 +88,20 @@
     "driftSpeed": 1.1,
     "pickupRadius": 0.22,
     "visualScale": 1
+  },
+  {
+    "index": 7,
+    "id": "trophy",
+    "displayName": "Trophy",
+    "itemType": "Trophy",
+    "spritePath": "Sprites/Item/item_trophy",
+    "starValue": 0,
+    "coinValue": 0,
+    "healValue": 0,
+    "shieldDuration": 0,
+    "lifetime": 0,
+    "driftSpeed": 0,
+    "pickupRadius": 1.25,
+    "visualScale": 1
   }
 ]

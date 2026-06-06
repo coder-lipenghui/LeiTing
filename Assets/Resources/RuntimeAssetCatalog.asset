@@ -116,6 +116,8 @@ MonoBehaviour:
     sprite: {fileID: 21300000, guid: 0c239b385a642488982e36de47da2e62, type: 3}
   - path: Assets/Art/Sprites/Item/item_star.png
     sprite: {fileID: 21300000, guid: e7730ea40d6044b0f939ea9d3b66374a, type: 3}
+  - path: Assets/Art/Sprites/Item/item_trophy.png
+    sprite: {fileID: 21300000, guid: f2a97401e8d014e8290dbfb09ddd6799, type: 3}
   - path: Assets/Art/Sprites/UI/A.png
     sprite: {fileID: 21300000, guid: a4a8f34e4b2946afa921ea31af27d091, type: 3}
   - path: Assets/Art/Sprites/UI/backgroundH.png
