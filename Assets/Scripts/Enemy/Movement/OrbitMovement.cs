@@ -17,6 +17,7 @@ namespace LeiTing.Enemy.Movement
         Left,
         Right,
         Up,
+        DownLeft,
         DownRight,
         Tangent
     }
@@ -306,6 +307,8 @@ namespace LeiTing.Enemy.Movement
                     return Vector2.right;
                 case OrbitExitDirection.Up:
                     return Vector2.up;
+                case OrbitExitDirection.DownLeft:
+                    return new Vector2(-1f, -1f).normalized;
                 case OrbitExitDirection.DownRight:
                     return new Vector2(1f, -1f).normalized;
                 case OrbitExitDirection.Tangent:

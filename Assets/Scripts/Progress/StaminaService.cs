@@ -20,18 +20,29 @@ namespace LeiTing.Progress
         {
             get
             {
+#if UNITY_EDITOR
+                return MaxStamina;
+#else
                 RefreshRecovery();
                 return GetStoredStamina();
+#endif
             }
         }
 
         public static bool HasEnough(int amount = BattleCost)
         {
+#if UNITY_EDITOR
+            return true;
+#else
             return CurrentStamina >= Mathf.Max(1, amount);
+#endif
         }
 
         public static bool TryConsume(int amount = BattleCost)
         {
+#if UNITY_EDITOR
+            return true;
+#else
             RefreshRecovery();
 
             amount = Mathf.Max(1, amount);
@@ -50,10 +61,14 @@ namespace LeiTing.Progress
 
             GameStorage.Save();
             return true;
+#endif
         }
 
         public static float SecondsUntilNextRecovery()
         {
+#if UNITY_EDITOR
+            return 0f;
+#else
             RefreshRecovery();
 
             if (GetStoredStamina() >= MaxStamina)
@@ -63,6 +78,7 @@ namespace LeiTing.Progress
 
             var elapsed = Mathf.Max(0f, (float)(GetNowUnixSeconds() - GetLastRecoveryUnix()));
             return Mathf.Max(0f, RecoveryIntervalSeconds - elapsed);
+#endif
         }
 
         private static void RefreshRecovery()

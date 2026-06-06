@@ -31,6 +31,9 @@ namespace LeiTing.UI
         private const string UiSpriteFolderPath = "Assets/Art/Sprites/UI";
         private const string WinUiSpriteFolderPath = UiSpriteFolderPath + "/win";
         private const float MissionCompleteAnimationSpeed = 0.58f;
+        private const float VictoryContinueButtonBottomOffset = 64f;
+        private const float VictorySettlementButtonRowY = 150f;
+        private const float FallbackVictorySettlementContinueBottomOffset = VictorySettlementButtonRowY - 63f;
 
         private static readonly Color BossHealthColor = new Color32(0x86, 0x28, 0x00, 0xFF);
 
@@ -1527,7 +1530,7 @@ namespace LeiTing.UI
                 victorySettlementRoot.transform,
                 "ContinueButton",
                 VictoryContinueSpritePath,
-                new Vector2(-135f, 212f),
+                new Vector2(-135f, FallbackVictorySettlementContinueBottomOffset),
                 new Vector2(126f, 126f));
             settlementContinueButton = settlementContinueRoot.GetComponent<Button>();
 
@@ -1591,7 +1594,7 @@ namespace LeiTing.UI
                 parent,
                 "VictoryContinueButton",
                 VictoryContinueSpritePath,
-                new Vector2(0f, 118f),
+                new Vector2(0f, VictoryContinueButtonBottomOffset),
                 new Vector2(118f, 118f));
             victoryContinueButton = victoryContinueRoot.GetComponent<Button>();
             victoryContinueButton.onClick.AddListener(ShowVictorySettlement);

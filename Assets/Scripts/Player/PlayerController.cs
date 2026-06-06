@@ -3,6 +3,7 @@ using LeiTing.Config;
 using LeiTing.Core;
 using LeiTing.Effects;
 using LeiTing.Audio;
+using LeiTing.Enemy;
 using LeiTing.Missiles;
 using LeiTing.Progress;
 using LeiTing.Stage;
@@ -890,6 +891,12 @@ namespace LeiTing.Player
             if (other.GetComponentInParent<MissileController>() != null)
             {
                 return false;
+            }
+
+            if (other.GetComponentInParent<EnemyController>() != null
+                || other.GetComponentInParent<BossController>() != null)
+            {
+                return true;
             }
 
             return (damageSourceLayers.value & (1 << other.gameObject.layer)) != 0;

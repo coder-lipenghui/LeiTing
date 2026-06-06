@@ -9,6 +9,7 @@ namespace LeiTing.UI
     {
         private const float LetterHeight = 138f;
         private const float LetterSpacing = 18f;
+        private const float RootVerticalOffset = 180f;
         private const float GroupVerticalOffset = 86f;
         private const float WobbleDuration = 5f;
         private const float WobblePeriod = 2.85f;
@@ -53,7 +54,7 @@ namespace LeiTing.UI
             root.anchorMin = new Vector2(0.5f, 0.5f);
             root.anchorMax = new Vector2(0.5f, 0.5f);
             root.pivot = new Vector2(0.5f, 0.5f);
-            root.anchoredPosition = Vector2.zero;
+            root.anchoredPosition = new Vector2(0f, RootVerticalOffset);
             root.sizeDelta = new Vector2(960f, 360f);
 
             firstLine = string.IsNullOrEmpty(firstLine) ? "GAME" : firstLine;

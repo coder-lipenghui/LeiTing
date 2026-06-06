@@ -3,7 +3,7 @@
     "index": 1,
     "id": "level_01",
     "displayName": "第 1 关",
-    "backgroundSpritePath": "Assets/Art/Sprites/Backgrounds/background-01.png",
+    "backgroundSpritePath": "Assets/Art/Sprites/Backgrounds/background-03.png",
     "backgroundScrollSpeed": 2.1,
     "bgmPath": "Assets/Art/Sound/SFX/Ambience/SFX_Ambience_Battle_Loop_01.mp3"
   },
@@ -11,7 +11,7 @@
     "index": 2,
     "id": "level_02",
     "displayName": "第 2 关",
-    "backgroundSpritePath": "Assets/Art/Sprites/Backgrounds/background-01.png",
+    "backgroundSpritePath": "Assets/Art/Sprites/Backgrounds/background-02.png",
     "backgroundScrollSpeed": 2.1,
     "bgmPath": ""
   },
