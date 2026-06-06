@@ -530,5 +530,19 @@
     "hitScaleFeedback": false,
     "score": 50,
     "hitSoundPath": "Assets/Art/Sound/SFX/Enemy/SFX_Enemy_Hit_01.wav"
+  },
+  {
+    "index": 39,
+    "id": "level2_helicopter_01",
+    "displayName": "关卡2顶部直升机",
+    "prefabPath": "Assets/Prefabs/Enemies/helicopter_01.prefab",
+    "hp": 21,
+    "moveSpeed": 2.1,
+    "attackInterval": 3,
+    "bulletId": "enemy_bullet_01",
+    "bulletPatternId": "level2_helicopter_slow_pair",
+    "hitScaleFeedback": false,
+    "score": 420,
+    "hitSoundPath": "Assets/Art/Sound/SFX/Enemy/SFX_Enemy_Hit_01.wav"
   }
 ]

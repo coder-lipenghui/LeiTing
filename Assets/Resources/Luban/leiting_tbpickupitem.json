@@ -100,7 +100,7 @@
     "healValue": 0,
     "shieldDuration": 0,
     "lifetime": 0,
-    "driftSpeed": 0,
+    "driftSpeed": 2.1,
     "pickupRadius": 1.25,
     "visualScale": 1
   }

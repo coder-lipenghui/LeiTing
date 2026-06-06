@@ -85,6 +85,10 @@ and a phone test.
 - `GameManager` owns state, score, selected level, unlock progression, restart
   and next-level transitions. On victory it first attracts remaining pickups
   to the player and waits for collection before completing settlement.
+- `StaminaService` gates battle entry in player builds, consuming one stamina
+  per start and restoring stamina over time. In the Unity Editor it always
+  reports full stamina and does not consume it, so Play Mode testing is not
+  blocked by stamina limits.
 
 ## Player Input And Douyin WebGL
 
@@ -119,11 +123,23 @@ and a phone test.
 - `EnemyManager` spawns enemies from level wave data.
 - `BulletManager`, `BulletPatternManager`, and `MissileManager` handle
   projectile behavior and configured firing patterns.
+- Enemy bullet `firePattern` values can append options after `:`;
+  `Single:GlowTrail` keeps straight movement and enables a light trail when
+  the bullet also has a positive `glowRange`.
+- Enemy `WaveSpawn.attackPatternId` supports scheduled pattern strings in the
+  form `patternId@interval+offset`; append `~duration` to stop that scheduled
+  loop after a finite number of seconds.
+- Enemy `WaveSpawn.movementPath` supports inline movement options, including
+  `Orbit:...`, `Bezier:points=x/y|...`, and `Spline:points=x/y|...`. Use
+  `Spline` when the path needs to pass through configured turn points.
 - `BossController` handles boss entry, HP, configured phase changes, firing,
   defeat, and the victory trigger.
 - `StageManager` advances level timeline events. A clear-bullets event clears
   both enemy bullets and enemy missiles, and stage messages can substitute
   `{LEVEL}`, `{MAX_LEVEL}`, `{BOSS_ID}`, and `{BOSS}`.
+- Trophy events use IDs beginning with `spawn_trophy`; append inline position
+  options such as `spawn_trophy_level_02_left_003:x=-3.2,y=5.7` to override the
+  default spawn position.
 - `GameManager` exposes the `无敌模式` Inspector toggle on `Managers`. The
   value selected in `SampleScene` is carried into `BattleScene`, where
   `PlayerController` ignores incoming damage without continuously flashing.

@@ -127,6 +127,7 @@ namespace LeiTing.Pickups
             var player = FindObjectOfType<PlayerController>();
             if (IsTrophyPickup)
             {
+                DriftDown();
                 UpdateTrophyHold(player);
                 return;
             }
@@ -227,13 +228,30 @@ namespace LeiTing.Pickups
 
         private void DriftDown()
         {
-            var speed = Mathf.Max(0f, config != null && config.driftSpeed > 0f ? config.driftSpeed : 1.1f);
+            var speed = ResolveDriftSpeed();
             MoveTo(transform.position + Vector3.down * speed * Time.deltaTime);
 
             if (IsBelowScreen())
             {
                 Destroy(gameObject);
             }
+        }
+
+        private float ResolveDriftSpeed()
+        {
+            if (IsTrophyPickup)
+            {
+                var levelConfig = ConfigManager.Instance != null && ConfigManager.Instance.IsLoaded && GameManager.Instance != null
+                    ? ConfigManager.Instance.GetLevel(GameManager.Instance.CurrentLevelNumber)
+                    : null;
+
+                if (levelConfig != null && levelConfig.backgroundScrollSpeed > 0f)
+                {
+                    return levelConfig.backgroundScrollSpeed;
+                }
+            }
+
+            return Mathf.Max(0f, config != null && config.driftSpeed > 0f ? config.driftSpeed : 1.1f);
         }
 
         private void MoveTo(Vector3 position)

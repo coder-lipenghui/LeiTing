@@ -62,5 +62,21 @@
     "startTime": 3,
     "message": "",
     "clearEnemyBullets": false
+  },
+  {
+    "index": 9,
+    "id": "spawn_trophy_level_02_left_003:x=-3.2,y=5.7",
+    "levelId": "level_02",
+    "startTime": 3,
+    "message": "",
+    "clearEnemyBullets": false
+  },
+  {
+    "index": 10,
+    "id": "spawn_trophy_level_02_right_034:x=3.2,y=5.7",
+    "levelId": "level_02",
+    "startTime": 34,
+    "message": "",
+    "clearEnemyBullets": false
   }
 ]
