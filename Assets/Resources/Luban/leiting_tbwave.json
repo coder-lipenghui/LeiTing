@@ -223,14 +223,56 @@
   },
   {
     "index": 38,
-    "id": "wave_level_02_resource2_left_downright_003",
+    "id": "wave_level_02_helicopter_top_002",
     "levelId": "level_02",
-    "startTime": 3
+    "startTime": 2
   },
   {
     "index": 39,
-    "id": "wave_level_02_resource2_orbit_downleft_009",
+    "id": "wave_level_02_resource2_right_arc_005",
     "levelId": "level_02",
-    "startTime": 9
+    "startTime": 5
+  },
+  {
+    "index": 40,
+    "id": "wave_level_02_resource2_left_arc_010",
+    "levelId": "level_02",
+    "startTime": 10
+  },
+  {
+    "index": 41,
+    "id": "wave_level_02_resource2_n_left_014",
+    "levelId": "level_02",
+    "startTime": 14
+  },
+  {
+    "index": 42,
+    "id": "wave_level_02_resource2_n_right_019",
+    "levelId": "level_02",
+    "startTime": 19
+  },
+  {
+    "index": 43,
+    "id": "wave_level_02_resource2_w_top_022",
+    "levelId": "level_02",
+    "startTime": 22
+  },
+  {
+    "index": 44,
+    "id": "wave_level_02_resource2_l_left_028",
+    "levelId": "level_02",
+    "startTime": 28
+  },
+  {
+    "index": 45,
+    "id": "wave_level_02_resource2_l_right_032",
+    "levelId": "level_02",
+    "startTime": 32
+  },
+  {
+    "index": 46,
+    "id": "wave_level_02_helicopter_top_036",
+    "levelId": "level_02",
+    "startTime": 36
   }
 ]

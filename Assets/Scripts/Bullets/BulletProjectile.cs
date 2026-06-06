@@ -21,6 +21,7 @@ namespace LeiTing.Bullets
         private const float GlowSpriteSize = 1f;
         private const float LaserGlowMinWidth = 0.72f;
         private const float LaserGlowLengthPadding = 0.35f;
+        private const string GlowTrailOption = "GlowTrail";
 
         private static Sprite playerSprite;
         private static Sprite enemySprite;
@@ -36,8 +37,10 @@ namespace LeiTing.Bullets
         private BoxCollider2D boxCollider;
         private Transform visualRoot;
         private Transform glowRoot;
+        private Transform glowTrailRoot;
         private SpriteRenderer spriteRenderer;
         private SpriteRenderer glowRenderer;
+        private TrailRenderer glowTrailRenderer;
         private Vector2 direction = Vector2.up;
         private Vector2 linearOrigin;
         private Vector2 lateralDirection;
@@ -110,6 +113,7 @@ namespace LeiTing.Bullets
         {
             isActiveProjectile = false;
             followTarget = null;
+            DisableGlowTrail();
             gameObject.SetActive(false);
         }
 
@@ -236,6 +240,10 @@ namespace LeiTing.Bullets
                 gameObject.layer = layer;
                 visualRoot.gameObject.layer = layer;
                 glowRoot.gameObject.layer = layer;
+                if (glowTrailRoot != null)
+                {
+                    glowTrailRoot.gameObject.layer = layer;
+                }
             }
         }
 
@@ -270,6 +278,7 @@ namespace LeiTing.Bullets
             visualRoot.localRotation = Quaternion.identity;
             visualRoot.localScale = ResolveVisualScale(spriteRenderer.sprite, size);
             ApplyGlowVisual(bulletConfig, size);
+            ConfigureGlowTrail(bulletConfig, size);
         }
 
         private void ApplyGlowVisual(BulletConfig bulletConfig, Vector2 size)
@@ -298,6 +307,91 @@ namespace LeiTing.Bullets
             glowRoot.localPosition = Vector3.zero;
             glowRoot.localRotation = Quaternion.identity;
             glowRoot.localScale = new Vector3(glowSize.x / GlowSpriteSize, glowSize.y / GlowSpriteSize, 1f);
+        }
+
+        private void ConfigureGlowTrail(BulletConfig bulletConfig, Vector2 size)
+        {
+            if (!ShouldUseGlowTrail(bulletConfig))
+            {
+                DisableGlowTrail();
+                return;
+            }
+
+            var trailRenderer = EnsureGlowTrailRenderer();
+            if (trailRenderer == null)
+            {
+                return;
+            }
+
+            var glowColor = ResolveGlowColor(bulletConfig.glowColor);
+            var startColor = new Color(glowColor.r, glowColor.g, glowColor.b, Mathf.Clamp01(glowColor.a * 0.9f));
+            var endColor = new Color(glowColor.r, glowColor.g, glowColor.b, 0f);
+
+            trailRenderer.enabled = true;
+            trailRenderer.emitting = true;
+            trailRenderer.Clear();
+            trailRenderer.sharedMaterial = GetDefaultSpriteMaterial();
+            trailRenderer.time = 0.22f;
+            trailRenderer.minVertexDistance = 0.02f;
+            trailRenderer.startWidth = Mathf.Max(0.04f, size.x * 0.95f);
+            trailRenderer.endWidth = 0.015f;
+            trailRenderer.startColor = startColor;
+            trailRenderer.endColor = endColor;
+            trailRenderer.numCornerVertices = 2;
+            trailRenderer.numCapVertices = 2;
+            trailRenderer.alignment = LineAlignment.View;
+            trailRenderer.textureMode = LineTextureMode.Stretch;
+            trailRenderer.sortingOrder = spriteRenderer != null ? spriteRenderer.sortingOrder - 2 : 18;
+        }
+
+        private bool ShouldUseGlowTrail(BulletConfig bulletConfig)
+        {
+            return bulletConfig != null
+                && !IsPlayerOwned()
+                && !isLaser
+                && bulletConfig.glowRange > 0f
+                && HasPatternOption(bulletConfig.firePattern, GlowTrailOption);
+        }
+
+        private TrailRenderer EnsureGlowTrailRenderer()
+        {
+            if (glowTrailRoot == null)
+            {
+                var trail = transform.Find("GlowTrail");
+                if (trail == null)
+                {
+                    trail = new GameObject("GlowTrail").transform;
+                    trail.SetParent(transform, false);
+                }
+
+                trail.localPosition = Vector3.zero;
+                trail.localRotation = Quaternion.identity;
+                trail.localScale = Vector3.one;
+                glowTrailRoot = trail;
+            }
+
+            glowTrailRoot.gameObject.layer = gameObject.layer;
+
+            glowTrailRenderer = glowTrailRenderer != null ? glowTrailRenderer : glowTrailRoot.GetComponent<TrailRenderer>();
+            if (glowTrailRenderer == null)
+            {
+                glowTrailRenderer = glowTrailRoot.gameObject.AddComponent<TrailRenderer>();
+                glowTrailRenderer.autodestruct = false;
+            }
+
+            return glowTrailRenderer;
+        }
+
+        private void DisableGlowTrail()
+        {
+            if (glowTrailRenderer == null)
+            {
+                return;
+            }
+
+            glowTrailRenderer.emitting = false;
+            glowTrailRenderer.Clear();
+            glowTrailRenderer.enabled = false;
         }
 
         private void ApplyTransformForDirection(BulletConfig bulletConfig)
@@ -509,6 +603,25 @@ namespace LeiTing.Bullets
             var separatorIndex = firePattern.IndexOf(':');
             var patternName = separatorIndex >= 0 ? firePattern.Substring(0, separatorIndex) : firePattern;
             return string.Equals(patternName.Trim(), expected, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool HasPatternOption(string firePattern, string option)
+        {
+            if (string.IsNullOrWhiteSpace(firePattern) || string.IsNullOrWhiteSpace(option))
+            {
+                return false;
+            }
+
+            var values = GetPatternValues(firePattern);
+            for (var index = 0; index < values.Length; index++)
+            {
+                if (string.Equals(values[index].Trim(), option, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static string[] GetPatternValues(string firePattern)

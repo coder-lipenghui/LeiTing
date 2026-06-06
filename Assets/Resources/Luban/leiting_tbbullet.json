@@ -240,5 +240,27 @@
     "muzzleSpacing": 0,
     "pierceCount": 0,
     "laserLength": 0
+  },
+  {
+    "index": 12,
+    "id": "level2_helicopter_bullet_29",
+    "owner": "Enemy",
+    "firePattern": "Single:GlowTrail",
+    "spritePath": "Assets/Art/Sprites/Bullets/enemy_bullet_29.png",
+    "damage": 1,
+    "speed": 4.4,
+    "lifetime": 5.2,
+    "sizeX": 0.22,
+    "sizeY": 0.42,
+    "glowColorR": 0.78,
+    "glowColorG": 0.28,
+    "glowColorB": 1,
+    "glowColorA": 0.68,
+    "glowRange": 0.25,
+    "projectileCount": 1,
+    "spreadAngle": 0,
+    "muzzleSpacing": 0,
+    "pierceCount": 0,
+    "laserLength": 0
   }
 ]

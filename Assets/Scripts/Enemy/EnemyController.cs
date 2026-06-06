@@ -31,6 +31,7 @@ namespace LeiTing.Enemy
             public string patternId;
             public float interval;
             public float nextFireTime;
+            public float endFireTime = float.PositiveInfinity;
         }
 
         [SerializeField] private EnemyConfig config;
@@ -43,6 +44,7 @@ namespace LeiTing.Enemy
         private AircraftWingTrailEffect wingTrailEffect;
         private ActorMounts mounts;
         private readonly List<ScheduledPattern> scheduledPatterns = new List<ScheduledPattern>();
+        private readonly List<Vector2> configuredCurvePoints = new List<Vector2>();
         private Color originalColor = Color.white;
         private Vector3 spawnPosition;
         private Vector3 flashBaseLocalScale = Vector3.one;
@@ -57,8 +59,13 @@ namespace LeiTing.Enemy
         private float flashUntil;
         private OrbitMovement orbitMovement;
         private bool usesOrbitMovement;
+        private bool usesConfiguredCurvePath;
+        private bool configuredCurveDestroyOnComplete = true;
+        private bool configuredCurveCompleted;
+        private bool configuredCurveUsesSpline;
         private bool configuredRotateToPath;
         private bool configuredFireOnce;
+        private float configuredCurveDuration = 4f;
         private float configuredRotationOffset = -90f;
         private float configuredFireOnceDelay = 0.65f;
         private bool hasFiredEntryShot;
@@ -124,7 +131,7 @@ namespace LeiTing.Enemy
             UpdateAttack();
             UpdateFlash();
 
-            if (!usesOrbitMovement && transform.position.y < DespawnY)
+            if (!usesOrbitMovement && !usesConfiguredCurvePath && transform.position.y < DespawnY)
             {
                 Destroy(gameObject);
             }
@@ -283,10 +290,29 @@ namespace LeiTing.Enemy
         private void ConfigureMovementBehavior(WaveSpawnConfig spawnConfig)
         {
             usesOrbitMovement = false;
+            usesConfiguredCurvePath = false;
+            configuredCurveCompleted = false;
+            configuredCurveDestroyOnComplete = true;
+            configuredCurveUsesSpline = false;
+            configuredCurveDuration = 4f;
+            configuredCurvePoints.Clear();
             configuredRotateToPath = false;
             configuredFireOnce = false;
             configuredRotationOffset = -90f;
             configuredFireOnceDelay = 0.65f;
+
+            if (IsCurveMovementPath(movementPath))
+            {
+                ConfigureConfiguredCurveMovement();
+
+                if (orbitMovement != null)
+                {
+                    orbitMovement.AutoUpdate = false;
+                    orbitMovement.enabled = false;
+                }
+
+                return;
+            }
 
             if (!IsOrbitMovementPath(movementPath))
             {
@@ -311,6 +337,51 @@ namespace LeiTing.Enemy
             orbitMovement.AutoUpdate = false;
             orbitMovement.Initialize(BuildOrbitMovementConfig(spawnConfig), spawnPosition, GetMoveSpeed());
             usesOrbitMovement = true;
+        }
+
+        private void ConfigureConfiguredCurveMovement()
+        {
+            usesConfiguredCurvePath = true;
+            configuredCurveUsesSpline = IsMovementPath(GetMovementPathName(movementPath), "Spline");
+            configuredCurveDuration = pathSpeed > 0f ? pathSpeed : 4f;
+            configuredCurvePoints.Add(spawnPosition);
+            ConfigureConfiguredMovementRotation();
+
+            ForEachInlineMovementParameter(movementPath, (key, value) =>
+            {
+                switch (key.ToLowerInvariant())
+                {
+                    case "points":
+                    case "path":
+                        SetConfiguredCurvePoints(value);
+                        break;
+                    case "duration":
+                        SetFloat(value, result => configuredCurveDuration = Mathf.Max(0.05f, result));
+                        break;
+                    case "destroy":
+                    case "destroyoncomplete":
+                        SetBool(value, result => configuredCurveDestroyOnComplete = result);
+                        break;
+                    case "mode":
+                        configuredCurveUsesSpline = string.Equals(value, "Spline", StringComparison.OrdinalIgnoreCase);
+                        break;
+                }
+            });
+
+            if (configuredCurvePoints.Count == 0)
+            {
+                configuredCurvePoints.Add(spawnPosition);
+            }
+
+            if ((configuredCurvePoints[0] - (Vector2)spawnPosition).sqrMagnitude > 0.0001f)
+            {
+                configuredCurvePoints.Insert(0, spawnPosition);
+            }
+
+            if (configuredCurvePoints.Count < 2)
+            {
+                configuredCurvePoints.Add((Vector2)spawnPosition + Vector2.down);
+            }
         }
 
         private OrbitMovementConfig BuildOrbitMovementConfig(WaveSpawnConfig spawnConfig)
@@ -379,6 +450,13 @@ namespace LeiTing.Enemy
         private void UpdateConfiguredMovement()
         {
             var previousPosition = transform.position;
+
+            if (usesConfiguredCurvePath)
+            {
+                UpdateConfiguredCurveMovement(previousPosition);
+                return;
+            }
+
             var position = transform.position;
             var speed = GetMoveSpeed();
             var normalizedPath = GetMovementPathName(movementPath);
@@ -425,6 +503,32 @@ namespace LeiTing.Enemy
 
             transform.position = position;
             ApplyConfiguredPathRotation(previousPosition, position);
+        }
+
+        private void UpdateConfiguredCurveMovement(Vector2 previousPosition)
+        {
+            if (configuredCurveCompleted || configuredCurvePoints.Count == 0)
+            {
+                return;
+            }
+
+            var t = configuredCurveDuration <= 0f ? 1f : Mathf.Clamp01(aliveTime / configuredCurveDuration);
+            var position = configuredCurveUsesSpline
+                ? EvaluateSplinePoint(configuredCurvePoints, t)
+                : EvaluateBezierPoint(configuredCurvePoints, t);
+            transform.position = position;
+            ApplyConfiguredPathRotation(previousPosition, position);
+
+            if (t < 1f)
+            {
+                return;
+            }
+
+            configuredCurveCompleted = true;
+            if (configuredCurveDestroyOnComplete)
+            {
+                Destroy(gameObject);
+            }
         }
 
         private void ApplyConfiguredPathRotation(Vector2 previousPosition, Vector2 currentPosition)
@@ -521,16 +625,18 @@ namespace LeiTing.Enemy
             var entries = patternSpec.Split(new[] { '|', ';' }, StringSplitOptions.RemoveEmptyEntries);
             foreach (var rawEntry in entries)
             {
-                if (!TryParseScheduledPattern(rawEntry.Trim(), out var patternId, out var interval, out var offset))
+                if (!TryParseScheduledPattern(rawEntry.Trim(), out var patternId, out var interval, out var offset, out var duration))
                 {
                     continue;
                 }
 
+                var startTime = Time.time + offset;
                 scheduledPatterns.Add(new ScheduledPattern
                 {
                     patternId = patternId,
                     interval = interval,
-                    nextFireTime = Time.time + offset
+                    nextFireTime = startTime,
+                    endFireTime = duration > 0f ? startTime + duration : float.PositiveInfinity
                 });
             }
         }
@@ -545,16 +651,22 @@ namespace LeiTing.Enemy
                     continue;
                 }
 
+                if (scheduled.nextFireTime > scheduled.endFireTime)
+                {
+                    continue;
+                }
+
                 FirePatternId(scheduled.patternId);
-                scheduled.nextFireTime = Time.time + scheduled.interval;
+                scheduled.nextFireTime += scheduled.interval;
             }
         }
 
-        private static bool TryParseScheduledPattern(string rawPatternId, out string patternId, out float interval, out float offset)
+        private static bool TryParseScheduledPattern(string rawPatternId, out string patternId, out float interval, out float offset, out float duration)
         {
             patternId = rawPatternId;
             interval = 0f;
             offset = 0f;
+            duration = 0f;
 
             if (string.IsNullOrWhiteSpace(rawPatternId))
             {
@@ -569,6 +681,19 @@ namespace LeiTing.Enemy
 
             patternId = rawPatternId.Substring(0, separatorIndex);
             var scheduleSpec = rawPatternId.Substring(separatorIndex + 1);
+            var durationIndex = scheduleSpec.IndexOf('~');
+            if (durationIndex >= 0)
+            {
+                var durationText = durationIndex < scheduleSpec.Length - 1 ? scheduleSpec.Substring(durationIndex + 1) : string.Empty;
+                scheduleSpec = scheduleSpec.Substring(0, durationIndex);
+                if (!float.TryParse(durationText, NumberStyles.Float, CultureInfo.InvariantCulture, out duration))
+                {
+                    duration = 0f;
+                }
+
+                duration = Mathf.Max(0f, duration);
+            }
+
             var offsetIndex = scheduleSpec.IndexOf('+');
             var intervalText = offsetIndex >= 0 ? scheduleSpec.Substring(0, offsetIndex) : scheduleSpec;
             var offsetText = offsetIndex >= 0 ? scheduleSpec.Substring(offsetIndex + 1) : "0";
@@ -839,6 +964,15 @@ namespace LeiTing.Enemy
                 || IsMovementPath(pathName, "EnemyOrbitMove");
         }
 
+        private static bool IsCurveMovementPath(string path)
+        {
+            var pathName = GetMovementPathName(path);
+            return IsMovementPath(pathName, "Bezier")
+                || IsMovementPath(pathName, "Curve")
+                || IsMovementPath(pathName, "Path")
+                || IsMovementPath(pathName, "Spline");
+        }
+
         private static string GetMovementPathName(string path)
         {
             if (string.IsNullOrWhiteSpace(path))
@@ -967,6 +1101,112 @@ namespace LeiTing.Enemy
                     SetFloat(value, result => orbitConfig.rotationOffset = result);
                     break;
             }
+        }
+
+        private void SetConfiguredCurvePoints(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return;
+            }
+
+            var parsedPoints = new List<Vector2>();
+            var pointValues = value.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var pointValue in pointValues)
+            {
+                if (TryParseCurvePoint(pointValue, out var point))
+                {
+                    parsedPoints.Add(point);
+                }
+            }
+
+            if (parsedPoints.Count == 0)
+            {
+                return;
+            }
+
+            configuredCurvePoints.Clear();
+            configuredCurvePoints.AddRange(parsedPoints);
+        }
+
+        private static bool TryParseCurvePoint(string value, out Vector2 point)
+        {
+            point = Vector2.zero;
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return false;
+            }
+
+            var components = value.Trim().Split(new[] { '/', '_' }, StringSplitOptions.RemoveEmptyEntries);
+            if (components.Length < 2
+                || !float.TryParse(components[0], NumberStyles.Float, CultureInfo.InvariantCulture, out var x)
+                || !float.TryParse(components[1], NumberStyles.Float, CultureInfo.InvariantCulture, out var y))
+            {
+                return false;
+            }
+
+            point = new Vector2(x, y);
+            return true;
+        }
+
+        private static Vector2 EvaluateBezierPoint(IReadOnlyList<Vector2> points, float t)
+        {
+            if (points == null || points.Count == 0)
+            {
+                return Vector2.zero;
+            }
+
+            if (points.Count == 1)
+            {
+                return points[0];
+            }
+
+            var workingPoints = new Vector2[points.Count];
+            for (var index = 0; index < points.Count; index++)
+            {
+                workingPoints[index] = points[index];
+            }
+
+            for (var level = points.Count - 1; level > 0; level--)
+            {
+                for (var index = 0; index < level; index++)
+                {
+                    workingPoints[index] = Vector2.LerpUnclamped(workingPoints[index], workingPoints[index + 1], t);
+                }
+            }
+
+            return workingPoints[0];
+        }
+
+        private static Vector2 EvaluateSplinePoint(IReadOnlyList<Vector2> points, float t)
+        {
+            if (points == null || points.Count == 0)
+            {
+                return Vector2.zero;
+            }
+
+            if (points.Count == 1)
+            {
+                return points[0];
+            }
+
+            var segmentCount = points.Count - 1;
+            var scaledT = Mathf.Clamp01(t) * segmentCount;
+            var segment = Mathf.Min(Mathf.FloorToInt(scaledT), segmentCount - 1);
+            var localT = scaledT - segment;
+
+            var p0 = points[Mathf.Max(segment - 1, 0)];
+            var p1 = points[segment];
+            var p2 = points[segment + 1];
+            var p3 = points[Mathf.Min(segment + 2, points.Count - 1)];
+
+            var localT2 = localT * localT;
+            var localT3 = localT2 * localT;
+            return 0.5f * (
+                (2f * p1)
+                + (-p0 + p2) * localT
+                + (2f * p0 - 5f * p1 + 4f * p2 - p3) * localT2
+                + (-p0 + 3f * p1 - 3f * p2 + p3) * localT3);
         }
 
         private static void SetFloat(string value, Action<float> apply)
