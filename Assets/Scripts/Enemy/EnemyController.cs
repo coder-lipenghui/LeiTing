@@ -12,7 +12,9 @@ using LeiTing.Pickups;
 using LeiTing.Player;
 using LeiTing.Progress;
 using LeiTing.UI;
+using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Splines;
 
 namespace LeiTing.Enemy
 {
@@ -63,6 +65,18 @@ namespace LeiTing.Enemy
         private bool configuredCurveDestroyOnComplete = true;
         private bool configuredCurveCompleted;
         private bool configuredCurveUsesSpline;
+        private SplineContainer configuredSplineContainer;
+        private Spline configuredInlineSpline;
+        private string configuredSplinePathId;
+        private string configuredSplineId;
+        private int configuredSplineIndex = -1;
+        private Vector2 configuredSplineOffset;
+        private bool configuredSplineMirrorX;
+        private bool configuredSplineMirrorY;
+        private float configuredSplinePauseAtT = -1f;
+        private float configuredSplineEntryDuration;
+        private float configuredSplinePauseDuration;
+        private float configuredSplineExitDuration;
         private bool configuredRotateToPath;
         private bool configuredFireOnce;
         private float configuredCurveDuration = 4f;
@@ -295,6 +309,18 @@ namespace LeiTing.Enemy
             configuredCurveDestroyOnComplete = true;
             configuredCurveUsesSpline = false;
             configuredCurveDuration = 4f;
+            configuredSplineContainer = null;
+            configuredInlineSpline = null;
+            configuredSplinePathId = string.Empty;
+            configuredSplineId = string.Empty;
+            configuredSplineIndex = -1;
+            configuredSplineOffset = Vector2.zero;
+            configuredSplineMirrorX = false;
+            configuredSplineMirrorY = false;
+            configuredSplinePauseAtT = -1f;
+            configuredSplineEntryDuration = 0f;
+            configuredSplinePauseDuration = 0f;
+            configuredSplineExitDuration = 0f;
             configuredCurvePoints.Clear();
             configuredRotateToPath = false;
             configuredFireOnce = false;
@@ -344,7 +370,10 @@ namespace LeiTing.Enemy
             usesConfiguredCurvePath = true;
             configuredCurveUsesSpline = IsMovementPath(GetMovementPathName(movementPath), "Spline");
             configuredCurveDuration = pathSpeed > 0f ? pathSpeed : 4f;
-            configuredCurvePoints.Add(spawnPosition);
+            if (!configuredCurveUsesSpline)
+            {
+                configuredCurvePoints.Add(spawnPosition);
+            }
             ConfigureConfiguredMovementRotation();
 
             ForEachInlineMovementParameter(movementPath, (key, value) =>
@@ -352,11 +381,62 @@ namespace LeiTing.Enemy
                 switch (key.ToLowerInvariant())
                 {
                     case "points":
-                    case "path":
                         SetConfiguredCurvePoints(value);
+                        break;
+                    case "path":
+                        if (configuredCurveUsesSpline)
+                        {
+                            configuredSplinePathId = value;
+                        }
+                        else
+                        {
+                            SetConfiguredCurvePoints(value);
+                        }
+                        break;
+                    case "spline":
+                        configuredSplineId = value;
+                        break;
+                    case "splineid":
+                        configuredSplineId = value;
+                        break;
+                    case "splineindex":
+                    case "index":
+                        SetInt(value, result => configuredSplineIndex = Mathf.Max(0, result));
+                        break;
+                    case "offset":
+                        SetVector2(value, result => configuredSplineOffset = result);
+                        break;
+                    case "offsetx":
+                        SetFloat(value, result => configuredSplineOffset.x = result);
+                        break;
+                    case "offsety":
+                        SetFloat(value, result => configuredSplineOffset.y = result);
+                        break;
+                    case "mirrorx":
+                        SetBool(value, result => configuredSplineMirrorX = result);
+                        break;
+                    case "mirrory":
+                        SetBool(value, result => configuredSplineMirrorY = result);
                         break;
                     case "duration":
                         SetFloat(value, result => configuredCurveDuration = Mathf.Max(0.05f, result));
+                        break;
+                    case "entryduration":
+                        SetFloat(value, result => configuredSplineEntryDuration = Mathf.Max(0f, result));
+                        break;
+                    case "pauseduration":
+                    case "splinepauseduration":
+                    case "splineholdduration":
+                        SetFloat(value, result => configuredSplinePauseDuration = Mathf.Max(0f, result));
+                        break;
+                    case "exitduration":
+                        SetFloat(value, result => configuredSplineExitDuration = Mathf.Max(0f, result));
+                        break;
+                    case "pauseatt":
+                    case "holdatt":
+                    case "pauset":
+                    case "holdt":
+                        SetFloat(value, result => configuredSplinePauseAtT = Mathf.Clamp01(result));
                         break;
                     case "destroy":
                     case "destroyoncomplete":
@@ -368,20 +448,41 @@ namespace LeiTing.Enemy
                 }
             });
 
-            if (configuredCurvePoints.Count == 0)
+            configuredSplineContainer = ResolveConfiguredSplineContainer();
+            var hasSceneSpline = configuredSplineContainer != null;
+            if (hasSceneSpline)
+            {
+                var splineStartPosition = EvaluateConfiguredCurvePosition(0f);
+                spawnPosition = splineStartPosition;
+                transform.position = splineStartPosition;
+                wingTrailEffect?.ResetTrailsForTeleport();
+            }
+
+            if (configuredCurveUsesSpline && !hasSceneSpline)
+            {
+                Debug.LogWarning(
+                    $"Unable to resolve enemy spline path '{configuredSplinePathId}' with spline '{configuredSplineId}'.",
+                    this);
+            }
+
+            if (!hasSceneSpline && !configuredCurveUsesSpline && configuredCurvePoints.Count == 0)
             {
                 configuredCurvePoints.Add(spawnPosition);
             }
 
-            if ((configuredCurvePoints[0] - (Vector2)spawnPosition).sqrMagnitude > 0.0001f)
+            if (!hasSceneSpline
+                && !configuredCurveUsesSpline
+                && (configuredCurvePoints[0] - (Vector2)spawnPosition).sqrMagnitude > 0.0001f)
             {
                 configuredCurvePoints.Insert(0, spawnPosition);
             }
 
-            if (configuredCurvePoints.Count < 2)
+            if (!hasSceneSpline && !configuredCurveUsesSpline && configuredCurvePoints.Count < 2)
             {
                 configuredCurvePoints.Add((Vector2)spawnPosition + Vector2.down);
             }
+
+            configuredInlineSpline = null;
         }
 
         private OrbitMovementConfig BuildOrbitMovementConfig(WaveSpawnConfig spawnConfig)
@@ -507,19 +608,17 @@ namespace LeiTing.Enemy
 
         private void UpdateConfiguredCurveMovement(Vector2 previousPosition)
         {
-            if (configuredCurveCompleted || configuredCurvePoints.Count == 0)
+            if (configuredCurveCompleted || !HasConfiguredCurveSource())
             {
                 return;
             }
 
-            var t = configuredCurveDuration <= 0f ? 1f : Mathf.Clamp01(aliveTime / configuredCurveDuration);
-            var position = configuredCurveUsesSpline
-                ? EvaluateSplinePoint(configuredCurvePoints, t)
-                : EvaluateBezierPoint(configuredCurvePoints, t);
+            var t = EvaluateConfiguredCurveTime();
+            var position = EvaluateConfiguredCurvePosition(t);
             transform.position = position;
             ApplyConfiguredPathRotation(previousPosition, position);
 
-            if (t < 1f)
+            if (!IsConfiguredCurveComplete())
             {
                 return;
             }
@@ -529,6 +628,105 @@ namespace LeiTing.Enemy
             {
                 Destroy(gameObject);
             }
+        }
+
+        private SplineContainer ResolveConfiguredSplineContainer()
+        {
+            if (!configuredCurveUsesSpline
+                || string.IsNullOrWhiteSpace(configuredSplinePathId)
+                || string.IsNullOrWhiteSpace(configuredSplineId))
+            {
+                return null;
+            }
+
+            return EnemySplinePath.TryResolve(configuredSplinePathId, configuredSplineId, configuredSplineIndex, out var container, out var splineIndex)
+                ? ResolveConfiguredSplineContainer(container, splineIndex)
+                : null;
+        }
+
+        private SplineContainer ResolveConfiguredSplineContainer(SplineContainer container, int splineIndex)
+        {
+            configuredSplineIndex = splineIndex;
+            return container;
+        }
+
+        private bool HasConfiguredCurveSource()
+        {
+            return configuredSplineContainer != null || configuredInlineSpline != null || configuredCurvePoints.Count > 0;
+        }
+
+        private float EvaluateConfiguredCurveTime()
+        {
+            if (!configuredCurveUsesSpline || configuredSplinePauseDuration <= 0f)
+            {
+                return configuredCurveDuration <= 0f ? 1f : Mathf.Clamp01(aliveTime / configuredCurveDuration);
+            }
+
+            var pauseAtT = configuredSplinePauseAtT >= 0f ? configuredSplinePauseAtT : 0.5f;
+            var entryDuration = configuredSplineEntryDuration > 0f ? configuredSplineEntryDuration : Mathf.Max(0.05f, configuredCurveDuration * pauseAtT);
+            var exitDuration = configuredSplineExitDuration > 0f ? configuredSplineExitDuration : Mathf.Max(0.05f, configuredCurveDuration * (1f - pauseAtT));
+            var pauseStart = entryDuration;
+            var pauseEnd = pauseStart + configuredSplinePauseDuration;
+
+            if (aliveTime < pauseStart)
+            {
+                return Mathf.Lerp(0f, pauseAtT, Mathf.Clamp01(aliveTime / entryDuration));
+            }
+
+            if (aliveTime < pauseEnd)
+            {
+                return pauseAtT;
+            }
+
+            return Mathf.Lerp(pauseAtT, 1f, Mathf.Clamp01((aliveTime - pauseEnd) / exitDuration));
+        }
+
+        private bool IsConfiguredCurveComplete()
+        {
+            if (!configuredCurveUsesSpline || configuredSplinePauseDuration <= 0f)
+            {
+                return configuredCurveDuration <= 0f || aliveTime >= configuredCurveDuration;
+            }
+
+            var pauseAtT = configuredSplinePauseAtT >= 0f ? configuredSplinePauseAtT : 0.5f;
+            var entryDuration = configuredSplineEntryDuration > 0f ? configuredSplineEntryDuration : Mathf.Max(0.05f, configuredCurveDuration * pauseAtT);
+            var exitDuration = configuredSplineExitDuration > 0f ? configuredSplineExitDuration : Mathf.Max(0.05f, configuredCurveDuration * (1f - pauseAtT));
+            return aliveTime >= entryDuration + configuredSplinePauseDuration + exitDuration;
+        }
+
+        private Vector2 EvaluateConfiguredCurvePosition(float t)
+        {
+            if (configuredSplineContainer != null)
+            {
+                var position = configuredSplineContainer.EvaluatePosition(configuredSplineIndex, t);
+                return ApplyConfiguredSplineTransform(new Vector2(position.x, position.y));
+            }
+
+            if (configuredInlineSpline != null)
+            {
+                var position = SplineUtility.EvaluatePosition(configuredInlineSpline, t);
+                return ApplyConfiguredSplineTransform(new Vector2(position.x, position.y));
+            }
+
+            var fallbackPosition = configuredCurveUsesSpline
+                ? EvaluateSplinePoint(configuredCurvePoints, t)
+                : EvaluateBezierPoint(configuredCurvePoints, t);
+            return ApplyConfiguredSplineTransform(fallbackPosition);
+        }
+
+        private Vector2 ApplyConfiguredSplineTransform(Vector2 position)
+        {
+            if (configuredSplineMirrorX)
+            {
+                position.x = -position.x;
+            }
+
+            if (configuredSplineMirrorY)
+            {
+                position.y = -position.y;
+            }
+
+            return position + configuredSplineOffset;
         }
 
         private void ApplyConfiguredPathRotation(Vector2 previousPosition, Vector2 currentPosition)
@@ -1209,9 +1407,41 @@ namespace LeiTing.Enemy
                 + (-p0 + 3f * p1 - 3f * p2 + p3) * localT3);
         }
 
+        private static Spline BuildInlineSpline(IReadOnlyList<Vector2> points)
+        {
+            if (points == null || points.Count == 0)
+            {
+                return null;
+            }
+
+            var knotPositions = new List<float3>(points.Count);
+            foreach (var point in points)
+            {
+                knotPositions.Add(new float3(point.x, point.y, 0f));
+            }
+
+            return new Spline(knotPositions, TangentMode.AutoSmooth);
+        }
+
         private static void SetFloat(string value, Action<float> apply)
         {
             if (float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var result))
+            {
+                apply(result);
+            }
+        }
+
+        private static void SetInt(string value, Action<int> apply)
+        {
+            if (int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var result))
+            {
+                apply(result);
+            }
+        }
+
+        private static void SetVector2(string value, Action<Vector2> apply)
+        {
+            if (TryParseCurvePoint(value, out var result))
             {
                 apply(result);
             }

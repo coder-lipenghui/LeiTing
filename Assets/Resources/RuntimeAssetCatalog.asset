@@ -49,16 +49,28 @@ MonoBehaviour:
     prefab: {fileID: 100000, guid: ca91ac21b07a01f8691a7ee1ce23ce42, type: 3}
   - path: Assets/Prefabs/Enemies/boss_helicopter_06.prefab
     prefab: {fileID: 100000, guid: f3c65bb633bd8a0e465cdc20d5621a6d, type: 3}
-  - path: Assets/Prefabs/Enemies/enemy_01.prefab
-    prefab: {fileID: 100000, guid: 861c5dbe2db07a3f85e7ca0adefe9e3a, type: 3}
   - path: Assets/Prefabs/Enemies/enemy_02.prefab
     prefab: {fileID: 100000, guid: f5b41cb591ef94c3eaaa851b8d4253ae, type: 3}
   - path: Assets/Prefabs/Enemies/enemy_04.prefab
     prefab: {fileID: 100000, guid: c909ea4459bc34daba2da1ba110fdb30, type: 3}
   - path: Assets/Prefabs/Enemies/enemy_08.prefab
     prefab: {fileID: 100000, guid: c8a80df846fbf4e419d0178f0996e986, type: 3}
+  - path: Assets/Prefabs/Enemies/enemy_small_01.prefab
+    prefab: {fileID: 100000, guid: e689bef4a5f03f146be763c7a98069b7, type: 3}
   - path: Assets/Prefabs/Enemies/enemy_small_02.prefab
     prefab: {fileID: 100000, guid: 3343c1db336651e4eab4dfa6b067d13a, type: 3}
+  - path: Assets/Prefabs/Enemies/enemy_small_03.prefab
+    prefab: {fileID: 100000, guid: 605aab6352a10d64ca0a117f2044a9ac, type: 3}
+  - path: Assets/Prefabs/Enemies/enemy_small_04.prefab
+    prefab: {fileID: 100000, guid: e27c9982de302004da684094e5bcd618, type: 3}
+  - path: Assets/Prefabs/Enemies/enemy_small_05.prefab
+    prefab: {fileID: 100000, guid: 0e8ae02a2479ff740bf9190cf5423068, type: 3}
+  - path: Assets/Prefabs/Enemies/enemy_small_06.prefab
+    prefab: {fileID: 100000, guid: 40bd2fb5d27962143910b18df76a13f9, type: 3}
+  - path: Assets/Prefabs/Enemies/enemy_small_07.prefab
+    prefab: {fileID: 100000, guid: de52472632ec49243942481f700d7504, type: 3}
+  - path: Assets/Prefabs/Enemies/enemy_small_08.prefab
+    prefab: {fileID: 100000, guid: 3639f1a96d8b45749a028cf81680ba88, type: 3}
   - path: Assets/Prefabs/Enemies/helicopter_01.prefab
     prefab: {fileID: 100000, guid: 27c27db7cbbe1ad4cbea9ee66210c87e, type: 3}
   - path: Assets/Prefabs/Enemies/small_helicopter_01.prefab
@@ -79,6 +91,8 @@ MonoBehaviour:
     prefab: {fileID: 100000, guid: 49ebd469ffd5c9677656d5aa4130eb83, type: 3}
   - path: Assets/Prefabs/Player/warplane-01.prefab
     prefab: {fileID: 100000, guid: 9a1d4e2b8a144d9589ae5a4f8e72404b, type: 3}
+  - path: Assets/Prefabs/SplinePaths/level_path.prefab
+    prefab: {fileID: 100000, guid: 1bc61b66bfa6468891eb479df0684362, type: 3}
   - path: Assets/Prefabs/UI/UILobby.prefab
     prefab: {fileID: 2644241041284139834, guid: 846cd746f9cf570ffe5658b2d941300a, type: 3}
   - path: Assets/Prefabs/UI/UIVictorySettlement.prefab
@@ -90,6 +104,10 @@ MonoBehaviour:
     sprite: {fileID: 21300000, guid: d2f16c8f7f46a40be9e08c5d584da0d6, type: 3}
   - path: Assets/Art/Sprites/Backgrounds/background-01.png
     sprite: {fileID: 21300000, guid: 7061789d426f74cecbba946337ad4ab8, type: 3}
+  - path: Assets/Art/Sprites/Backgrounds/background-02.png
+    sprite: {fileID: 21300000, guid: 5e7afc3629b0259418c656a1f18fca45, type: 3}
+  - path: Assets/Art/Sprites/Backgrounds/background-03.png
+    sprite: {fileID: 21300000, guid: 5fbb37a070bdc2344970d6582a33583a, type: 3}
   - path: Assets/Art/Sprites/Bullets/enemy_bullet_01.png
     sprite: {fileID: 21300000, guid: 6b07a0cd9ca8f44088f4cf651dbcff97, type: 3}
   - path: Assets/Art/Sprites/Bullets/enemy_bullet_29.png
