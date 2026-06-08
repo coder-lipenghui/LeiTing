@@ -167,6 +167,8 @@
 | `pierceCount` | int | 可穿透次数；`-1` 表示无限穿透。 | `2` |
 | `laserLength` | float | 激光长度，仅激光弹使用。 | `4.8` |
 
+敌方普通直线弹可以用 `Single:GlowTrail` 启用发光拖尾；拖尾颜色取 `glowColor`，并且要求 `glowRange` 大于 `0`。
+
 示例：
 
 ```json
@@ -315,10 +317,14 @@
 | `interval` | float | 同组敌人生成间隔。 | `1.2` |
 | `startPosition` | Vector2 | 第一架敌人的出生位置；多架会自动横向展开。 | `{ "x": -1.4, "y": 5.8 }` |
 | `attackPatternId` | string | 本次刷怪覆盖敌人默认弹幕。 | `"enemy_aim_single"` |
-| `movementPath` | string | 移动路径。支持 `Straight`、`Hold`、`StopAndLeave`、`Sine`、`DriftLeft`、`DriftRight`。 | `"Straight"` |
+| `movementPath` | string | 移动路径。支持 `Straight`、`Hold`、`StopAndLeave`、`Sine`、`DriftLeft`、`DriftRight`、`Orbit`、`Bezier`、`Spline`。 | `"Straight"` |
 | `pathAmplitude` | float | 路径振幅，主要给 `Sine` 使用。 | `1.0` |
 | `pathSpeed` | float | 路径速度或横向漂移速度。 | `0.35` |
 | `holdDuration` | float | 停留时间，主要给 `StopAndLeave` 使用。 | `2.4` |
+
+`attackPatternId` 也支持循环排程写法：`patternId@interval+offset` 表示从生成后 `offset` 秒开始，每隔 `interval` 秒触发一次；追加 `~duration` 可限制持续时间，例如 `level2_helicopter_slow_pair@3+0~9`。
+
+`movementPath` 可以追加行内参数。`Orbit:...` 用于环绕/半弧线运动；`Bezier:points=x/y|x/y|...,duration=4.8` 会按控制点生成单段贝塞尔曲线；`Spline:points=x/y|x/y|...,duration=4.8` 会经过每个配置点，适合需要在某个位置掉头的 n / W / L 形轨迹。需要朝向路径时可追加 `rotateToPath=true,rotationOffset=90`。
 
 示例：
 
@@ -344,7 +350,7 @@
 
 ## `stageEvents` 关卡事件配置
 
-作用：按关卡时间触发一次性事件，目前支持显示提示文本和清除敌方子弹。
+作用：按关卡时间触发一次性事件，目前支持显示提示文本、清除敌方子弹和生成奖杯道具。
 
 | 字段 | 类型 | 作用 | 示例 |
 | --- | --- | --- | --- |
@@ -352,6 +358,8 @@
 | `startTime` | float | 关卡开始后第几秒触发。 | `1` |
 | `message` | string | 屏幕提示文本；为空则不显示。 | `"TRAINING START"` |
 | `clearEnemyBullets` | bool | 是否清除场上敌方子弹。 | `false` |
+
+事件 ID 以 `spawn_trophy` 开头时会生成奖杯道具；可以追加 `:x=...,y=...` 指定生成位置，例如 `spawn_trophy_level_02_left_003:x=-3.2,y=5.7`。不写坐标时默认在 `(0, 0, 0)` 生成。
 
 示例：
 

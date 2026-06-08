@@ -22,6 +22,7 @@ namespace LeiTing.Editor
         private const string StarPickupSoundPath = "Assets/Art/Sound/SFX/Item/star.wav";
         private const string SpecialPickupSoundPath = "Assets/Art/Sound/SFX/Item/SFX_Item_Pickup_Special_01.wav";
         private const string BossEntryWarningSoundPath = "Assets/Art/Sound/SFX/Enemy/SFX_Boss_Attack_Warning_01.wav";
+        private const string SplinePathPrefabFolder = "Assets/Prefabs/SplinePaths";
         private const string AircraftEngineAudioTypeName = "LeiTing.Audio.AircraftEngineAudio";
 
         public int callbackOrder => -1000;
@@ -126,6 +127,8 @@ namespace LeiTing.Editor
                 }
             }
 
+            CollectSplinePathPrefabPaths(config, prefabPaths);
+
             if (config.enemies != null)
             {
                 foreach (var enemy in config.enemies)
@@ -171,6 +174,120 @@ namespace LeiTing.Editor
             }
 
             CollectPrefabAudioPaths(prefabPaths, audioPaths);
+        }
+
+        private static void CollectSplinePathPrefabPaths(GameConfig config, HashSet<string> prefabPaths)
+        {
+            if (config?.waves == null)
+            {
+                return;
+            }
+
+            foreach (var wave in config.waves)
+            {
+                if (wave?.spawns == null)
+                {
+                    continue;
+                }
+
+                foreach (var spawn in wave.spawns)
+                {
+                    if (spawn == null || !TryGetSplinePathId(spawn.movementPath, out var pathId))
+                    {
+                        continue;
+                    }
+
+                    AddPath(prefabPaths, ResolveSplinePathPrefabPath(pathId));
+                }
+            }
+        }
+
+        private static bool TryGetSplinePathId(string movementPath, out string pathId)
+        {
+            pathId = string.Empty;
+            if (!IsMovementPath(movementPath, "Spline"))
+            {
+                return false;
+            }
+
+            var resolvedPathId = string.Empty;
+            ForEachInlineMovementParameter(movementPath, (key, value) =>
+            {
+                if (string.Equals(key, "path", StringComparison.OrdinalIgnoreCase))
+                {
+                    resolvedPathId = value?.Trim();
+                }
+            });
+
+            pathId = resolvedPathId;
+            return !string.IsNullOrWhiteSpace(pathId);
+        }
+
+        private static string ResolveSplinePathPrefabPath(string pathId)
+        {
+            var normalized = pathId.Trim().Replace("\\", "/");
+            if (normalized.StartsWith("Assets/", StringComparison.OrdinalIgnoreCase))
+            {
+                return HasExtension(normalized) ? normalized : $"{normalized}.prefab";
+            }
+
+            return $"{SplinePathPrefabFolder}/{normalized}.prefab";
+        }
+
+        private static bool IsMovementPath(string movementPath, string expected)
+        {
+            return string.Equals(GetMovementPathName(movementPath), expected, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string GetMovementPathName(string movementPath)
+        {
+            if (string.IsNullOrWhiteSpace(movementPath))
+            {
+                return string.Empty;
+            }
+
+            var normalized = movementPath.Trim();
+            var parameterStart = normalized.IndexOfAny(new[] { ':', '(' });
+            return parameterStart >= 0 ? normalized.Substring(0, parameterStart).Trim() : normalized;
+        }
+
+        private static void ForEachInlineMovementParameter(string movementPath, Action<string, string> apply)
+        {
+            if (string.IsNullOrWhiteSpace(movementPath) || apply == null)
+            {
+                return;
+            }
+
+            var parameterStart = movementPath.IndexOfAny(new[] { ':', '(' });
+            if (parameterStart < 0)
+            {
+                return;
+            }
+
+            var marker = movementPath[parameterStart];
+            var body = movementPath.Substring(parameterStart + 1).Trim();
+            if (marker == '(' && body.EndsWith(")", StringComparison.Ordinal))
+            {
+                body = body.Substring(0, body.Length - 1);
+            }
+            else if (body.StartsWith("(", StringComparison.Ordinal) && body.EndsWith(")", StringComparison.Ordinal))
+            {
+                body = body.Substring(1, body.Length - 2);
+            }
+
+            var pairs = body.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var pair in pairs)
+            {
+                var separator = pair.IndexOf('=');
+                if (separator <= 0 || separator >= pair.Length - 1)
+                {
+                    continue;
+                }
+
+                var key = pair.Substring(0, separator).Trim();
+                var value = pair.Substring(separator + 1).Trim();
+                apply(key, value);
+            }
         }
 
         private static void CollectFolderSpritePaths(string folderPath, HashSet<string> spritePaths)
