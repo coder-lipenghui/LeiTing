@@ -17,7 +17,7 @@ MonoBehaviour:
   OutputDir: D:\LeiTing\tt-minigame
   useByteAudioAPI: 1
   wasmMemorySize: 128
-  isWebGL2: 0
+  isWebGL2: 1
   needCompress: 1
   symbolMode: 0
   profiling: 0
