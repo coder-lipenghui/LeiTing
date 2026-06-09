@@ -15,21 +15,30 @@ namespace LeiTing.Core
         [SerializeField] private List<AudioClipEntry> audioClips = new List<AudioClipEntry>();
 
         private static RuntimeAssetCatalog cachedCatalog;
-        private Dictionary<string, GameObject> prefabLookup;
-        private Dictionary<string, Sprite> spriteLookup;
-        private Dictionary<string, Font> fontLookup;
-        private Dictionary<string, AudioClip> audioClipLookup;
+        private Dictionary<string, PrefabEntry> prefabLookup;
+        private Dictionary<string, SpriteEntry> spriteLookup;
+        private Dictionary<string, FontEntry> fontLookup;
+        private Dictionary<string, AudioClipEntry> audioClipLookup;
 
         [Serializable]
         public sealed class PrefabEntry
         {
             public string path;
+            public string bundleName;
+            public string assetName;
             public GameObject prefab;
 
             public PrefabEntry(string path, GameObject prefab)
+                : this(path, prefab, string.Empty, string.Empty)
+            {
+            }
+
+            public PrefabEntry(string path, GameObject prefab, string bundleName, string assetName)
             {
                 this.path = path;
                 this.prefab = prefab;
+                this.bundleName = bundleName;
+                this.assetName = assetName;
             }
         }
 
@@ -37,12 +46,21 @@ namespace LeiTing.Core
         public sealed class SpriteEntry
         {
             public string path;
+            public string bundleName;
+            public string assetName;
             public Sprite sprite;
 
             public SpriteEntry(string path, Sprite sprite)
+                : this(path, sprite, string.Empty, string.Empty)
+            {
+            }
+
+            public SpriteEntry(string path, Sprite sprite, string bundleName, string assetName)
             {
                 this.path = path;
                 this.sprite = sprite;
+                this.bundleName = bundleName;
+                this.assetName = assetName;
             }
         }
 
@@ -50,12 +68,21 @@ namespace LeiTing.Core
         public sealed class FontEntry
         {
             public string path;
+            public string bundleName;
+            public string assetName;
             public Font font;
 
             public FontEntry(string path, Font font)
+                : this(path, font, string.Empty, string.Empty)
+            {
+            }
+
+            public FontEntry(string path, Font font, string bundleName, string assetName)
             {
                 this.path = path;
                 this.font = font;
+                this.bundleName = bundleName;
+                this.assetName = assetName;
             }
         }
 
@@ -63,12 +90,21 @@ namespace LeiTing.Core
         public sealed class AudioClipEntry
         {
             public string path;
+            public string bundleName;
+            public string assetName;
             public AudioClip audioClip;
 
             public AudioClipEntry(string path, AudioClip audioClip)
+                : this(path, audioClip, string.Empty, string.Empty)
+            {
+            }
+
+            public AudioClipEntry(string path, AudioClip audioClip, string bundleName, string assetName)
             {
                 this.path = path;
                 this.audioClip = audioClip;
+                this.bundleName = bundleName;
+                this.assetName = assetName;
             }
         }
 
@@ -134,29 +170,49 @@ namespace LeiTing.Core
         private GameObject GetPrefab(string assetPath)
         {
             EnsureLookups();
-            prefabLookup.TryGetValue(NormalizeKey(assetPath), out var prefab);
-            return prefab;
+            if (!prefabLookup.TryGetValue(NormalizeKey(assetPath), out var entry))
+            {
+                return null;
+            }
+
+            var remoteAsset = LoadRemoteAsset<GameObject>(entry.bundleName, entry.assetName, entry.path);
+            return remoteAsset != null || RuntimeRemoteResourceManager.RequiresRemoteAssetLoad ? remoteAsset : entry.prefab;
         }
 
         private Sprite GetSprite(string assetPath)
         {
             EnsureLookups();
-            spriteLookup.TryGetValue(NormalizeKey(assetPath), out var sprite);
-            return sprite;
+            if (!spriteLookup.TryGetValue(NormalizeKey(assetPath), out var entry))
+            {
+                return null;
+            }
+
+            var remoteAsset = LoadRemoteAsset<Sprite>(entry.bundleName, entry.assetName, entry.path);
+            return remoteAsset != null || RuntimeRemoteResourceManager.RequiresRemoteAssetLoad ? remoteAsset : entry.sprite;
         }
 
         private Font GetFont(string assetPath)
         {
             EnsureLookups();
-            fontLookup.TryGetValue(NormalizeKey(assetPath), out var font);
-            return font;
+            if (!fontLookup.TryGetValue(NormalizeKey(assetPath), out var entry))
+            {
+                return null;
+            }
+
+            var remoteAsset = LoadRemoteAsset<Font>(entry.bundleName, entry.assetName, entry.path);
+            return remoteAsset != null || RuntimeRemoteResourceManager.RequiresRemoteAssetLoad ? remoteAsset : entry.font;
         }
 
         private AudioClip GetAudioClip(string assetPath)
         {
             EnsureLookups();
-            audioClipLookup.TryGetValue(NormalizeKey(assetPath), out var audioClip);
-            return audioClip;
+            if (!audioClipLookup.TryGetValue(NormalizeKey(assetPath), out var entry))
+            {
+                return null;
+            }
+
+            var remoteAsset = LoadRemoteAsset<AudioClip>(entry.bundleName, entry.assetName, entry.path);
+            return remoteAsset != null || RuntimeRemoteResourceManager.RequiresRemoteAssetLoad ? remoteAsset : entry.audioClip;
         }
 
         private void EnsureLookups()
@@ -166,16 +222,16 @@ namespace LeiTing.Core
                 return;
             }
 
-            prefabLookup = new Dictionary<string, GameObject>(StringComparer.OrdinalIgnoreCase);
-            spriteLookup = new Dictionary<string, Sprite>(StringComparer.OrdinalIgnoreCase);
-            fontLookup = new Dictionary<string, Font>(StringComparer.OrdinalIgnoreCase);
-            audioClipLookup = new Dictionary<string, AudioClip>(StringComparer.OrdinalIgnoreCase);
+            prefabLookup = new Dictionary<string, PrefabEntry>(StringComparer.OrdinalIgnoreCase);
+            spriteLookup = new Dictionary<string, SpriteEntry>(StringComparer.OrdinalIgnoreCase);
+            fontLookup = new Dictionary<string, FontEntry>(StringComparer.OrdinalIgnoreCase);
+            audioClipLookup = new Dictionary<string, AudioClipEntry>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var entry in prefabs)
             {
                 if (entry != null)
                 {
-                    AddLookup(prefabLookup, entry.path, entry.prefab);
+                    AddLookup(prefabLookup, entry.path, entry);
                 }
             }
 
@@ -183,7 +239,7 @@ namespace LeiTing.Core
             {
                 if (entry != null)
                 {
-                    AddLookup(spriteLookup, entry.path, entry.sprite);
+                    AddLookup(spriteLookup, entry.path, entry);
                 }
             }
 
@@ -191,7 +247,7 @@ namespace LeiTing.Core
             {
                 if (entry != null)
                 {
-                    AddLookup(fontLookup, entry.path, entry.font);
+                    AddLookup(fontLookup, entry.path, entry);
                 }
             }
 
@@ -199,15 +255,22 @@ namespace LeiTing.Core
             {
                 if (entry != null)
                 {
-                    AddLookup(audioClipLookup, entry.path, entry.audioClip);
+                    AddLookup(audioClipLookup, entry.path, entry);
                 }
             }
         }
 
-        private static void AddLookup<TAsset>(Dictionary<string, TAsset> lookup, string assetPath, TAsset asset)
+        private static TAsset LoadRemoteAsset<TAsset>(string bundleName, string assetName, string fallbackAssetPath)
             where TAsset : UnityEngine.Object
         {
-            if (lookup == null || asset == null || string.IsNullOrEmpty(assetPath))
+            var resolvedAssetName = !string.IsNullOrWhiteSpace(assetName) ? assetName : fallbackAssetPath;
+            return RuntimeRemoteResourceManager.LoadAsset<TAsset>(bundleName, resolvedAssetName);
+        }
+
+        private static void AddLookup<TEntry>(Dictionary<string, TEntry> lookup, string assetPath, TEntry entry)
+            where TEntry : class
+        {
+            if (lookup == null || entry == null || string.IsNullOrEmpty(assetPath))
             {
                 return;
             }
@@ -216,7 +279,7 @@ namespace LeiTing.Core
             {
                 if (!string.IsNullOrEmpty(key) && !lookup.ContainsKey(key))
                 {
-                    lookup.Add(key, asset);
+                    lookup.Add(key, entry);
                 }
             }
         }

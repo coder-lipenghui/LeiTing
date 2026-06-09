@@ -13,6 +13,8 @@ namespace LeiTing.Editor
 {
     public sealed class RuntimeAssetCatalogBuilder : IPreprocessBuildWithReport
     {
+        public const string RuntimeBundleName = "leiting_runtime_assets";
+
         private const string CatalogPath = "Assets/Resources/RuntimeAssetCatalog.asset";
         private const string LobbyPrefabPath = "Assets/Prefabs/UI/UILobby.prefab";
         private const string VictorySettlementPrefabPath = "Assets/Prefabs/UI/UIVictorySettlement.prefab";
@@ -27,6 +29,21 @@ namespace LeiTing.Editor
 
         public int callbackOrder => -1000;
 
+        public sealed class RuntimeAssetPathCollection
+        {
+            public readonly HashSet<string> prefabPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            public readonly HashSet<string> spritePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            public readonly HashSet<string> fontPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            public readonly HashSet<string> audioPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            public IEnumerable<string> AllPaths => prefabPaths
+                .Concat(spritePaths)
+                .Concat(fontPaths)
+                .Concat(audioPaths)
+                .Where(path => !string.IsNullOrWhiteSpace(path))
+                .Distinct(StringComparer.OrdinalIgnoreCase);
+        }
+
         public void OnPreprocessBuild(BuildReport report)
         {
             RebuildCatalog();
@@ -35,37 +52,37 @@ namespace LeiTing.Editor
         [MenuItem("LeiTing/Build/Rebuild Runtime Asset Catalog")]
         public static void RebuildCatalog()
         {
-            if (!TryLoadBuildConfig(out var config))
+            var includeAssetReferences = !RemoteResourceBundleBuilder.IsRemoteResourceBuildEnabled();
+            RebuildCatalog(includeAssetReferences);
+        }
+
+        public static void RebuildCatalog(bool includeAssetReferences)
+        {
+            var pathCollection = CollectRuntimeAssetPaths();
+            if (pathCollection == null)
             {
                 return;
             }
 
-            var prefabPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            var spritePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            var fontPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            var audioPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-            CollectConfiguredPaths(config, prefabPaths, spritePaths, fontPaths, audioPaths);
-
-            var prefabEntries = prefabPaths
+            var prefabEntries = pathCollection.prefabPaths
                 .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
-                .Select(path => CreatePrefabEntry(path))
+                .Select(path => CreatePrefabEntry(path, includeAssetReferences))
                 .Where(entry => entry != null)
                 .ToList();
 
-            var spriteEntries = spritePaths
+            var spriteEntries = pathCollection.spritePaths
                 .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
-                .Select(path => CreateSpriteEntry(path))
+                .Select(path => CreateSpriteEntry(path, includeAssetReferences))
                 .Where(entry => entry != null)
                 .ToList();
-            var fontEntries = fontPaths
+            var fontEntries = pathCollection.fontPaths
                 .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
-                .Select(path => CreateFontEntry(path))
+                .Select(path => CreateFontEntry(path, includeAssetReferences))
                 .Where(entry => entry != null)
                 .ToList();
-            var audioEntries = audioPaths
+            var audioEntries = pathCollection.audioPaths
                 .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
-                .Select(path => CreateAudioClipEntry(path))
+                .Select(path => CreateAudioClipEntry(path, includeAssetReferences))
                 .Where(entry => entry != null)
                 .ToList();
 
@@ -83,6 +100,23 @@ namespace LeiTing.Editor
             AssetDatabase.SaveAssets();
 
             Debug.Log($"Runtime asset catalog rebuilt: {prefabEntries.Count} prefabs, {spriteEntries.Count} sprites, {fontEntries.Count} fonts, {audioEntries.Count} audio clips.");
+        }
+
+        public static RuntimeAssetPathCollection CollectRuntimeAssetPaths()
+        {
+            if (!TryLoadBuildConfig(out var config))
+            {
+                return null;
+            }
+
+            var collection = new RuntimeAssetPathCollection();
+            CollectConfiguredPaths(
+                config,
+                collection.prefabPaths,
+                collection.spritePaths,
+                collection.fontPaths,
+                collection.audioPaths);
+            return collection;
         }
 
         private static bool TryLoadBuildConfig(out GameConfig config)
@@ -366,7 +400,7 @@ namespace LeiTing.Editor
             return extensionIndex > slashIndex;
         }
 
-        private static RuntimeAssetCatalog.PrefabEntry CreatePrefabEntry(string path)
+        private static RuntimeAssetCatalog.PrefabEntry CreatePrefabEntry(string path, bool includeAssetReference)
         {
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
             if (prefab == null)
@@ -375,10 +409,14 @@ namespace LeiTing.Editor
                 return null;
             }
 
-            return new RuntimeAssetCatalog.PrefabEntry(path, prefab);
+            return new RuntimeAssetCatalog.PrefabEntry(
+                path,
+                includeAssetReference ? prefab : null,
+                RuntimeBundleName,
+                path);
         }
 
-        private static RuntimeAssetCatalog.SpriteEntry CreateSpriteEntry(string path)
+        private static RuntimeAssetCatalog.SpriteEntry CreateSpriteEntry(string path, bool includeAssetReference)
         {
             var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(path);
             if (sprite == null)
@@ -387,10 +425,14 @@ namespace LeiTing.Editor
                 return null;
             }
 
-            return new RuntimeAssetCatalog.SpriteEntry(path, sprite);
+            return new RuntimeAssetCatalog.SpriteEntry(
+                path,
+                includeAssetReference ? sprite : null,
+                RuntimeBundleName,
+                path);
         }
 
-        private static RuntimeAssetCatalog.FontEntry CreateFontEntry(string path)
+        private static RuntimeAssetCatalog.FontEntry CreateFontEntry(string path, bool includeAssetReference)
         {
             var font = AssetDatabase.LoadAssetAtPath<Font>(path);
             if (font == null)
@@ -399,10 +441,14 @@ namespace LeiTing.Editor
                 return null;
             }
 
-            return new RuntimeAssetCatalog.FontEntry(path, font);
+            return new RuntimeAssetCatalog.FontEntry(
+                path,
+                includeAssetReference ? font : null,
+                RuntimeBundleName,
+                path);
         }
 
-        private static RuntimeAssetCatalog.AudioClipEntry CreateAudioClipEntry(string path)
+        private static RuntimeAssetCatalog.AudioClipEntry CreateAudioClipEntry(string path, bool includeAssetReference)
         {
             var audioClip = AssetDatabase.LoadAssetAtPath<AudioClip>(path);
             if (audioClip == null)
@@ -411,7 +457,11 @@ namespace LeiTing.Editor
                 return null;
             }
 
-            return new RuntimeAssetCatalog.AudioClipEntry(path, audioClip);
+            return new RuntimeAssetCatalog.AudioClipEntry(
+                path,
+                includeAssetReference ? audioClip : null,
+                RuntimeBundleName,
+                path);
         }
 
         private static void EnsureResourcesFolder()

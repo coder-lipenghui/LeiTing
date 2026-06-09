@@ -286,10 +286,13 @@ namespace LeiTing.UI
         private static Font LoadProjectFont()
         {
 #if UNITY_EDITOR
-            var editorFont = AssetDatabase.LoadAssetAtPath<Font>(DefaultFontAssetPath);
-            if (editorFont != null)
+            if (RuntimeRemoteResourceManager.CanUseEditorLocalAssets)
             {
-                return editorFont;
+                var editorFont = AssetDatabase.LoadAssetAtPath<Font>(DefaultFontAssetPath);
+                if (editorFont != null)
+                {
+                    return editorFont;
+                }
             }
 #endif
 

@@ -682,7 +682,8 @@ namespace LeiTing.Bullets
         private static Sprite LoadSpriteAsset(string spritePath)
         {
 #if UNITY_EDITOR
-            if (spritePath.StartsWith("Assets/", StringComparison.OrdinalIgnoreCase))
+            if (RuntimeRemoteResourceManager.CanUseEditorLocalAssets
+                && spritePath.StartsWith("Assets/", StringComparison.OrdinalIgnoreCase))
             {
                 var editorSprite = AssetDatabase.LoadAssetAtPath<Sprite>(spritePath);
                 if (editorSprite != null)

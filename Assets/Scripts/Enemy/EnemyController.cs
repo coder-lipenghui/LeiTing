@@ -235,10 +235,13 @@ namespace LeiTing.Enemy
             const string enemySpritePath = "Assets/Art/Animations/Enemies/enemy-01.png";
 
 #if UNITY_EDITOR
-            var sprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(enemySpritePath);
-            if (sprite != null)
+            if (RuntimeRemoteResourceManager.CanUseEditorLocalAssets)
             {
-                return sprite;
+                var sprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(enemySpritePath);
+                if (sprite != null)
+                {
+                    return sprite;
+                }
             }
 #endif
             return RuntimeAssetCatalog.LoadSprite(enemySpritePath)

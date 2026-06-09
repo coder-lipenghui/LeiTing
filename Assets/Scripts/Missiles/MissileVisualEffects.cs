@@ -1,6 +1,9 @@
 using System;
 using LeiTing.Core;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace LeiTing.Missiles
 {
@@ -287,7 +290,7 @@ namespace LeiTing.Missiles
         private void OnValidate()
         {
 #if UNITY_EDITOR
-            if (Application.isPlaying)
+            if (Application.isPlaying || IsReadOnlyPrefabAssetContext())
             {
                 return;
             }
@@ -306,7 +309,7 @@ namespace LeiTing.Missiles
         private void ApplyValidatedSettings()
         {
             validateQueued = false;
-            if (this == null || Application.isPlaying)
+            if (this == null || Application.isPlaying || IsReadOnlyPrefabAssetContext())
             {
                 return;
             }
@@ -320,6 +323,12 @@ namespace LeiTing.Missiles
                 Time = 0f
             });
             StopAndClear();
+        }
+
+        private bool IsReadOnlyPrefabAssetContext()
+        {
+            return EditorUtility.IsPersistent(gameObject)
+                || PrefabUtility.IsPartOfPrefabAsset(gameObject);
         }
 #endif
 

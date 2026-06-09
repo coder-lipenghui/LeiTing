@@ -1562,7 +1562,7 @@
     "startPositionX": 0,
     "startPositionY": 0,
     "attackPatternId": "",
-    "movementPath": "Spline:path=level_path,spline=spline1,duration=4.8,rotateToPath=true,rotationOffset=90,destroyOnComplete=true",
+    "movementPath": "Spline:path=level_path,spline=spline1,duration=7,rotateToPath=true,rotationOffset=90,destroyOnComplete=true",
     "pathAmplitude": 0,
     "pathSpeed": 0,
     "holdDuration": 0

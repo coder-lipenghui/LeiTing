@@ -205,10 +205,13 @@ namespace LeiTing.Enemy.Movement
             var assetPath = ResolvePrefabAssetPath(pathId);
 
 #if UNITY_EDITOR
-            var editorPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(assetPath);
-            if (editorPrefab != null)
+            if (RuntimeRemoteResourceManager.CanUseEditorLocalAssets)
             {
-                return editorPrefab;
+                var editorPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(assetPath);
+                if (editorPrefab != null)
+                {
+                    return editorPrefab;
+                }
             }
 #endif
 

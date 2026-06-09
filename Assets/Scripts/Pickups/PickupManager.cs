@@ -222,7 +222,7 @@ namespace LeiTing.Pickups
                     spritePath = "Sprites/Item/item_trophy",
                     lifetime = 0f,
                     driftSpeed = 2.1f,
-                    pickupRadius = 1.25f,
+                    pickupRadius = 1.5f,
                     visualScale = 1f
                 };
             }

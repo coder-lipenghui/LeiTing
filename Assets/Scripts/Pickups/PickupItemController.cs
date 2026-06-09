@@ -22,13 +22,17 @@ namespace LeiTing.Pickups
         private const float MagnetGlowRange = 0.34f;
         private const float TreasureGlowRange = 0.3f;
         private const float SpecialGlowRange = 0.36f;
+        private const float TrophyGlowRange = 0.58f;
+        private const float TrophyOuterGlowRange = 0.95f;
         private const float GlowPulseScale = 0.1f;
         private const float GlowPulseAlpha = 0.18f;
+        private const float TrophyOuterGlowPulseScale = 0.18f;
+        private const float TrophyOuterGlowPulseAlpha = 0.16f;
         private const float TreasureScaleVariance = 0.08f;
         private const float SpecialWobblePeriod = 1.85f;
         private const float SpecialWobbleScale = 0.13f;
         private const float SpecialWobbleYOffset = 0.03f;
-        private const float TrophyHoldDuration = 3f;
+        private const float TrophyHoldDuration = 2f;
         private const float TrophyProgressPadding = 0.18f;
         private const float TrophyProgressLineWidth = 0.035f;
         private const float TrophyConnectionLineWidth = 0.025f;
@@ -40,7 +44,8 @@ namespace LeiTing.Pickups
         private static readonly Color MagnetGlowColor = new Color(0.12f, 0.58f, 1f, 0.54f);
         private static readonly Color TreasureGlowColor = new Color(1f, 0.72f, 0.08f, 0.58f);
         private static readonly Color SpecialGlowColor = new Color(0.42f, 0.96f, 1f, 0.56f);
-        private static readonly Color TrophyGlowColor = new Color(1f, 0.78f, 0.16f, 0.62f);
+        private static readonly Color TrophyGlowColor = new Color(1f, 0.86f, 0.12f, 0.82f);
+        private static readonly Color TrophyOuterGlowColor = new Color(1f, 0.58f, 0.04f, 0.42f);
         private static readonly Color TrophyProgressBackColor = new Color(1f, 1f, 1f, 0.22f);
         private static readonly Color TrophyProgressColor = new Color(1f, 0.83f, 0.18f, 0.95f);
         private static readonly Color TrophyConnectionColor = new Color(1f, 0.83f, 0.18f, 0.62f);
@@ -58,19 +63,24 @@ namespace LeiTing.Pickups
         private Transform leftVisualRoot;
         private Transform rightVisualRoot;
         private Transform trophyProgressRoot;
+        private Transform trophyOuterGlowRoot;
         private SpriteRenderer leftVisualRenderer;
         private SpriteRenderer rightVisualRenderer;
+        private SpriteRenderer trophyOuterGlowRenderer;
         private LineRenderer trophyProgressBackRenderer;
         private LineRenderer trophyProgressRenderer;
         private LineRenderer trophyConnectionRenderer;
         private Camera gameplayCamera;
         private PlayerController forcedAttractTarget;
         private Color glowBaseColor;
+        private Color trophyOuterGlowBaseColor;
         private Vector3 glowBaseScale = Vector3.one;
+        private Vector3 trophyOuterGlowBaseScale = Vector3.one;
         private float spawnTime;
         private float trophyHoldElapsed;
         private bool isCollected;
         private bool glowConfigured;
+        private bool trophyOuterGlowConfigured;
         private bool specialSplitVisual;
 
         public void Initialize(PickupItemConfig pickupConfig)
@@ -420,6 +430,8 @@ namespace LeiTing.Pickups
                 return;
             }
 
+            DisableTrophyOuterGlow();
+
             if (IsItemType("Magnet") || IsItemId("magnet"))
             {
                 ConfigureGlow(MagnetGlowColor, MagnetGlowRange);
@@ -434,7 +446,7 @@ namespace LeiTing.Pickups
 
             if (IsTrophyPickup)
             {
-                ConfigureGlow(TrophyGlowColor, SpecialGlowRange);
+                ConfigureTrophyGlow();
                 return;
             }
 
@@ -445,6 +457,12 @@ namespace LeiTing.Pickups
             }
 
             ConfigureGlow(DefaultGlowColor, DefaultGlowRange);
+        }
+
+        private void ConfigureTrophyGlow()
+        {
+            ConfigureGlow(TrophyGlowColor, TrophyGlowRange);
+            ConfigureTrophyOuterGlow();
         }
 
         private void ConfigureGlow(Color color, float glowRange)
@@ -468,6 +486,51 @@ namespace LeiTing.Pickups
             glowBaseScale = new Vector3(glowSize / GlowSpriteSize, glowSize / GlowSpriteSize, 1f);
             glowRoot.localScale = glowBaseScale;
             glowConfigured = true;
+        }
+
+        private void ConfigureTrophyOuterGlow()
+        {
+            if (spriteRenderer == null)
+            {
+                return;
+            }
+
+            if (trophyOuterGlowRoot == null)
+            {
+                trophyOuterGlowRoot = EnsureChildTransform("TrophyOuterGlow");
+            }
+
+            trophyOuterGlowRenderer = trophyOuterGlowRenderer != null
+                ? trophyOuterGlowRenderer
+                : trophyOuterGlowRoot.GetComponent<SpriteRenderer>();
+            if (trophyOuterGlowRenderer == null)
+            {
+                trophyOuterGlowRenderer = trophyOuterGlowRoot.gameObject.AddComponent<SpriteRenderer>();
+            }
+
+            var spriteSize = spriteRenderer.sprite != null ? spriteRenderer.sprite.bounds.size : Vector3.one * 0.35f;
+            var glowSize = Mathf.Max(spriteSize.x, spriteSize.y) + TrophyOuterGlowRange;
+
+            trophyOuterGlowRenderer.enabled = true;
+            trophyOuterGlowRenderer.sprite = GetGlowSprite();
+            trophyOuterGlowRenderer.color = TrophyOuterGlowColor;
+            trophyOuterGlowRenderer.sortingOrder = spriteRenderer.sortingOrder - 2;
+            trophyOuterGlowRenderer.sharedMaterial = GetDefaultSpriteMaterial();
+            trophyOuterGlowRoot.localPosition = Vector3.zero;
+            trophyOuterGlowRoot.localRotation = Quaternion.identity;
+            trophyOuterGlowBaseColor = TrophyOuterGlowColor;
+            trophyOuterGlowBaseScale = new Vector3(glowSize / GlowSpriteSize, glowSize / GlowSpriteSize, 1f);
+            trophyOuterGlowRoot.localScale = trophyOuterGlowBaseScale;
+            trophyOuterGlowConfigured = true;
+        }
+
+        private void DisableTrophyOuterGlow()
+        {
+            trophyOuterGlowConfigured = false;
+            if (trophyOuterGlowRenderer != null)
+            {
+                trophyOuterGlowRenderer.enabled = false;
+            }
         }
 
         private void EnsureSplitVisualRenderers()
@@ -725,6 +788,27 @@ namespace LeiTing.Pickups
                 glowBaseColor.g,
                 glowBaseColor.b,
                 Mathf.Clamp01(glowBaseColor.a + GlowPulseAlpha * wave));
+
+            UpdateTrophyOuterGlowPulse();
+        }
+
+        private void UpdateTrophyOuterGlowPulse()
+        {
+            if (!trophyOuterGlowConfigured
+                || trophyOuterGlowRenderer == null
+                || trophyOuterGlowRoot == null
+                || !trophyOuterGlowRenderer.enabled)
+            {
+                return;
+            }
+
+            var wave = (Mathf.Sin((Time.time - spawnTime) * Mathf.PI * 2f / 1.9f + 0.7f) + 1f) * 0.5f;
+            trophyOuterGlowRoot.localScale = trophyOuterGlowBaseScale * (1f + TrophyOuterGlowPulseScale * wave);
+            trophyOuterGlowRenderer.color = new Color(
+                trophyOuterGlowBaseColor.r,
+                trophyOuterGlowBaseColor.g,
+                trophyOuterGlowBaseColor.b,
+                Mathf.Clamp01(trophyOuterGlowBaseColor.a + TrophyOuterGlowPulseAlpha * wave));
         }
 
         private void UpdateSpecialWobble()
@@ -749,13 +833,16 @@ namespace LeiTing.Pickups
             }
 
 #if UNITY_EDITOR
-            var editorSpritePath = ResolveEditorSpritePath(config.spritePath);
-            if (!string.IsNullOrEmpty(editorSpritePath))
+            if (RuntimeRemoteResourceManager.CanUseEditorLocalAssets)
             {
-                var editorSprite = AssetDatabase.LoadAssetAtPath<Sprite>(editorSpritePath);
-                if (editorSprite != null)
+                var editorSpritePath = ResolveEditorSpritePath(config.spritePath);
+                if (!string.IsNullOrEmpty(editorSpritePath))
                 {
-                    return editorSprite;
+                    var editorSprite = AssetDatabase.LoadAssetAtPath<Sprite>(editorSpritePath);
+                    if (editorSprite != null)
+                    {
+                        return editorSprite;
+                    }
                 }
             }
 #endif

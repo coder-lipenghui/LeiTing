@@ -64,6 +64,22 @@ namespace LeiTing.Core
             currentState = GameState.Playing;
         }
 
+        public void PauseGame()
+        {
+            if (currentState == GameState.Playing)
+            {
+                currentState = GameState.Paused;
+            }
+        }
+
+        public void ResumeGame()
+        {
+            if (currentState == GameState.Paused)
+            {
+                currentState = GameState.Playing;
+            }
+        }
+
         public void AddScore(int amount)
         {
             score += Mathf.Max(0, amount);

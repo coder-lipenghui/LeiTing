@@ -1914,10 +1914,13 @@ namespace LeiTing.UI
         private static Sprite LoadSprite(string assetPath)
         {
 #if UNITY_EDITOR
-            var editorSprite = AssetDatabase.LoadAssetAtPath<Sprite>(assetPath);
-            if (editorSprite != null)
+            if (RuntimeRemoteResourceManager.CanUseEditorLocalAssets)
             {
-                return editorSprite;
+                var editorSprite = AssetDatabase.LoadAssetAtPath<Sprite>(assetPath);
+                if (editorSprite != null)
+                {
+                    return editorSprite;
+                }
             }
 #endif
 

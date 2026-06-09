@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using LeiTing.Core;
 using LeiTing.UI;
@@ -26,6 +27,10 @@ namespace LeiTing.Audio
         private AudioClip playerDestroyedClip;
         private readonly Dictionary<string, AudioClip> clipCache = new Dictionary<string, AudioClip>(StringComparer.OrdinalIgnoreCase);
         private float nextBgmRetryTime;
+        private string pendingBgmPath;
+        private bool hasPendingBgm;
+        private Coroutine bgmStartCoroutine;
+        private bool isBgmClipPreparing;
 
         protected override void Awake()
         {
@@ -54,6 +59,13 @@ namespace LeiTing.Audio
 
         private void Update()
         {
+            if (hasPendingBgm && !ShouldWaitForRemoteResources())
+            {
+                var clipPath = pendingBgmPath;
+                ClearPendingBgm();
+                PlayBgm(clipPath);
+            }
+
             if (bgmSource == null || bgmSource.clip == null)
             {
                 return;
@@ -62,9 +74,9 @@ namespace LeiTing.Audio
             var musicEnabled = GameSettingManager.MusicEnabled;
             bgmSource.mute = !musicEnabled;
 
-            if (musicEnabled && !bgmSource.isPlaying && Time.unscaledTime >= nextBgmRetryTime)
+            if (musicEnabled && !isBgmClipPreparing && !bgmSource.isPlaying && Time.unscaledTime >= nextBgmRetryTime)
             {
-                StartBgm();
+                StartBgmWhenClipIsReady(bgmSource.clip);
             }
         }
 
@@ -111,6 +123,12 @@ namespace LeiTing.Audio
                 return;
             }
 
+            if (ShouldWaitForRemoteResources())
+            {
+                QueueBgmUntilRemoteResourcesReady(clipPath);
+                return;
+            }
+
             var clip = LoadCachedAudioClip(clipPath);
             if (clip == null)
             {
@@ -125,17 +143,22 @@ namespace LeiTing.Audio
                 bgmSource.clip = clip;
             }
 
+            ClearPendingBgm();
+
             bgmSource.loop = true;
             bgmSource.mute = !GameSettingManager.MusicEnabled;
 
             if (!bgmSource.mute && !bgmSource.isPlaying)
             {
-                StartBgm();
+                StartBgmWhenClipIsReady(clip);
             }
         }
 
         public void StopBgm()
         {
+            ClearPendingBgm();
+            StopBgmStartCoroutine();
+
             if (bgmSource == null)
             {
                 return;
@@ -145,6 +168,95 @@ namespace LeiTing.Audio
             bgmSource.clip = null;
             bgmSource.loop = false;
             nextBgmRetryTime = 0f;
+        }
+
+        private void QueueBgmUntilRemoteResourcesReady(string clipPath)
+        {
+            pendingBgmPath = clipPath;
+            hasPendingBgm = true;
+            StopBgmStartCoroutine();
+
+            if (bgmSource == null)
+            {
+                return;
+            }
+
+            bgmSource.Stop();
+            bgmSource.clip = null;
+            bgmSource.loop = false;
+            nextBgmRetryTime = 0f;
+        }
+
+        private void ClearPendingBgm()
+        {
+            pendingBgmPath = null;
+            hasPendingBgm = false;
+        }
+
+        private void StartBgmWhenClipIsReady(AudioClip clip)
+        {
+            StopBgmStartCoroutine();
+            bgmStartCoroutine = StartCoroutine(StartBgmWhenClipIsReadyRoutine(clip));
+        }
+
+        private IEnumerator StartBgmWhenClipIsReadyRoutine(AudioClip clip)
+        {
+            isBgmClipPreparing = true;
+
+            if (clip == null || bgmSource == null || bgmSource.clip != clip)
+            {
+                isBgmClipPreparing = false;
+                bgmStartCoroutine = null;
+                yield break;
+            }
+
+            if (clip.loadState == AudioDataLoadState.Unloaded)
+            {
+                clip.LoadAudioData();
+            }
+
+            while (clip != null && bgmSource != null && bgmSource.clip == clip && clip.loadState == AudioDataLoadState.Loading)
+            {
+                yield return null;
+            }
+
+            isBgmClipPreparing = false;
+            bgmStartCoroutine = null;
+
+            if (clip == null || bgmSource == null || bgmSource.clip != clip)
+            {
+                yield break;
+            }
+
+            if (clip.loadState == AudioDataLoadState.Failed || clip.loadState == AudioDataLoadState.Unloaded)
+            {
+                Debug.LogWarning($"BGM audio data could not be loaded: {clip.name}", this);
+                if (bgmSource.clip == clip)
+                {
+                    bgmSource.Stop();
+                    bgmSource.clip = null;
+                    bgmSource.loop = false;
+                    nextBgmRetryTime = 0f;
+                }
+
+                yield break;
+            }
+
+            if (!bgmSource.mute && !bgmSource.isPlaying)
+            {
+                StartBgm();
+            }
+        }
+
+        private void StopBgmStartCoroutine()
+        {
+            if (bgmStartCoroutine != null)
+            {
+                StopCoroutine(bgmStartCoroutine);
+                bgmStartCoroutine = null;
+            }
+
+            isBgmClipPreparing = false;
         }
 
         private void PlayClip(AudioClip clip)
@@ -225,7 +337,9 @@ namespace LeiTing.Audio
         private static AudioClip LoadAudioClip(string clipPath)
         {
 #if UNITY_EDITOR
-            if (!string.IsNullOrEmpty(clipPath) && clipPath.StartsWith("Assets/", System.StringComparison.OrdinalIgnoreCase))
+            if (RuntimeRemoteResourceManager.CanUseEditorLocalAssets
+                && !string.IsNullOrEmpty(clipPath)
+                && clipPath.StartsWith("Assets/", System.StringComparison.OrdinalIgnoreCase))
             {
                 var editorClip = AssetDatabase.LoadAssetAtPath<AudioClip>(clipPath);
                 if (editorClip != null)
@@ -237,6 +351,11 @@ namespace LeiTing.Audio
 
             return RuntimeAssetCatalog.LoadAudioClip(clipPath)
                 ?? Resources.Load<AudioClip>(NormalizeResourcesPath(clipPath));
+        }
+
+        private static bool ShouldWaitForRemoteResources()
+        {
+            return RuntimeRemoteResourceManager.RequiresRemoteAssetLoad && !RuntimeRemoteResourceManager.IsReady;
         }
 
         private static string NormalizeResourcesPath(string assetPath)

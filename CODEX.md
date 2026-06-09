@@ -139,7 +139,10 @@ and a phone test.
   `{LEVEL}`, `{MAX_LEVEL}`, `{BOSS_ID}`, and `{BOSS}`.
 - Trophy events use IDs beginning with `spawn_trophy`; append inline position
   options such as `spawn_trophy_level_02_left_003:x=-3.2,y=5.7` to override the
-  default spawn position.
+  default spawn position. Trophy pickups use the `trophy` pickup item, require
+  the player to stay within pickup range for 2 seconds, and currently use a
+  configured pickup radius of 1.5. They render with a yellow inner glow plus a
+  larger orange-yellow pulsing outer glow.
 - `GameManager` exposes the `无敌模式` Inspector toggle on `Managers`. The
   value selected in `SampleScene` is carried into `BattleScene`, where
   `PlayerController` ignores incoming damage without continuously flashing.
@@ -151,16 +154,24 @@ and a phone test.
 
 - `PickupManager` spawns configured enemy drops and can force active pickups
   toward the player during settlement.
-- `PickupItemController` supports star, coin, magnet, bomb, heal, and shield
-  behavior. Magnet attracts stars, bomb removes non-boss enemies, and star
-  and coin pickups play configured sound paths currently defined in code.
+- `PickupItemController` supports star, coin, magnet, bomb, heal, shield, and
+  trophy behavior. Magnet attracts stars, bomb removes non-boss enemies,
+  trophy requires a 2-second in-range hold with a yellow glow treatment, and
+  star and coin pickups play configured sound paths currently defined in code.
 - `UIManager` provides battle HUD/settlement behavior and runtime-created UI
   where an authored view is unavailable. In battle, score, timer, and the
   10-segment Boss HP bar are stacked from a fixed 65-pixel top offset instead
-  of using safe-area inset positioning; the Boss HP fill uses `#862800` and
-  updates immediately when damage is applied. The defeat overlay places
-  `GAME/OVER` near the upper third and its back button near the lower third.
-  The page classes provide lobby, hangar, settings, and stage-selection views.
+  of using safe-area inset positioning; the bullet-time overlay no longer
+  shows LEVEL/HP/STAR/COIN text. After pointer release enters bullet time,
+  the top-left pause button toggles `GameState.Paused` plus `Time.timeScale`,
+  and the top-right exit button returns to the lobby after clearing
+  pause/bullet-time scaling; both corner buttons move down using Douyin
+  `TT.GetMenuButtonLayout()` in WebGL builds.
+  The Boss HP fill uses
+  `#862800` and updates immediately when damage is applied. The defeat overlay
+  places `GAME/OVER` near the upper third and its back button near the lower
+  third. The page classes provide lobby, hangar, settings, and stage-selection
+  views.
 - `LobbyPage` opens the `Cebianlan` panel from `BtnCebianlan`/`BtnCebian`.
   The panel binds `BtnGod`/`BtnGo` to Douyin `TT.NavigateToScene` with
   `scene=sidebar`, and a sidebar revisit switches the panel action from

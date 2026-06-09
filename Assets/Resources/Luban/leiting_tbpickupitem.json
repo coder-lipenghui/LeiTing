@@ -101,7 +101,7 @@
     "shieldDuration": 0,
     "lifetime": 0,
     "driftSpeed": 2.1,
-    "pickupRadius": 1.25,
+    "pickupRadius": 1.5,
     "visualScale": 1
   }
 ]

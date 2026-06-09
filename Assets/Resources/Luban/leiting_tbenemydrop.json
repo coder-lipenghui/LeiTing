@@ -520,5 +520,23 @@
     "itemId": "hp",
     "count": 1,
     "dropOnce": false
+  },
+  {
+    "index": 59,
+    "id": "enemy_drop_level2_helicopter_01_star",
+    "enemyId": "level2_helicopter_01",
+    "sort": 1,
+    "itemId": "star",
+    "count": 1,
+    "dropOnce": false
+  },
+  {
+    "index": 60,
+    "id": "enemy_drop_enemy_resource2_star",
+    "enemyId": "enemy_resource2",
+    "sort": 1,
+    "itemId": "star",
+    "count": 1,
+    "dropOnce": false
   }
 ]

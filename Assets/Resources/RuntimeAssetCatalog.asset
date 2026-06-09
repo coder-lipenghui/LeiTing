@@ -14,253 +14,501 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   prefabs:
   - path: Assets/Prefabs/Enemies/boss_01.prefab
-    prefab: {fileID: 100000, guid: 1a76608ec61f7eb7ccb81921902495b2, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Prefabs/Enemies/boss_01.prefab
+    prefab: {fileID: 0}
   - path: Assets/Prefabs/Enemies/boss_02.prefab
-    prefab: {fileID: 100000, guid: 6534f9d29396902b445581d6c67ee43f, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Prefabs/Enemies/boss_02.prefab
+    prefab: {fileID: 0}
   - path: Assets/Prefabs/Enemies/boss_03.prefab
-    prefab: {fileID: 100000, guid: 81179e87a4450e47f2818f49b78c7301, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Prefabs/Enemies/boss_03.prefab
+    prefab: {fileID: 0}
   - path: Assets/Prefabs/Enemies/boss_04.prefab
-    prefab: {fileID: 100000, guid: 81a38b41bd9a71cf4ca642d48059f84f, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Prefabs/Enemies/boss_04.prefab
+    prefab: {fileID: 0}
   - path: Assets/Prefabs/Enemies/boss_05.prefab
-    prefab: {fileID: 100000, guid: ee7a190ac6ad89a874fc1b5223564863, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Prefabs/Enemies/boss_05.prefab
+    prefab: {fileID: 0}
   - path: Assets/Prefabs/Enemies/boss_06.prefab
-    prefab: {fileID: 100000, guid: 398407c203d611bed62f639624d1bb66, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Prefabs/Enemies/boss_06.prefab
+    prefab: {fileID: 0}
   - path: Assets/Prefabs/Enemies/boss_07.prefab
-    prefab: {fileID: 100000, guid: f7b50d47370603f6ce45419430eb2ef5, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Prefabs/Enemies/boss_07.prefab
+    prefab: {fileID: 0}
   - path: Assets/Prefabs/Enemies/boss_08.prefab
-    prefab: {fileID: 100000, guid: e3c9a5e2e6822abeee0b49492d2b75f6, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Prefabs/Enemies/boss_08.prefab
+    prefab: {fileID: 0}
   - path: Assets/Prefabs/Enemies/boss_09.prefab
-    prefab: {fileID: 100000, guid: c183c8975f91909f60be8103d1a43805, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Prefabs/Enemies/boss_09.prefab
+    prefab: {fileID: 0}
   - path: Assets/Prefabs/Enemies/boss_10.prefab
-    prefab: {fileID: 100000, guid: f1b81af1327263d2bca17c40aa86a96e, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Prefabs/Enemies/boss_10.prefab
+    prefab: {fileID: 0}
   - path: Assets/Prefabs/Enemies/boss_11.prefab
-    prefab: {fileID: 100000, guid: 18c0dc73a267e6ffbea9a9c4eb70c41a, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Prefabs/Enemies/boss_11.prefab
+    prefab: {fileID: 0}
   - path: Assets/Prefabs/Enemies/boss_12.prefab
-    prefab: {fileID: 100000, guid: 7202262d2524d72c472babc4d297a242, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Prefabs/Enemies/boss_12.prefab
+    prefab: {fileID: 0}
   - path: Assets/Prefabs/Enemies/boss_helicopter_01.prefab
-    prefab: {fileID: 100000, guid: a17369c9bd4e2eb1629f7faae4097b84, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Prefabs/Enemies/boss_helicopter_01.prefab
+    prefab: {fileID: 0}
   - path: Assets/Prefabs/Enemies/boss_helicopter_02.prefab
-    prefab: {fileID: 100000, guid: 7c2282fcb0f3abd0875c25bb8e4ead71, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Prefabs/Enemies/boss_helicopter_02.prefab
+    prefab: {fileID: 0}
   - path: Assets/Prefabs/Enemies/boss_helicopter_03.prefab
-    prefab: {fileID: 100000, guid: 002a1f08e72ab6682dd51e03a5b4aed2, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Prefabs/Enemies/boss_helicopter_03.prefab
+    prefab: {fileID: 0}
   - path: Assets/Prefabs/Enemies/boss_helicopter_04.prefab
-    prefab: {fileID: 100000, guid: 29edb55ff2b84914454728b12f0b59e3, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Prefabs/Enemies/boss_helicopter_04.prefab
+    prefab: {fileID: 0}
   - path: Assets/Prefabs/Enemies/boss_helicopter_05.prefab
-    prefab: {fileID: 100000, guid: ca91ac21b07a01f8691a7ee1ce23ce42, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Prefabs/Enemies/boss_helicopter_05.prefab
+    prefab: {fileID: 0}
   - path: Assets/Prefabs/Enemies/boss_helicopter_06.prefab
-    prefab: {fileID: 100000, guid: f3c65bb633bd8a0e465cdc20d5621a6d, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Prefabs/Enemies/boss_helicopter_06.prefab
+    prefab: {fileID: 0}
   - path: Assets/Prefabs/Enemies/enemy_02.prefab
-    prefab: {fileID: 100000, guid: f5b41cb591ef94c3eaaa851b8d4253ae, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Prefabs/Enemies/enemy_02.prefab
+    prefab: {fileID: 0}
   - path: Assets/Prefabs/Enemies/enemy_04.prefab
-    prefab: {fileID: 100000, guid: c909ea4459bc34daba2da1ba110fdb30, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Prefabs/Enemies/enemy_04.prefab
+    prefab: {fileID: 0}
   - path: Assets/Prefabs/Enemies/enemy_08.prefab
-    prefab: {fileID: 100000, guid: c8a80df846fbf4e419d0178f0996e986, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Prefabs/Enemies/enemy_08.prefab
+    prefab: {fileID: 0}
   - path: Assets/Prefabs/Enemies/enemy_small_01.prefab
-    prefab: {fileID: 100000, guid: e689bef4a5f03f146be763c7a98069b7, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Prefabs/Enemies/enemy_small_01.prefab
+    prefab: {fileID: 0}
   - path: Assets/Prefabs/Enemies/enemy_small_02.prefab
-    prefab: {fileID: 100000, guid: 3343c1db336651e4eab4dfa6b067d13a, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Prefabs/Enemies/enemy_small_02.prefab
+    prefab: {fileID: 0}
   - path: Assets/Prefabs/Enemies/enemy_small_03.prefab
-    prefab: {fileID: 100000, guid: 605aab6352a10d64ca0a117f2044a9ac, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Prefabs/Enemies/enemy_small_03.prefab
+    prefab: {fileID: 0}
   - path: Assets/Prefabs/Enemies/enemy_small_04.prefab
-    prefab: {fileID: 100000, guid: e27c9982de302004da684094e5bcd618, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Prefabs/Enemies/enemy_small_04.prefab
+    prefab: {fileID: 0}
   - path: Assets/Prefabs/Enemies/enemy_small_05.prefab
-    prefab: {fileID: 100000, guid: 0e8ae02a2479ff740bf9190cf5423068, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Prefabs/Enemies/enemy_small_05.prefab
+    prefab: {fileID: 0}
   - path: Assets/Prefabs/Enemies/enemy_small_06.prefab
-    prefab: {fileID: 100000, guid: 40bd2fb5d27962143910b18df76a13f9, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Prefabs/Enemies/enemy_small_06.prefab
+    prefab: {fileID: 0}
   - path: Assets/Prefabs/Enemies/enemy_small_07.prefab
-    prefab: {fileID: 100000, guid: de52472632ec49243942481f700d7504, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Prefabs/Enemies/enemy_small_07.prefab
+    prefab: {fileID: 0}
   - path: Assets/Prefabs/Enemies/enemy_small_08.prefab
-    prefab: {fileID: 100000, guid: 3639f1a96d8b45749a028cf81680ba88, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Prefabs/Enemies/enemy_small_08.prefab
+    prefab: {fileID: 0}
   - path: Assets/Prefabs/Enemies/helicopter_01.prefab
-    prefab: {fileID: 100000, guid: 27c27db7cbbe1ad4cbea9ee66210c87e, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Prefabs/Enemies/helicopter_01.prefab
+    prefab: {fileID: 0}
   - path: Assets/Prefabs/Enemies/small_helicopter_01.prefab
-    prefab: {fileID: 100000, guid: 26672fe7dd4fe481997e755590e0a058, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Prefabs/Enemies/small_helicopter_01.prefab
+    prefab: {fileID: 0}
   - path: Assets/Prefabs/Enemies/small_helicopter_05.prefab
-    prefab: {fileID: 100000, guid: 44e865aabc12a46848b536a3457eea8e, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Prefabs/Enemies/small_helicopter_05.prefab
+    prefab: {fileID: 0}
   - path: Assets/Prefabs/Missiles/level1_split_child.prefab
-    prefab: {fileID: 100000, guid: c66b7116df2046e3b843fac921d36272, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Prefabs/Missiles/level1_split_child.prefab
+    prefab: {fileID: 0}
   - path: Assets/Prefabs/Missiles/level1_split_parent.prefab
-    prefab: {fileID: 100000, guid: 2245350d92114890bfe70ecedf9b4e69, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Prefabs/Missiles/level1_split_parent.prefab
+    prefab: {fileID: 0}
   - path: Assets/Prefabs/Missiles/missile_01_straight.prefab
-    prefab: {fileID: 100000, guid: 0b059b8e3c13cabb9aec2aff6ff0a0c0, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Prefabs/Missiles/missile_01_straight.prefab
+    prefab: {fileID: 0}
   - path: Assets/Prefabs/Missiles/missile_03_weak_homing.prefab
-    prefab: {fileID: 100000, guid: 8683437ea2bdee0324fb588dcf2498ef, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Prefabs/Missiles/missile_03_weak_homing.prefab
+    prefab: {fileID: 0}
   - path: Assets/Prefabs/Missiles/missile_09_lock_dash.prefab
-    prefab: {fileID: 100000, guid: 2d066ffb31d6ac586405c80bb026edd0, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Prefabs/Missiles/missile_09_lock_dash.prefab
+    prefab: {fileID: 0}
   - path: Assets/Prefabs/Missiles/missile_11_explode.prefab
-    prefab: {fileID: 100000, guid: 49ebd469ffd5c9677656d5aa4130eb83, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Prefabs/Missiles/missile_11_explode.prefab
+    prefab: {fileID: 0}
   - path: Assets/Prefabs/Player/warplane-01.prefab
-    prefab: {fileID: 100000, guid: 9a1d4e2b8a144d9589ae5a4f8e72404b, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Prefabs/Player/warplane-01.prefab
+    prefab: {fileID: 0}
   - path: Assets/Prefabs/SplinePaths/level_path.prefab
-    prefab: {fileID: 100000, guid: 1bc61b66bfa6468891eb479df0684362, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Prefabs/SplinePaths/level_path.prefab
+    prefab: {fileID: 0}
   - path: Assets/Prefabs/UI/UILobby.prefab
-    prefab: {fileID: 2644241041284139834, guid: 846cd746f9cf570ffe5658b2d941300a, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Prefabs/UI/UILobby.prefab
+    prefab: {fileID: 0}
   - path: Assets/Prefabs/UI/UIVictorySettlement.prefab
-    prefab: {fileID: 1000000000000000, guid: db2ee0dbfbf246bc9db0b0f4f450a24a, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Prefabs/UI/UIVictorySettlement.prefab
+    prefab: {fileID: 0}
   sprites:
   - path: Assets/Art/Animations/Enemies/BOSS-1.png
-    sprite: {fileID: 21300000, guid: 74f8cf9601d704a4d949b53656961b17, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Animations/Enemies/BOSS-1.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Animations/Enemies/enemy-01.png
-    sprite: {fileID: 21300000, guid: d2f16c8f7f46a40be9e08c5d584da0d6, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Animations/Enemies/enemy-01.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/Backgrounds/background-01.png
-    sprite: {fileID: 21300000, guid: 7061789d426f74cecbba946337ad4ab8, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/Backgrounds/background-01.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/Backgrounds/background-02.png
-    sprite: {fileID: 21300000, guid: 5e7afc3629b0259418c656a1f18fca45, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/Backgrounds/background-02.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/Backgrounds/background-03.png
-    sprite: {fileID: 21300000, guid: 5fbb37a070bdc2344970d6582a33583a, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/Backgrounds/background-03.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/Bullets/enemy_bullet_01.png
-    sprite: {fileID: 21300000, guid: 6b07a0cd9ca8f44088f4cf651dbcff97, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/Bullets/enemy_bullet_01.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/Bullets/enemy_bullet_29.png
-    sprite: {fileID: 21300000, guid: 96a369b838ac44157b44b14f8d4bae5e, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/Bullets/enemy_bullet_29.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/Bullets/enemy_bullet_3.png
-    sprite: {fileID: 21300000, guid: b807897e1383b4d21824bfc8d9056489, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/Bullets/enemy_bullet_3.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/Bullets/enemy_bullet_43.png
-    sprite: {fileID: 21300000, guid: 881490422961144179c61fce1a59aa38, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/Bullets/enemy_bullet_43.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/Bullets/enemy_bullet_5.png
-    sprite: {fileID: 21300000, guid: b0ef569330f034d8eac7b5153066ec4a, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/Bullets/enemy_bullet_5.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/Bullets/missile_01.png
-    sprite: {fileID: 21300000, guid: d04d3f7d4dea84760b954e08e4d2c7ef, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/Bullets/missile_01.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/Bullets/missile_03.png
-    sprite: {fileID: 21300000, guid: 31894d98d3411404593d2847747016ff, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/Bullets/missile_03.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/Bullets/missile_09.png
-    sprite: {fileID: 21300000, guid: fc370aad084e240d681a0da47ac22aa7, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/Bullets/missile_09.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/Bullets/missile_11.png
-    sprite: {fileID: 21300000, guid: 20da78f8188fd490bafe330ee9bc2c7c, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/Bullets/missile_11.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/Bullets/player_bullet_01.png
-    sprite: {fileID: 21300000, guid: 65dc6797566ca4210a3887d6e50d62cc, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/Bullets/player_bullet_01.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/Item/item_boom.png
-    sprite: {fileID: 21300000, guid: 04c1883fc4f8b4826b461fa751aae841, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/Item/item_boom.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/Item/item_coin.png
-    sprite: {fileID: 21300000, guid: 9890eac2e844a49519db25cfd4ecf70d, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/Item/item_coin.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/Item/item_hp.png
-    sprite: {fileID: 21300000, guid: 67fd931558b554b4c9e4ab92846d70e9, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/Item/item_hp.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/Item/item_magnet.png
-    sprite: {fileID: 21300000, guid: c389fdbcbe07944fd98c202ee6dbb47a, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/Item/item_magnet.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/Item/item_shield.png
-    sprite: {fileID: 21300000, guid: 0c239b385a642488982e36de47da2e62, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/Item/item_shield.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/Item/item_star.png
-    sprite: {fileID: 21300000, guid: e7730ea40d6044b0f939ea9d3b66374a, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/Item/item_star.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/Item/item_trophy.png
-    sprite: {fileID: 21300000, guid: f2a97401e8d014e8290dbfb09ddd6799, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/Item/item_trophy.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/A.png
-    sprite: {fileID: 21300000, guid: a4a8f34e4b2946afa921ea31af27d091, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/A.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/backgroundH.png
-    sprite: {fileID: 21300000, guid: 1dbd6e063d403410b9f566bd45872809, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/backgroundH.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/btnBack.png
-    sprite: {fileID: 21300000, guid: cff349e91ca7d914d83ef37085b50d72, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/btnBack.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/btnCebianlan.png
-    sprite: {fileID: 21300000, guid: 17ea8b2a56e099b43a4967bb0af1cfcb, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/btnCebianlan.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/btnClame.png
-    sprite: {fileID: 21300000, guid: 1b311caacc296ec4f8168c62945d54ed, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/btnClame.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/btnClose.png
-    sprite: {fileID: 21300000, guid: 713d8e4c7baf9024e8755f5d70c7ef0f, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/btnClose.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/btnMenu.png
-    sprite: {fileID: 21300000, guid: d6671ba712a8cef40be8e4b9e966b464, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/btnMenu.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/btnNext.png
-    sprite: {fileID: 21300000, guid: ce64a06348ace3c409357a112d38524d, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/btnNext.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/btnRank.png
-    sprite: {fileID: 21300000, guid: c4db43c0d3f96a44fa742b5783a67315, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/btnRank.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/btnSetting.png
-    sprite: {fileID: 21300000, guid: 85b02bb9c938ceb448c116d56196cdd5, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/btnSetting.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/btnShare.png
-    sprite: {fileID: 21300000, guid: 2885073a13166c04a82f97825175eb97, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/btnShare.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/btnStart.png
-    sprite: {fileID: 21300000, guid: 1405557cfeac6f740b984e30651c982c, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/btnStart.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/E.png
-    sprite: {fileID: 21300000, guid: dd8c92fc7a7a46ac8a145fcb497da6a2, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/E.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/G.png
-    sprite: {fileID: 21300000, guid: b1f75d2e24f94e6d9c11e6b6e778cc01, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/G.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/imgAlertBg.png
-    sprite: {fileID: 21300000, guid: 0b08c8f38a6275348904bec02f32dacf, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/imgAlertBg.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/imgBgCell.png
-    sprite: {fileID: 21300000, guid: d79b22a2e68b8cf47876716528934da1, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/imgBgCell.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/imgCircle.png
-    sprite: {fileID: 21300000, guid: e356df34c9ea283499c9d206d09a42b9, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/imgCircle.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/imgLock.png
-    sprite: {fileID: 21300000, guid: ff1a2486d18d46c4e871d09bd96fdada, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/imgLock.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/imgLvBg.png
-    sprite: {fileID: 21300000, guid: c6b576c8e12f79b4ebb3baaa56d31e30, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/imgLvBg.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/imgRedpoint.png
-    sprite: {fileID: 21300000, guid: 292ed55dcd340d74fb21397d9576233c, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/imgRedpoint.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/lineBlue.png
-    sprite: {fileID: 21300000, guid: 9baa1c856e70e9941959a359930c27f4, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/lineBlue.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/lineRed.png
-    sprite: {fileID: 21300000, guid: 6e91e63aaf7282144b063a404d7fca97, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/lineRed.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/lineZong.png
-    sprite: {fileID: 21300000, guid: 3aa5a4f74f6251142bd323b4e0fbf087, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/lineZong.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/M.png
-    sprite: {fileID: 21300000, guid: 84f54cbb54ea4c1b94c4418c496cdf37, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/M.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/O.png
-    sprite: {fileID: 21300000, guid: 6bc69fed79f8439faa8057bcd1cb8f97, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/O.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/Player/warplane-01.png
-    sprite: {fileID: 21300000, guid: c046cc64a80994e7bb4a593a75c3f1de, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/Player/warplane-01.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/progress_bar.png
-    sprite: {fileID: 21300000, guid: 546dc03407c5b624792a80204b4b9fae, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/progress_bar.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/progress_bar_enemy.png
-    sprite: {fileID: 21300000, guid: f5b79220b7810b443b165b407dd9f565, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/progress_bar_enemy.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/progress_bar_notouch.png
-    sprite: {fileID: 21300000, guid: 04b088bd1cf410d4f94d2ee1ce1686f4, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/progress_bar_notouch.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/progress_bar_star.png
-    sprite: {fileID: 21300000, guid: 91db1698e3cb1b34c8450bd7168000bc, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/progress_bar_star.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/progress_bg.png
-    sprite: {fileID: 21300000, guid: 4f91b4333dfa4b2448c2fa05474042c0, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/progress_bg.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/R.png
-    sprite: {fileID: 21300000, guid: e6453c2c1e534de7af0cc5f80f651f4e, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/R.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/toggerProgress01.png
-    sprite: {fileID: 21300000, guid: 47ed2d0ec58f65f418345211849ced3e, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/toggerProgress01.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/toggerProgress02.png
-    sprite: {fileID: 21300000, guid: 93af942229556444ebf66ecf42432015, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/toggerProgress02.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/toggleLvBg01.png
-    sprite: {fileID: 21300000, guid: f336dc57019b6f94eb1b218def750a4c, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/toggleLvBg01.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/toggleLvBg02.png
-    sprite: {fileID: 21300000, guid: e658b8167ef3a144a9871b3b476df083, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/toggleLvBg02.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/toggleLvBg03.png
-    sprite: {fileID: 21300000, guid: e551e6c4dd8a0824e8731953183ebfdb, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/toggleLvBg03.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/toggleLvSmallBg01.png
-    sprite: {fileID: 21300000, guid: 05378d3c467e88a49ad37d9cd2be9ceb, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/toggleLvSmallBg01.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/toggleLvSmallBg02.png
-    sprite: {fileID: 21300000, guid: 496811534f097af489d12fee8fa16391, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/toggleLvSmallBg02.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/V.png
-    sprite: {fileID: 21300000, guid: 1d45811ce63f4a02af32c6f0a7d63b56, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/V.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/win/C.png
-    sprite: {fileID: 21300000, guid: 0a4305064b3b27e4d9b9b0635955fe54, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/win/C.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/win/E.png
-    sprite: {fileID: 21300000, guid: 0326301dddf76d845b9f79157c06123d, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/win/E.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/win/I.png
-    sprite: {fileID: 21300000, guid: ce590de81353a3645b7b642039d45020, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/win/I.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/win/L.png
-    sprite: {fileID: 21300000, guid: c77d0312cdaa0cc419ef3df13b4bbe21, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/win/L.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/win/M.png
-    sprite: {fileID: 21300000, guid: 9965b1acb40ebe348b0327cc7dc8b90b, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/win/M.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/win/N.png
-    sprite: {fileID: 21300000, guid: 199f0c804eb67754f839bf1488c86c0f, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/win/N.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/win/O.png
-    sprite: {fileID: 21300000, guid: ee34944161c83ab49aeca4b6e48e6422, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/win/O.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/win/P.png
-    sprite: {fileID: 21300000, guid: 5fb7d1d96467eaa4690d56b1d09b9b02, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/win/P.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/win/S.png
-    sprite: {fileID: 21300000, guid: 3c7c537eba9e5a544a37742e0e04592a, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/win/S.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/win/T.png
-    sprite: {fileID: 21300000, guid: 3e94721f5432fb141b3c8dcb188c953f, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/win/T.png
+    sprite: {fileID: 0}
   fonts:
   - path: Assets/Art/Font/simhei.ttf
-    font: {fileID: 12800000, guid: 9f94a9364d47346d88936c0fe26c71e0, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Font/simhei.ttf
+    font: {fileID: 0}
   audioClips:
   - path: Assets/Art/Sound/BGM/BGM_Menu_Main_Loop_01.wav
-    audioClip: {fileID: 8300000, guid: 6577c91532cec48eeb887a99c9c1c712, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sound/BGM/BGM_Menu_Main_Loop_01.wav
+    audioClip: {fileID: 0}
   - path: Assets/Art/Sound/SFX/Ambience/SFX_Ambience_Battle_Loop_01.mp3
-    audioClip: {fileID: 8300000, guid: 785548cdc06f140e0bcb316fff3651ad, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sound/SFX/Ambience/SFX_Ambience_Battle_Loop_01.mp3
+    audioClip: {fileID: 0}
   - path: Assets/Art/Sound/SFX/Enemy/SFX_Boss_Attack_Warning_01.wav
-    audioClip: {fileID: 8300000, guid: 1a338ca27ec3640d2988dcb3a0a87c78, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sound/SFX/Enemy/SFX_Boss_Attack_Warning_01.wav
+    audioClip: {fileID: 0}
   - path: Assets/Art/Sound/SFX/Enemy/SFX_Enemy_Engine_Loop_Small_01.wav
-    audioClip: {fileID: 8300000, guid: c20e6fd5da743482587496c025971972, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sound/SFX/Enemy/SFX_Enemy_Engine_Loop_Small_01.wav
+    audioClip: {fileID: 0}
   - path: Assets/Art/Sound/SFX/Enemy/SFX_Enemy_Hit_01.wav
-    audioClip: {fileID: 8300000, guid: d5e1ff195a4cc4b2e86abdc5a710cb15, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sound/SFX/Enemy/SFX_Enemy_Hit_01.wav
+    audioClip: {fileID: 0}
   - path: Assets/Art/Sound/SFX/Item/coin.wav
-    audioClip: {fileID: 8300000, guid: 6aa541d00c37464e855eec5c6f7f98f7, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sound/SFX/Item/coin.wav
+    audioClip: {fileID: 0}
   - path: Assets/Art/Sound/SFX/Item/SFX_Item_Pickup_Special_01.wav
-    audioClip: {fileID: 8300000, guid: 139dffd3390874fec9611869bd5c3402, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sound/SFX/Item/SFX_Item_Pickup_Special_01.wav
+    audioClip: {fileID: 0}
   - path: Assets/Art/Sound/SFX/Item/star.wav
-    audioClip: {fileID: 8300000, guid: 2dba4168eb074156ba0289f4d1e6eead, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sound/SFX/Item/star.wav
+    audioClip: {fileID: 0}
   - path: Assets/Art/Sound/SFX/Player/SFX_Player_Shoot_Normal_01.wav
-    audioClip: {fileID: 8300000, guid: c8656b43614e24426b2e2353be9f8f24, type: 3}
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sound/SFX/Player/SFX_Player_Shoot_Normal_01.wav
+    audioClip: {fileID: 0}

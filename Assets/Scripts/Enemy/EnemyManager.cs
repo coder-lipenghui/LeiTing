@@ -175,7 +175,8 @@ namespace LeiTing.Enemy
             }
 
 #if UNITY_EDITOR
-            if (enemyConfig.prefabPath.StartsWith("Assets/", System.StringComparison.OrdinalIgnoreCase))
+            if (RuntimeRemoteResourceManager.CanUseEditorLocalAssets
+                && enemyConfig.prefabPath.StartsWith("Assets/", System.StringComparison.OrdinalIgnoreCase))
             {
                 var editorPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(enemyConfig.prefabPath);
                 if (editorPrefab != null)

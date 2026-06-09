@@ -1,23 +1,23 @@
 {
-    "appid": "tt3aac4c11a4cbb7cf07",
-    "projectname": "LeiTing",
-    "unity": {
-        "build": {
-            "webgl": "D:\\LeiTing\\tt-minigame\\webgl_package-20260608_230824.zip",
-            "native": {
-                "il2cpp": "",
-                "apk": "",
-                "fullApk": ""
-            },
-            "instantGame": ""
-        },
-        "publishType": "2",
-        "starkSdkVersion": "Without StarkSDK",
-        "unityToolsVersion": null,
-        "unityEngineVersion": "2022.3.62f3c1",
-        "arch": "both"
+  "appid": "tt3aac4c11a4cbb7cf07",
+  "projectname": "LeiTing",
+  "unity": {
+    "build": {
+      "webgl": "D:\\LeiTing\\tt-minigame\\webgl_package-20260609_151132.zip",
+      "native": {
+        "il2cpp": "",
+        "apk": "",
+        "fullApk": ""
+      },
+      "instantGame": ""
     },
-    "setting": {
-        "urlCheck": true
-    }
+    "publishType": "2",
+    "starkSdkVersion": "Without StarkSDK",
+    "unityToolsVersion": null,
+    "unityEngineVersion": "2022.3.62f3c1",
+    "arch": "both"
+  },
+  "setting": {
+    "urlCheck": true
+  }
 }

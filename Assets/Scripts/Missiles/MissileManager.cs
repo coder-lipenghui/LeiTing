@@ -157,7 +157,8 @@ namespace LeiTing.Missiles
             }
 
 #if UNITY_EDITOR
-            if (missileConfig.prefabPath.StartsWith("Assets/", StringComparison.OrdinalIgnoreCase))
+            if (RuntimeRemoteResourceManager.CanUseEditorLocalAssets
+                && missileConfig.prefabPath.StartsWith("Assets/", StringComparison.OrdinalIgnoreCase))
             {
                 var editorPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(missileConfig.prefabPath);
                 if (editorPrefab != null)

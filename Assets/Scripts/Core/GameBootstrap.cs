@@ -1,3 +1,4 @@
+using System.Collections;
 using LeiTing.Config;
 using LeiTing.Audio;
 using LeiTing.Pickups;
@@ -26,6 +27,32 @@ namespace LeiTing.Core
         [SerializeField] private float pixelsPerUnit = 100f;
 
         private void Awake()
+        {
+            if (RuntimeRemoteResourceManager.NeedsStartupDownload)
+            {
+                StartCoroutine(BootstrapAfterRemoteResources());
+                return;
+            }
+
+            RunBootstrap();
+        }
+
+        private IEnumerator BootstrapAfterRemoteResources()
+        {
+            if (!RuntimeRemoteResourceManager.IsLoading && !RuntimeRemoteResourceManager.HasDownloadFailed)
+            {
+                yield return RuntimeRemoteResourceManager.EnsureReady(null);
+            }
+
+            while (!RuntimeRemoteResourceManager.IsReady)
+            {
+                yield return null;
+            }
+
+            RunBootstrap();
+        }
+
+        private void RunBootstrap()
         {
 #if UNITY_WEBGL && !UNITY_EDITOR
             DouyinAccountService.LoginOnGameEnter();
@@ -103,7 +130,7 @@ namespace LeiTing.Core
             GameObject prefab = null;
 
 #if UNITY_EDITOR
-            if (!string.IsNullOrEmpty(prefabPath))
+            if (RuntimeRemoteResourceManager.CanUseEditorLocalAssets && !string.IsNullOrEmpty(prefabPath))
             {
                 prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
             }
@@ -114,10 +141,12 @@ namespace LeiTing.Core
             if (prefab != null)
             {
 #if UNITY_EDITOR
-                return (GameObject)PrefabUtility.InstantiatePrefab(prefab);
-#else
-                return Instantiate(prefab);
+                if (RuntimeRemoteResourceManager.CanUseEditorLocalAssets)
+                {
+                    return (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+                }
 #endif
+                return Instantiate(prefab);
             }
 
             return new GameObject("Player");
@@ -186,10 +215,13 @@ namespace LeiTing.Core
             }
 
 #if UNITY_EDITOR
-            var editorSprite = AssetDatabase.LoadAssetAtPath<Sprite>(spritePath);
-            if (editorSprite != null)
+            if (RuntimeRemoteResourceManager.CanUseEditorLocalAssets)
             {
-                return editorSprite;
+                var editorSprite = AssetDatabase.LoadAssetAtPath<Sprite>(spritePath);
+                if (editorSprite != null)
+                {
+                    return editorSprite;
+                }
             }
 #endif
 

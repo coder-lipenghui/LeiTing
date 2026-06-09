@@ -118,7 +118,8 @@ namespace LeiTing.Audio
             }
 
 #if UNITY_EDITOR
-            if (clipPath.StartsWith("Assets/", System.StringComparison.OrdinalIgnoreCase))
+            if (RuntimeRemoteResourceManager.CanUseEditorLocalAssets
+                && clipPath.StartsWith("Assets/", System.StringComparison.OrdinalIgnoreCase))
             {
                 var editorClip = AssetDatabase.LoadAssetAtPath<AudioClip>(clipPath);
                 if (editorClip != null)

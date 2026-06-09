@@ -144,6 +144,17 @@ namespace LeiTing.Stage
             }
 
             var state = GameManager.Instance != null ? GameManager.Instance.CurrentState : GameState.Boot;
+            if (state == GameState.Paused)
+            {
+                HideStartPrompt();
+                if (isBulletTimeActive || isVictorySlowMotionActive)
+                {
+                    FitBulletTimeMaskToCamera();
+                }
+
+                return;
+            }
+
             if (!battleStarted && state == GameState.Ready)
             {
                 UpdateStartPrompt();
@@ -214,9 +225,16 @@ namespace LeiTing.Stage
             SetBulletTimeMaskVisible(false);
         }
 
+        public void ResetTimeScaleForSceneExit()
+        {
+            StopVictorySlowMotion();
+            ExitBulletTime(true);
+            HideStartPrompt();
+        }
+
         private void EnterBulletTime()
         {
-            if (isBulletTimeActive || isVictorySlowMotionActive || isPointerHeld)
+            if (isBulletTimeActive || isVictorySlowMotionActive || isPointerHeld || Time.timeScale <= 0f)
             {
                 return;
             }

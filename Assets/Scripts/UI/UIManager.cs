@@ -25,10 +25,16 @@ namespace LeiTing.UI
         private const float PageSwitchDuration = 0.25f;
         private const float BattleHudTopOffset = 65f;
         private const float BattleHudRowSpacing = 58f;
+        private const float BattleCornerButtonSize = 92f;
+        private const float BattleCornerButtonSideMargin = 30f;
+        private const float BattleCornerButtonFallbackTopOffset = 52f;
+        private const float BattleCornerButtonMenuPadding = 18f;
         private const int BossHealthSegmentCount = 10;
         private const string VictorySettlementPrefabPath = "Assets/Prefabs/UI/UIVictorySettlement.prefab";
         private const string VictoryContinueSpritePath = "Assets/Art/Sprites/UI/btnNext.png";
         private const string UiSpriteFolderPath = "Assets/Art/Sprites/UI";
+        private const string BattleButtonBackgroundSpritePath = "Assets/Art/Sprites/UI/btnMenu.png";
+        private const string BattleExitButtonBackgroundSpritePath = "Assets/Art/Sprites/UI/btnClose.png";
         private const string WinUiSpriteFolderPath = UiSpriteFolderPath + "/win";
         private const float MissionCompleteAnimationSpeed = 0.58f;
         private const float VictoryContinueButtonBottomOffset = 64f;
@@ -36,6 +42,10 @@ namespace LeiTing.UI
         private const float FallbackVictorySettlementContinueBottomOffset = VictorySettlementButtonRowY - 63f;
 
         private static readonly Color BossHealthColor = new Color32(0x86, 0x28, 0x00, 0xFF);
+
+        private static Sprite pauseIconSprite;
+        private static Sprite resumeIconSprite;
+        private static Sprite exitIconSprite;
 
         private readonly Dictionary<UIPageType, BasePage> pageInstances = new Dictionary<UIPageType, BasePage>();
         private readonly Stack<BasePopup> popupStack = new Stack<BasePopup>();
@@ -62,13 +72,21 @@ namespace LeiTing.UI
         private bool isSwitching;
         private bool hasPendingOpenPage;
         private bool mainUiInitialized;
+        private Coroutine remoteResourceInitCoroutine;
+        private RuntimeResourceDownloadView downloadView;
 
         private RectTransform canvasRoot;
         private RectTransform scoreRect;
         private RectTransform stageTimerRect;
-        private Text hudText;
         private Text scoreText;
         private Text stageTimerText;
+        private GameObject pauseButtonRoot;
+        private GameObject exitButtonRoot;
+        private RectTransform pauseButtonRect;
+        private RectTransform exitButtonRect;
+        private Button pauseButton;
+        private Button exitButton;
+        private Image pauseButtonIcon;
         private GameObject settlementRoot;
         private Image settlementPanelImage;
         private RectTransform settlementTitleRect;
@@ -98,6 +116,9 @@ namespace LeiTing.UI
         private bool victorySettlementVisible;
         private bool defeatAnimationStarted;
         private bool battleHudInitialized;
+        private bool battlePaused;
+        private float battlePausePreviousTimeScale = 1f;
+        private float battlePausePreviousFixedDeltaTime = 0.02f;
 
         protected override void Awake()
         {
@@ -137,6 +158,17 @@ namespace LeiTing.UI
 
         public void Init()
         {
+            if (RuntimeRemoteResourceManager.NeedsStartupDownload)
+            {
+                StartRemoteResourceInit();
+                return;
+            }
+
+            InitMainUi();
+        }
+
+        private void InitMainUi()
+        {
             if (mainUiInitialized && IsMainUiReady())
             {
                 ShowMainUI(true);
@@ -153,6 +185,45 @@ namespace LeiTing.UI
             EnsureMainUi();
 
             OpenPage(UIPageType.Lobby);
+        }
+
+        private void StartRemoteResourceInit()
+        {
+            if (remoteResourceInitCoroutine != null)
+            {
+                return;
+            }
+
+            remoteResourceInitCoroutine = StartCoroutine(InitAfterRemoteResources());
+        }
+
+        private IEnumerator InitAfterRemoteResources()
+        {
+            downloadView?.Destroy();
+            downloadView = RuntimeResourceDownloadView.Create();
+
+            var succeeded = false;
+            var message = string.Empty;
+            yield return RuntimeRemoteResourceManager.EnsureReady(
+                (progress, status) => downloadView?.SetProgress(progress, status),
+                (success, error) =>
+                {
+                    succeeded = success;
+                    message = error;
+                });
+
+            remoteResourceInitCoroutine = null;
+
+            if (succeeded)
+            {
+                downloadView?.Destroy();
+                downloadView = null;
+                InitMainUi();
+                yield break;
+            }
+
+            Debug.LogError($"CDN resource loading failed. Game UI will not open. {message}");
+            downloadView?.ShowRetry(message, StartRemoteResourceInit);
         }
 
         private bool IsMainUiReady()
@@ -986,10 +1057,13 @@ namespace LeiTing.UI
             }
 
 #if UNITY_EDITOR
-            var editorPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
-            if (editorPrefab != null)
+            if (RuntimeRemoteResourceManager.CanUseEditorLocalAssets)
             {
-                return editorPrefab;
+                var editorPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+                if (editorPrefab != null)
+                {
+                    return editorPrefab;
+                }
             }
 #endif
 
@@ -1010,10 +1084,13 @@ namespace LeiTing.UI
             }
 
 #if UNITY_EDITOR
-            var editorSprite = AssetDatabase.LoadAssetAtPath<Sprite>(assetPath);
-            if (editorSprite != null)
+            if (RuntimeRemoteResourceManager.CanUseEditorLocalAssets)
             {
-                return editorSprite;
+                var editorSprite = AssetDatabase.LoadAssetAtPath<Sprite>(assetPath);
+                if (editorSprite != null)
+                {
+                    return editorSprite;
+                }
             }
 #endif
 
@@ -1300,9 +1377,9 @@ namespace LeiTing.UI
             canvasObject.AddComponent<GraphicRaycaster>();
             canvasRoot = canvasObject.GetComponent<RectTransform>();
 
-            CreateHud(canvasObject.transform);
             CreateScoreText(canvasObject.transform);
             CreateStageTimer(canvasObject.transform);
+            CreateBattleControlButtons(canvasObject.transform);
             CreateBossHud(canvasObject.transform);
             CreateBossNotice(canvasObject.transform);
             CreateSettlementPanel(canvasObject.transform);
@@ -1310,28 +1387,6 @@ namespace LeiTing.UI
             CreateMissionCompleteView(canvasObject.transform);
             CreateVictoryContinueButton(canvasObject.transform);
             UpdateBattleHudSafeAreaLayout();
-        }
-
-        private void CreateHud(Transform parent)
-        {
-            var hudObject = new GameObject("BulletTimeHudText", typeof(RectTransform));
-            hudObject.transform.SetParent(parent, false);
-
-            var rect = hudObject.GetComponent<RectTransform>();
-            rect.anchorMin = new Vector2(0.5f, 0.5f);
-            rect.anchorMax = new Vector2(0.5f, 0.5f);
-            rect.pivot = new Vector2(0.5f, 0.5f);
-            rect.anchoredPosition = Vector2.zero;
-            rect.sizeDelta = new Vector2(560f, 260f);
-
-            hudText = hudObject.AddComponent<Text>();
-            hudText.font = UIFactory.GetDefaultFont();
-            hudText.fontSize = 36;
-            hudText.fontStyle = FontStyle.Bold;
-            hudText.alignment = TextAnchor.MiddleCenter;
-            hudText.color = Color.white;
-            hudText.raycastTarget = false;
-            hudText.enabled = false;
         }
 
         private void CreateScoreText(Transform parent)
@@ -1376,6 +1431,73 @@ namespace LeiTing.UI
             stageTimerText.color = new Color(0.78f, 0.96f, 1f, 1f);
             stageTimerText.raycastTarget = false;
             stageTimerText.text = "TIME 00:00";
+        }
+
+        private void CreateBattleControlButtons(Transform parent)
+        {
+            pauseButtonRoot = CreateBattleCornerButton(
+                parent,
+                "BattlePauseButton",
+                BattleButtonBackgroundSpritePath,
+                GetPauseIconSprite());
+            pauseButtonRect = pauseButtonRoot.GetComponent<RectTransform>();
+            pauseButton = pauseButtonRoot.GetComponent<Button>();
+            pauseButtonIcon = pauseButtonRoot.transform.Find("Icon")?.GetComponent<Image>();
+            pauseButton.onClick.AddListener(ToggleBattlePause);
+
+            exitButtonRoot = CreateBattleCornerButton(
+                parent,
+                "BattleExitButton",
+                BattleExitButtonBackgroundSpritePath,
+                GetExitIconSprite());
+            exitButtonRect = exitButtonRoot.GetComponent<RectTransform>();
+            exitButton = exitButtonRoot.GetComponent<Button>();
+            exitButton.onClick.AddListener(ReturnToLobby);
+
+            UpdateBattleControlButtons();
+            UpdateBattleCornerButtonLayout();
+        }
+
+        private static GameObject CreateBattleCornerButton(
+            Transform parent,
+            string name,
+            string backgroundSpritePath,
+            Sprite iconSprite)
+        {
+            var root = new GameObject(name, typeof(RectTransform));
+            root.transform.SetParent(parent, false);
+
+            var rect = root.GetComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(BattleCornerButtonSize, BattleCornerButtonSize);
+
+            var background = root.AddComponent<Image>();
+            var backgroundSprite = LoadSprite(backgroundSpritePath);
+            background.sprite = backgroundSprite;
+            background.preserveAspect = backgroundSprite != null;
+            background.color = backgroundSprite != null ? Color.white : new Color(0.05f, 0.55f, 0.95f, 0.88f);
+
+            var button = root.AddComponent<Button>();
+            button.targetGraphic = background;
+            button.transition = Selectable.Transition.ColorTint;
+            button.colors = CreateButtonColors();
+
+            var iconObject = new GameObject("Icon", typeof(RectTransform));
+            iconObject.transform.SetParent(root.transform, false);
+
+            var iconRect = iconObject.GetComponent<RectTransform>();
+            iconRect.anchorMin = new Vector2(0.5f, 0.5f);
+            iconRect.anchorMax = new Vector2(0.5f, 0.5f);
+            iconRect.pivot = new Vector2(0.5f, 0.5f);
+            iconRect.anchoredPosition = Vector2.zero;
+            iconRect.sizeDelta = new Vector2(48f, 48f);
+
+            var iconImage = iconObject.AddComponent<Image>();
+            iconImage.sprite = iconSprite;
+            iconImage.preserveAspect = true;
+            iconImage.color = Color.white;
+            iconImage.raycastTarget = false;
+
+            return root;
         }
 
         private void CreateSettlementPanel(Transform parent)
@@ -1719,6 +1841,153 @@ namespace LeiTing.UI
             text.raycastTarget = false;
         }
 
+        private static Sprite GetPauseIconSprite()
+        {
+            if (pauseIconSprite == null)
+            {
+                pauseIconSprite = CreatePauseIconSprite();
+            }
+
+            return pauseIconSprite;
+        }
+
+        private static Sprite GetResumeIconSprite()
+        {
+            if (resumeIconSprite == null)
+            {
+                resumeIconSprite = CreateResumeIconSprite();
+            }
+
+            return resumeIconSprite;
+        }
+
+        private static Sprite GetExitIconSprite()
+        {
+            if (exitIconSprite == null)
+            {
+                exitIconSprite = CreateExitIconSprite();
+            }
+
+            return exitIconSprite;
+        }
+
+        private static Sprite CreatePauseIconSprite()
+        {
+            const int size = 64;
+            var texture = CreateClearIconTexture(size);
+
+            for (var y = 14; y <= 50; y++)
+            {
+                for (var x = 18; x <= 46; x++)
+                {
+                    if (x >= 18 && x <= 28 || x >= 36 && x <= 46)
+                    {
+                        texture.SetPixel(x, y, Color.white);
+                    }
+                }
+            }
+
+            texture.Apply();
+            return Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
+        }
+
+        private static Sprite CreateResumeIconSprite()
+        {
+            const int size = 64;
+            var texture = CreateClearIconTexture(size);
+            var a = new Vector2(22f, 14f);
+            var b = new Vector2(22f, 50f);
+            var c = new Vector2(50f, 32f);
+
+            for (var y = 0; y < size; y++)
+            {
+                for (var x = 0; x < size; x++)
+                {
+                    if (IsPointInTriangle(new Vector2(x + 0.5f, y + 0.5f), a, b, c))
+                    {
+                        texture.SetPixel(x, y, Color.white);
+                    }
+                }
+            }
+
+            texture.Apply();
+            return Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
+        }
+
+        private static Sprite CreateExitIconSprite()
+        {
+            const int size = 64;
+            const float lineWidth = 4.8f;
+            var texture = CreateClearIconTexture(size);
+            var a = new Vector2(18f, 18f);
+            var b = new Vector2(46f, 46f);
+            var c = new Vector2(46f, 18f);
+            var d = new Vector2(18f, 46f);
+
+            for (var y = 0; y < size; y++)
+            {
+                for (var x = 0; x < size; x++)
+                {
+                    var point = new Vector2(x + 0.5f, y + 0.5f);
+                    if (DistanceToSegment(point, a, b) <= lineWidth
+                        || DistanceToSegment(point, c, d) <= lineWidth)
+                    {
+                        texture.SetPixel(x, y, Color.white);
+                    }
+                }
+            }
+
+            texture.Apply();
+            return Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
+        }
+
+        private static Texture2D CreateClearIconTexture(int size)
+        {
+            var texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
+            texture.filterMode = FilterMode.Bilinear;
+            texture.wrapMode = TextureWrapMode.Clamp;
+
+            var clear = new Color(1f, 1f, 1f, 0f);
+            for (var y = 0; y < size; y++)
+            {
+                for (var x = 0; x < size; x++)
+                {
+                    texture.SetPixel(x, y, clear);
+                }
+            }
+
+            return texture;
+        }
+
+        private static bool IsPointInTriangle(Vector2 point, Vector2 a, Vector2 b, Vector2 c)
+        {
+            var sign1 = Sign(point, a, b);
+            var sign2 = Sign(point, b, c);
+            var sign3 = Sign(point, c, a);
+            var hasNegative = sign1 < 0f || sign2 < 0f || sign3 < 0f;
+            var hasPositive = sign1 > 0f || sign2 > 0f || sign3 > 0f;
+            return !(hasNegative && hasPositive);
+        }
+
+        private static float Sign(Vector2 p1, Vector2 p2, Vector2 p3)
+        {
+            return (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y);
+        }
+
+        private static float DistanceToSegment(Vector2 point, Vector2 start, Vector2 end)
+        {
+            var segment = end - start;
+            var lengthSquared = segment.sqrMagnitude;
+            if (lengthSquared <= 0.0001f)
+            {
+                return Vector2.Distance(point, start);
+            }
+
+            var t = Mathf.Clamp01(Vector2.Dot(point - start, segment) / lengthSquared);
+            var projection = start + segment * t;
+            return Vector2.Distance(point, projection);
+        }
+
         private void CreateBossHud(Transform parent)
         {
             bossHudRoot = new GameObject("BossHud", typeof(RectTransform));
@@ -1917,38 +2186,13 @@ namespace LeiTing.UI
 
         private void UpdateHud()
         {
-            if (hudText == null && scoreText == null)
+            if (scoreText == null)
             {
                 return;
             }
 
-            var player = FindObjectOfType<PlayerController>();
-            var hp = player != null ? player.CurrentHp : 0;
-            var stars = player != null ? player.CurrentStars : 0;
-            var coins = player != null ? player.CurrentCoins : 0;
             var score = GameManager.Instance != null ? GameManager.Instance.Score : 0;
-            var levelText = GameManager.Instance != null
-                ? $"LEVEL {GameManager.Instance.CurrentLevelNumber}/{GameManager.Instance.MaxLevelCount}"
-                : "LEVEL -";
-
-            if (scoreText != null)
-            {
-                scoreText.text = $"SCORE {score}";
-            }
-
-            if (hudText == null)
-            {
-                return;
-            }
-
-            var showBulletTimeHud = BattleTimeController.Instance != null && BattleTimeController.Instance.IsBulletTimeActive;
-            hudText.enabled = showBulletTimeHud;
-            if (!showBulletTimeHud)
-            {
-                return;
-            }
-
-            hudText.text = $"{levelText}\nHP {hp}\nSTAR {stars}\nCOIN {coins}";
+            scoreText.text = $"SCORE {score}";
         }
 
         private void UpdateBattleHudSafeAreaLayout()
@@ -1981,8 +2225,198 @@ namespace LeiTing.UI
                 }
             }
 
+            UpdateBattleControlButtons();
+            UpdateBattleCornerButtonLayout();
             UpdateDefeatBackButtonLayout();
         }
+
+        private void UpdateBattleControlButtons()
+        {
+            var state = GameManager.Instance != null ? GameManager.Instance.CurrentState : GameState.Boot;
+            var inReleasedBulletTime = BattleTimeController.Instance != null && BattleTimeController.Instance.IsBulletTimeActive;
+            var showButtons = (state == GameState.Playing || state == GameState.Paused || battlePaused) &&
+                inReleasedBulletTime;
+
+            SetButtonVisible(exitButtonRoot, exitButton, showButtons);
+            SetButtonVisible(pauseButtonRoot, pauseButton, showButtons);
+
+            if (!showButtons && battlePaused)
+            {
+                SetBattlePaused(false);
+            }
+
+            UpdatePauseButtonVisual();
+        }
+
+        private void UpdateBattleCornerButtonLayout()
+        {
+            var topOffset = GetBattleCornerButtonTopOffset();
+
+            if (pauseButtonRect != null)
+            {
+                pauseButtonRect.anchorMin = new Vector2(0f, 1f);
+                pauseButtonRect.anchorMax = new Vector2(0f, 1f);
+                pauseButtonRect.pivot = new Vector2(0f, 1f);
+                pauseButtonRect.anchoredPosition = new Vector2(BattleCornerButtonSideMargin, -topOffset);
+                pauseButtonRect.sizeDelta = new Vector2(BattleCornerButtonSize, BattleCornerButtonSize);
+            }
+
+            if (exitButtonRect != null)
+            {
+                exitButtonRect.anchorMin = new Vector2(1f, 1f);
+                exitButtonRect.anchorMax = new Vector2(1f, 1f);
+                exitButtonRect.pivot = new Vector2(1f, 1f);
+                exitButtonRect.anchoredPosition = new Vector2(-BattleCornerButtonSideMargin, -topOffset);
+                exitButtonRect.sizeDelta = new Vector2(BattleCornerButtonSize, BattleCornerButtonSize);
+            }
+        }
+
+        private float GetBattleCornerButtonTopOffset()
+        {
+            var topOffset = BattleCornerButtonFallbackTopOffset;
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+            try
+            {
+                var menuButtonLayout = TT.GetMenuButtonLayout();
+                var menuBottom = ReadJsonNumber(menuButtonLayout, "bottom", 0f);
+                var screenHeight = GetDouyinScreenHeight();
+                var canvasHeight = GetCanvasHeight();
+
+                if (menuBottom > 0f && screenHeight > 0f && canvasHeight > 0f)
+                {
+                    topOffset = Mathf.Max(
+                        topOffset,
+                        menuBottom / screenHeight * canvasHeight + BattleCornerButtonMenuPadding);
+                }
+            }
+            catch (Exception exception)
+            {
+                Debug.LogWarning($"[BattleHud] Failed to read Douyin menu button layout: {exception.Message}");
+            }
+#endif
+
+            return topOffset;
+        }
+
+        private void ToggleBattlePause()
+        {
+            SetBattlePaused(!battlePaused);
+        }
+
+        private void SetBattlePaused(bool paused)
+        {
+            if (paused)
+            {
+                var inReleasedBulletTime = BattleTimeController.Instance != null && BattleTimeController.Instance.IsBulletTimeActive;
+                if (battlePaused || !inReleasedBulletTime || GameManager.Instance == null || GameManager.Instance.CurrentState != GameState.Playing)
+                {
+                    return;
+                }
+
+                battlePausePreviousTimeScale = Time.timeScale > 0f ? Time.timeScale : 1f;
+                battlePausePreviousFixedDeltaTime = Time.fixedDeltaTime > 0f ? Time.fixedDeltaTime : 0.02f;
+                GameManager.Instance.PauseGame();
+                Time.timeScale = 0f;
+                Time.fixedDeltaTime = 0f;
+                battlePaused = true;
+                UpdatePauseButtonVisual();
+                return;
+            }
+
+            if (!battlePaused)
+            {
+                return;
+            }
+
+            battlePaused = false;
+            GameManager.Instance?.ResumeGame();
+            Time.timeScale = battlePausePreviousTimeScale > 0f ? battlePausePreviousTimeScale : 1f;
+            Time.fixedDeltaTime = battlePausePreviousFixedDeltaTime > 0f ? battlePausePreviousFixedDeltaTime : 0.02f;
+            UpdatePauseButtonVisual();
+        }
+
+        private void ResetBattlePauseState(bool resetTimeScale)
+        {
+            if (battlePaused)
+            {
+                GameManager.Instance?.ResumeGame();
+            }
+
+            battlePaused = false;
+            if (resetTimeScale)
+            {
+                Time.timeScale = 1f;
+                Time.fixedDeltaTime = battlePausePreviousFixedDeltaTime > 0f ? battlePausePreviousFixedDeltaTime : 0.02f;
+            }
+
+            UpdatePauseButtonVisual();
+        }
+
+        private void UpdatePauseButtonVisual()
+        {
+            if (pauseButtonIcon != null)
+            {
+                pauseButtonIcon.sprite = battlePaused ? GetResumeIconSprite() : GetPauseIconSprite();
+            }
+        }
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+        private static float GetDouyinScreenHeight()
+        {
+            try
+            {
+                var systemInfo = TT.GetSystemInfo();
+                if (systemInfo.screenHeight > 0)
+                {
+                    return systemInfo.screenHeight;
+                }
+            }
+            catch (Exception exception)
+            {
+                Debug.LogWarning($"[BattleHud] Failed to read Douyin system info: {exception.Message}");
+            }
+
+            return Screen.height > 0 ? Screen.height : 1920f;
+        }
+
+        private static float ReadJsonNumber(JsonData data, string key, float fallback)
+        {
+            if (data == null || !data.IsObject || string.IsNullOrEmpty(key) || !data.ContainsKey(key))
+            {
+                return fallback;
+            }
+
+            var value = data[key];
+            if (value == null)
+            {
+                return fallback;
+            }
+
+            if (value.IsDouble)
+            {
+                return (float)(double)value;
+            }
+
+            if (value.IsInt)
+            {
+                return (int)value;
+            }
+
+            if (value.IsLong)
+            {
+                return (long)value;
+            }
+
+            if (value.IsString
+                && float.TryParse((string)value, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed))
+            {
+                return parsed;
+            }
+
+            return fallback;
+        }
+#endif
 
         private float GetCanvasHeight()
         {
@@ -2226,6 +2660,8 @@ namespace LeiTing.UI
 
         private static void ReturnToLobby()
         {
+            Instance?.ResetBattlePauseState(true);
+            BattleTimeController.Instance?.ResetTimeScaleForSceneExit();
             SetVictorySlowMotionActive(false);
             GameSceneManager.GetOrCreate().EnterLobby();
         }
