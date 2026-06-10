@@ -33,8 +33,8 @@ namespace LeiTing.UI
         private const string VictorySettlementPrefabPath = "Assets/Prefabs/UI/UIVictorySettlement.prefab";
         private const string VictoryContinueSpritePath = "Assets/Art/Sprites/UI/btnNext.png";
         private const string UiSpriteFolderPath = "Assets/Art/Sprites/UI";
-        private const string BattleButtonBackgroundSpritePath = "Assets/Art/Sprites/UI/btnMenu.png";
-        private const string BattleExitButtonBackgroundSpritePath = "Assets/Art/Sprites/UI/btnClose.png";
+        private const string BattlePauseButtonSpritePath = "Assets/Art/Sprites/UI/btnPause.png";
+        private const string BattleExitButtonSpritePath = "Assets/Art/Sprites/UI/btnExit.png";
         private const string WinUiSpriteFolderPath = UiSpriteFolderPath + "/win";
         private const float MissionCompleteAnimationSpeed = 0.58f;
         private const float VictoryContinueButtonBottomOffset = 64f;
@@ -42,10 +42,6 @@ namespace LeiTing.UI
         private const float FallbackVictorySettlementContinueBottomOffset = VictorySettlementButtonRowY - 63f;
 
         private static readonly Color BossHealthColor = new Color32(0x86, 0x28, 0x00, 0xFF);
-
-        private static Sprite pauseIconSprite;
-        private static Sprite resumeIconSprite;
-        private static Sprite exitIconSprite;
 
         private readonly Dictionary<UIPageType, BasePage> pageInstances = new Dictionary<UIPageType, BasePage>();
         private readonly Stack<BasePopup> popupStack = new Stack<BasePopup>();
@@ -86,7 +82,6 @@ namespace LeiTing.UI
         private RectTransform exitButtonRect;
         private Button pauseButton;
         private Button exitButton;
-        private Image pauseButtonIcon;
         private GameObject settlementRoot;
         private Image settlementPanelImage;
         private RectTransform settlementTitleRect;
@@ -1463,18 +1458,15 @@ namespace LeiTing.UI
             pauseButtonRoot = CreateBattleCornerButton(
                 parent,
                 "BattlePauseButton",
-                BattleButtonBackgroundSpritePath,
-                GetPauseIconSprite());
+                BattlePauseButtonSpritePath);
             pauseButtonRect = pauseButtonRoot.GetComponent<RectTransform>();
             pauseButton = pauseButtonRoot.GetComponent<Button>();
-            pauseButtonIcon = pauseButtonRoot.transform.Find("Icon")?.GetComponent<Image>();
             pauseButton.onClick.AddListener(ToggleBattlePause);
 
             exitButtonRoot = CreateBattleCornerButton(
                 parent,
                 "BattleExitButton",
-                BattleExitButtonBackgroundSpritePath,
-                GetExitIconSprite());
+                BattleExitButtonSpritePath);
             exitButtonRect = exitButtonRoot.GetComponent<RectTransform>();
             exitButton = exitButtonRoot.GetComponent<Button>();
             exitButton.onClick.AddListener(ReturnToLobby);
@@ -1486,8 +1478,7 @@ namespace LeiTing.UI
         private static GameObject CreateBattleCornerButton(
             Transform parent,
             string name,
-            string backgroundSpritePath,
-            Sprite iconSprite)
+            string spritePath)
         {
             var root = new GameObject(name, typeof(RectTransform));
             root.transform.SetParent(parent, false);
@@ -1495,32 +1486,16 @@ namespace LeiTing.UI
             var rect = root.GetComponent<RectTransform>();
             rect.sizeDelta = new Vector2(BattleCornerButtonSize, BattleCornerButtonSize);
 
-            var background = root.AddComponent<Image>();
-            var backgroundSprite = LoadSprite(backgroundSpritePath);
-            background.sprite = backgroundSprite;
-            background.preserveAspect = backgroundSprite != null;
-            background.color = backgroundSprite != null ? Color.white : new Color(0.05f, 0.55f, 0.95f, 0.88f);
+            var buttonImage = root.AddComponent<Image>();
+            var buttonSprite = LoadSprite(spritePath);
+            buttonImage.sprite = buttonSprite;
+            buttonImage.preserveAspect = buttonSprite != null;
+            buttonImage.color = buttonSprite != null ? Color.white : new Color(0.05f, 0.55f, 0.95f, 0.88f);
 
             var button = root.AddComponent<Button>();
-            button.targetGraphic = background;
+            button.targetGraphic = buttonImage;
             button.transition = Selectable.Transition.ColorTint;
             button.colors = CreateButtonColors();
-
-            var iconObject = new GameObject("Icon", typeof(RectTransform));
-            iconObject.transform.SetParent(root.transform, false);
-
-            var iconRect = iconObject.GetComponent<RectTransform>();
-            iconRect.anchorMin = new Vector2(0.5f, 0.5f);
-            iconRect.anchorMax = new Vector2(0.5f, 0.5f);
-            iconRect.pivot = new Vector2(0.5f, 0.5f);
-            iconRect.anchoredPosition = Vector2.zero;
-            iconRect.sizeDelta = new Vector2(48f, 48f);
-
-            var iconImage = iconObject.AddComponent<Image>();
-            iconImage.sprite = iconSprite;
-            iconImage.preserveAspect = true;
-            iconImage.color = Color.white;
-            iconImage.raycastTarget = false;
 
             return root;
         }
@@ -1864,153 +1839,6 @@ namespace LeiTing.UI
             text.alignment = TextAnchor.MiddleCenter;
             text.color = Color.white;
             text.raycastTarget = false;
-        }
-
-        private static Sprite GetPauseIconSprite()
-        {
-            if (pauseIconSprite == null)
-            {
-                pauseIconSprite = CreatePauseIconSprite();
-            }
-
-            return pauseIconSprite;
-        }
-
-        private static Sprite GetResumeIconSprite()
-        {
-            if (resumeIconSprite == null)
-            {
-                resumeIconSprite = CreateResumeIconSprite();
-            }
-
-            return resumeIconSprite;
-        }
-
-        private static Sprite GetExitIconSprite()
-        {
-            if (exitIconSprite == null)
-            {
-                exitIconSprite = CreateExitIconSprite();
-            }
-
-            return exitIconSprite;
-        }
-
-        private static Sprite CreatePauseIconSprite()
-        {
-            const int size = 64;
-            var texture = CreateClearIconTexture(size);
-
-            for (var y = 14; y <= 50; y++)
-            {
-                for (var x = 18; x <= 46; x++)
-                {
-                    if (x >= 18 && x <= 28 || x >= 36 && x <= 46)
-                    {
-                        texture.SetPixel(x, y, Color.white);
-                    }
-                }
-            }
-
-            texture.Apply();
-            return Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
-        }
-
-        private static Sprite CreateResumeIconSprite()
-        {
-            const int size = 64;
-            var texture = CreateClearIconTexture(size);
-            var a = new Vector2(22f, 14f);
-            var b = new Vector2(22f, 50f);
-            var c = new Vector2(50f, 32f);
-
-            for (var y = 0; y < size; y++)
-            {
-                for (var x = 0; x < size; x++)
-                {
-                    if (IsPointInTriangle(new Vector2(x + 0.5f, y + 0.5f), a, b, c))
-                    {
-                        texture.SetPixel(x, y, Color.white);
-                    }
-                }
-            }
-
-            texture.Apply();
-            return Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
-        }
-
-        private static Sprite CreateExitIconSprite()
-        {
-            const int size = 64;
-            const float lineWidth = 4.8f;
-            var texture = CreateClearIconTexture(size);
-            var a = new Vector2(18f, 18f);
-            var b = new Vector2(46f, 46f);
-            var c = new Vector2(46f, 18f);
-            var d = new Vector2(18f, 46f);
-
-            for (var y = 0; y < size; y++)
-            {
-                for (var x = 0; x < size; x++)
-                {
-                    var point = new Vector2(x + 0.5f, y + 0.5f);
-                    if (DistanceToSegment(point, a, b) <= lineWidth
-                        || DistanceToSegment(point, c, d) <= lineWidth)
-                    {
-                        texture.SetPixel(x, y, Color.white);
-                    }
-                }
-            }
-
-            texture.Apply();
-            return Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
-        }
-
-        private static Texture2D CreateClearIconTexture(int size)
-        {
-            var texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
-            texture.filterMode = FilterMode.Bilinear;
-            texture.wrapMode = TextureWrapMode.Clamp;
-
-            var clear = new Color(1f, 1f, 1f, 0f);
-            for (var y = 0; y < size; y++)
-            {
-                for (var x = 0; x < size; x++)
-                {
-                    texture.SetPixel(x, y, clear);
-                }
-            }
-
-            return texture;
-        }
-
-        private static bool IsPointInTriangle(Vector2 point, Vector2 a, Vector2 b, Vector2 c)
-        {
-            var sign1 = Sign(point, a, b);
-            var sign2 = Sign(point, b, c);
-            var sign3 = Sign(point, c, a);
-            var hasNegative = sign1 < 0f || sign2 < 0f || sign3 < 0f;
-            var hasPositive = sign1 > 0f || sign2 > 0f || sign3 > 0f;
-            return !(hasNegative && hasPositive);
-        }
-
-        private static float Sign(Vector2 p1, Vector2 p2, Vector2 p3)
-        {
-            return (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y);
-        }
-
-        private static float DistanceToSegment(Vector2 point, Vector2 start, Vector2 end)
-        {
-            var segment = end - start;
-            var lengthSquared = segment.sqrMagnitude;
-            if (lengthSquared <= 0.0001f)
-            {
-                return Vector2.Distance(point, start);
-            }
-
-            var t = Mathf.Clamp01(Vector2.Dot(point - start, segment) / lengthSquared);
-            var projection = start + segment * t;
-            return Vector2.Distance(point, projection);
         }
 
         private void CreateBossHud(Transform parent)
@@ -2380,10 +2208,7 @@ namespace LeiTing.UI
 
         private void UpdatePauseButtonVisual()
         {
-            if (pauseButtonIcon != null)
-            {
-                pauseButtonIcon.sprite = battlePaused ? GetResumeIconSprite() : GetPauseIconSprite();
-            }
+            // The battle pause button uses its authored sprite directly.
         }
 
 #if UNITY_WEBGL && !UNITY_EDITOR

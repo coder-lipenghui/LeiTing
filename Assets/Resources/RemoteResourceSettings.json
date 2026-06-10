@@ -1,7 +1,7 @@
 {
     "enabled": true,
     "simulateInEditor": false,
-    "editorResourceMode": "CDN",
+    "editorResourceMode": "Local",
     "cdnBaseUrl": "https://xyx-1392619530.cos.ap-shanghai.myqcloud.com/lingyun/",
     "localBundleRoot": "CDNResources/WebGL",
     "version": "20260610040203",

@@ -3,9 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
-#if UNITY_WEBGL && !UNITY_EDITOR
-using TTSDK;
-#endif
 
 namespace LeiTing.Core
 {
@@ -250,13 +247,9 @@ namespace LeiTing.Core
 
         private static UnityWebRequest CreateBundleRequest(string url, uint crc)
         {
-#if UNITY_WEBGL && !UNITY_EDITOR
-            return TTAssetBundle.GetAssetBundle(url, crc);
-#else
             return crc != 0
                 ? UnityWebRequestAssetBundle.GetAssetBundle(url, crc)
                 : UnityWebRequestAssetBundle.GetAssetBundle(url);
-#endif
         }
 
         private static uint ToCrc(long crc)
@@ -271,12 +264,7 @@ namespace LeiTing.Core
 
         private static AssetBundle GetAssetBundle(UnityWebRequest request)
         {
-#if UNITY_WEBGL && !UNITY_EDITOR
-            var ttHandler = request.downloadHandler as DownloadHandlerTTAssetBundle;
-            return ttHandler != null ? ttHandler.assetBundle : null;
-#else
             return DownloadHandlerAssetBundle.GetContent(request);
-#endif
         }
 
         private static void UnloadLoadedBundles(bool unloadAllLoadedObjects)
@@ -288,11 +276,7 @@ namespace LeiTing.Core
                     continue;
                 }
 
-#if UNITY_WEBGL && !UNITY_EDITOR
-                loadedBundle.bundle.TTUnload(unloadAllLoadedObjects);
-#else
                 loadedBundle.bundle.Unload(unloadAllLoadedObjects);
-#endif
             }
 
             loadedBundles.Clear();
