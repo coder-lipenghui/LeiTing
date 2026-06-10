@@ -223,7 +223,7 @@ namespace LeiTing.UI
                 levels = fallbackConfig.levels;
             }
 
-            if (levels == null || levels.Count == 0)
+            if ((levels == null || levels.Count == 0) && RuntimeRemoteResourceManager.CanUseResourcesFallback)
             {
                 levels = LoadLevelsDirectlyFromResources();
             }

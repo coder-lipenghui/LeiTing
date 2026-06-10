@@ -51,6 +51,9 @@ namespace LeiTing.Core
         private static float lastProgress;
         private static string lastStatus = string.Empty;
         private static string lastError = string.Empty;
+        private static string lastRuntimeAssetLoadError = string.Empty;
+
+        public static event Action<string> RuntimeAssetLoadFailed;
 
         public static bool NeedsStartupDownload => ShouldUseRemoteBundles && state != LoadState.Ready;
 
@@ -76,6 +79,8 @@ namespace LeiTing.Core
 
         public static bool RequiresRemoteAssetLoad => ShouldUseRemoteBundles;
 
+        public static bool CanUseResourcesFallback => !RequiresRemoteAssetLoad;
+
         public static bool ClearLocalCache(bool unloadAllLoadedObjects = true)
         {
             if (state == LoadState.Loading)
@@ -89,7 +94,11 @@ namespace LeiTing.Core
             lastProgress = 0f;
             lastStatus = string.Empty;
             lastError = string.Empty;
+            lastRuntimeAssetLoadError = string.Empty;
 
+#if UNITY_WEBGL && !UNITY_EDITOR
+            return true;
+#else
             var cleared = Caching.ClearCache();
             if (!cleared)
             {
@@ -97,6 +106,7 @@ namespace LeiTing.Core
             }
 
             return cleared;
+#endif
         }
 
         public static IEnumerator EnsureReady(Action<float, string> onProgress, Action<bool, string> onComplete = null)
@@ -188,7 +198,7 @@ namespace LeiTing.Core
         public static TAsset LoadAsset<TAsset>(string bundleName, string assetName)
             where TAsset : UnityEngine.Object
         {
-            if (string.IsNullOrWhiteSpace(assetName) || !IsReady || loadedBundles.Count == 0)
+            if (string.IsNullOrWhiteSpace(assetName))
             {
                 return null;
             }
@@ -196,24 +206,44 @@ namespace LeiTing.Core
             var resolvedBundleName = !string.IsNullOrWhiteSpace(bundleName)
                 ? bundleName
                 : RemoteResourceSettings.DefaultBundleName;
+            if (!IsReady)
+            {
+                ReportRuntimeAssetLoadFailure($"CDN asset requested before resources were ready: {resolvedBundleName}/{assetName}");
+                return null;
+            }
+
+            if (loadedBundles.Count == 0)
+            {
+                ReportRuntimeAssetLoadFailure($"CDN asset bundle cache is empty while loading: {resolvedBundleName}/{assetName}");
+                return null;
+            }
+
             if (!loadedBundles.TryGetValue(resolvedBundleName, out var loadedBundle) || loadedBundle?.bundle == null)
             {
+                ReportRuntimeAssetLoadFailure($"CDN asset bundle is not loaded: {resolvedBundleName}");
                 return null;
             }
 
             var resolvedAssetName = ResolveAssetName(loadedBundle, assetName);
             if (string.IsNullOrWhiteSpace(resolvedAssetName))
             {
+                ReportRuntimeAssetLoadFailure($"CDN asset is missing from bundle {resolvedBundleName}: {assetName}");
                 return null;
             }
 
             try
             {
-                return loadedBundle.bundle.LoadAsset<TAsset>(resolvedAssetName);
+                var asset = loadedBundle.bundle.LoadAsset<TAsset>(resolvedAssetName);
+                if (asset == null)
+                {
+                    ReportRuntimeAssetLoadFailure($"CDN asset returned null: {resolvedBundleName}/{resolvedAssetName}");
+                }
+
+                return asset;
             }
             catch (Exception exception)
             {
-                Debug.LogError($"Remote asset load failed: {resolvedBundleName}/{resolvedAssetName}. {exception.Message}");
+                ReportRuntimeAssetLoadFailure($"CDN asset load failed: {resolvedBundleName}/{resolvedAssetName}. {exception.Message}");
                 return null;
             }
         }
@@ -309,6 +339,23 @@ namespace LeiTing.Core
             Debug.LogError(message);
             ReportProgress(onProgress, lastProgress, "FAILED");
             onComplete?.Invoke(false, message);
+        }
+
+        public static void ReportRuntimeAssetLoadFailure(string message)
+        {
+            if (!RequiresRemoteAssetLoad || string.IsNullOrWhiteSpace(message))
+            {
+                return;
+            }
+
+            Debug.LogError(message);
+            if (string.Equals(lastRuntimeAssetLoadError, message, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            lastRuntimeAssetLoadError = message;
+            RuntimeAssetLoadFailed?.Invoke(message);
         }
     }
 }

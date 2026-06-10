@@ -623,14 +623,14 @@ namespace LeiTing.Pickups
         {
             if (player == null)
             {
-                ResetTrophyHold();
+                SuspendTrophyHold();
                 return;
             }
 
             var distance = Vector3.Distance(transform.position, player.transform.position);
             if (distance > GetCollectDistance(player))
             {
-                ResetTrophyHold();
+                SuspendTrophyHold();
                 return;
             }
 
@@ -643,9 +643,8 @@ namespace LeiTing.Pickups
             }
         }
 
-        private void ResetTrophyHold()
+        private void SuspendTrophyHold()
         {
-            trophyHoldElapsed = 0f;
             HideTrophyHoldVisuals();
         }
 
@@ -847,8 +846,13 @@ namespace LeiTing.Pickups
             }
 #endif
 
-            return RuntimeAssetCatalog.LoadSprite(config.spritePath)
-                ?? Resources.Load<Sprite>(NormalizeResourcesPath(config.spritePath));
+            var catalogSprite = RuntimeAssetCatalog.LoadSprite(config.spritePath);
+            if (catalogSprite != null || !RuntimeRemoteResourceManager.CanUseResourcesFallback)
+            {
+                return catalogSprite;
+            }
+
+            return Resources.Load<Sprite>(NormalizeResourcesPath(config.spritePath));
         }
 
 #if UNITY_EDITOR

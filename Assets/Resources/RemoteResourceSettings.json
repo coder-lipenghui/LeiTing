@@ -4,14 +4,14 @@
     "editorResourceMode": "CDN",
     "cdnBaseUrl": "https://xyx-1392619530.cos.ap-shanghai.myqcloud.com/lingyun/",
     "localBundleRoot": "CDNResources/WebGL",
-    "version": "20260609070032",
+    "version": "20260610040203",
     "bundles": [
         {
             "name": "leiting_runtime_assets",
-            "fileName": "leiting_runtime_assets_4fa9a9b35c4e4559b78611c4dd5ef8c5",
-            "hash": "4fa9a9b35c4e4559b78611c4dd5ef8c5",
-            "crc": 284926933,
-            "size": 24324822
+            "fileName": "leiting_runtime_assets_805820e7e9836e200352d125b9a1decc",
+            "hash": "805820e7e9836e200352d125b9a1decc",
+            "crc": 1907335714,
+            "size": 24321276
         }
     ]
 }

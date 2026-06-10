@@ -129,6 +129,7 @@ namespace LeiTing.UI
                 return;
             }
 
+            RuntimeRemoteResourceManager.RuntimeAssetLoadFailed += OnRuntimeAssetLoadFailed;
             EnsureEventSystem();
 
             if (GameSceneManager.IsBattleSceneName(SceneManager.GetActiveScene().name))
@@ -138,6 +139,14 @@ namespace LeiTing.UI
             else
             {
                 Init();
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (Instance == this)
+            {
+                RuntimeRemoteResourceManager.RuntimeAssetLoadFailed -= OnRuntimeAssetLoadFailed;
             }
         }
 
@@ -224,6 +233,14 @@ namespace LeiTing.UI
 
             Debug.LogError($"CDN resource loading failed. Game UI will not open. {message}");
             downloadView?.ShowRetry(message, StartRemoteResourceInit);
+        }
+
+        private void OnRuntimeAssetLoadFailed(string message)
+        {
+            Debug.LogError($"CDN runtime asset loading failed. {message}");
+            downloadView?.Destroy();
+            downloadView = RuntimeResourceDownloadView.Create();
+            downloadView.ShowError(message);
         }
 
         private bool IsMainUiReady()
@@ -1073,6 +1090,11 @@ namespace LeiTing.UI
                 return catalogPrefab;
             }
 
+            if (!RuntimeRemoteResourceManager.CanUseResourcesFallback)
+            {
+                return null;
+            }
+
             return Resources.Load<GameObject>(ToResourcesPath(prefabPath));
         }
 
@@ -1257,10 +1279,13 @@ namespace LeiTing.UI
             }
 
             GameObject popupObject = null;
-            var prefab = Resources.Load<GameObject>(config.prefabPath);
-            if (prefab != null)
+            if (RuntimeRemoteResourceManager.CanUseResourcesFallback)
             {
-                popupObject = Instantiate(prefab, popupContainer);
+                var prefab = Resources.Load<GameObject>(config.prefabPath);
+                if (prefab != null)
+                {
+                    popupObject = Instantiate(prefab, popupContainer);
+                }
             }
 
             if (popupObject == null)

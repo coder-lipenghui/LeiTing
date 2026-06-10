@@ -118,8 +118,7 @@ namespace LeiTing.Audio
             }
 
 #if UNITY_EDITOR
-            if (RuntimeRemoteResourceManager.CanUseEditorLocalAssets
-                && clipPath.StartsWith("Assets/", System.StringComparison.OrdinalIgnoreCase))
+            if (clipPath.StartsWith("Assets/", System.StringComparison.OrdinalIgnoreCase))
             {
                 var editorClip = AssetDatabase.LoadAssetAtPath<AudioClip>(clipPath);
                 if (editorClip != null)
@@ -129,8 +128,13 @@ namespace LeiTing.Audio
             }
 #endif
 
-            return RuntimeAssetCatalog.LoadAudioClip(clipPath)
-                ?? Resources.Load<AudioClip>(NormalizeResourcesPath(clipPath));
+            var catalogClip = RuntimeAssetCatalog.LoadAudioClip(clipPath);
+            if (catalogClip != null || !RuntimeRemoteResourceManager.CanUseResourcesFallback)
+            {
+                return catalogClip;
+            }
+
+            return Resources.Load<AudioClip>(NormalizeResourcesPath(clipPath));
         }
 
         private static string NormalizeResourcesPath(string assetPath)

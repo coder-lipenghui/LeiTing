@@ -186,8 +186,13 @@ namespace LeiTing.Enemy
             }
 #endif
 
-            return RuntimeAssetCatalog.LoadPrefab(enemyConfig.prefabPath)
-                ?? Resources.Load<GameObject>(NormalizeResourcesPath(enemyConfig.prefabPath));
+            var catalogPrefab = RuntimeAssetCatalog.LoadPrefab(enemyConfig.prefabPath);
+            if (catalogPrefab != null || !RuntimeRemoteResourceManager.CanUseResourcesFallback)
+            {
+                return catalogPrefab;
+            }
+
+            return Resources.Load<GameObject>(NormalizeResourcesPath(enemyConfig.prefabPath));
         }
 
         private static string NormalizeResourcesPath(string assetPath)

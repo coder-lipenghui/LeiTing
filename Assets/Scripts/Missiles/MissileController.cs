@@ -1287,8 +1287,13 @@ namespace LeiTing.Missiles
             }
 #endif
 
-            return RuntimeAssetCatalog.LoadSprite(spritePath)
-                ?? Resources.Load<Sprite>(NormalizeResourcesPath(spritePath));
+            var catalogSprite = RuntimeAssetCatalog.LoadSprite(spritePath);
+            if (catalogSprite != null || !RuntimeRemoteResourceManager.CanUseResourcesFallback)
+            {
+                return catalogSprite;
+            }
+
+            return Resources.Load<Sprite>(NormalizeResourcesPath(spritePath));
         }
 
         private static string NormalizeResourcesPath(string spritePath)

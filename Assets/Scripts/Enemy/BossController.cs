@@ -697,8 +697,13 @@ namespace LeiTing.Enemy
                 }
             }
 #endif
-            return RuntimeAssetCatalog.LoadSprite(bossSpritePath)
-                ?? Resources.Load<Sprite>("Enemies/BOSS-1");
+            var catalogSprite = RuntimeAssetCatalog.LoadSprite(bossSpritePath);
+            if (catalogSprite != null || !RuntimeRemoteResourceManager.CanUseResourcesFallback)
+            {
+                return catalogSprite;
+            }
+
+            return Resources.Load<Sprite>("Enemies/BOSS-1");
         }
 
         private SpriteRenderer ResolveSpriteRenderer()

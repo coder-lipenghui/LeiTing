@@ -13,6 +13,7 @@ namespace LeiTing.Editor
     public sealed class RemoteResourceBundleBuilder : IPreprocessBuildWithReport
     {
         private const string SettingsPath = "Assets/Resources/RemoteResourceSettings.json";
+        private const string BuildRemoteBundlesMenuPath = "LeiTing/Build/Build CDN Runtime Bundles";
 
         public int callbackOrder => -1100;
 
@@ -23,10 +24,10 @@ namespace LeiTing.Editor
                 return;
             }
 
-            BuildRemoteBundles(report.summary.platform);
+            ValidateRemoteBundleSettingsForPlayerBuild();
         }
 
-        [MenuItem("LeiTing/Build/Build CDN Runtime Bundles")]
+        [MenuItem(BuildRemoteBundlesMenuPath)]
         public static void BuildWebGLRemoteBundles()
         {
             BuildRemoteBundles(BuildTarget.WebGL);
@@ -39,6 +40,14 @@ namespace LeiTing.Editor
 
         public static void BuildRemoteBundles(BuildTarget buildTarget)
         {
+            if (IsPlayerBuildInProgress())
+            {
+                Debug.LogError(
+                    "Remote resource bundle build skipped because Unity is already building the player. "
+                    + $"Run {BuildRemoteBundlesMenuPath} before starting the Douyin WebGL build.");
+                return;
+            }
+
             var settings = LoadSettings();
             if (!settings.enabled)
             {
@@ -124,6 +133,53 @@ namespace LeiTing.Editor
             Debug.Log($"Remote resource bundle built: {hashedBundlePath} ({bundleSize} bytes, {assetPaths.Length} assets). Upload this file to the CDN base url configured in {SettingsPath}.");
         }
 
+        private static void ValidateRemoteBundleSettingsForPlayerBuild()
+        {
+            var settings = LoadSettings();
+            if (!settings.enabled)
+            {
+                return;
+            }
+
+            if (!settings.HasBundles)
+            {
+                throw new BuildFailedException(
+                    "Remote resource build is enabled, but no CDN runtime bundle is registered. "
+                    + $"Unity cannot build AssetBundles from a player-build preprocessor; run {BuildRemoteBundlesMenuPath} before starting the Douyin WebGL build.");
+            }
+
+            var outputDirectory = ResolveOutputDirectory(settings);
+            foreach (var bundle in settings.bundles)
+            {
+                if (bundle == null)
+                {
+                    throw new BuildFailedException(
+                        "Remote resource build is enabled, but RemoteResourceSettings contains an empty bundle entry. "
+                        + $"Run {BuildRemoteBundlesMenuPath} before starting the Douyin WebGL build.");
+                }
+
+                var bundleName = !string.IsNullOrWhiteSpace(bundle.name)
+                    ? bundle.name
+                    : RemoteResourceSettings.DefaultBundleName;
+                var fileName = !string.IsNullOrWhiteSpace(bundle.fileName)
+                    ? bundle.fileName
+                    : bundle.name;
+                if (string.IsNullOrWhiteSpace(fileName))
+                {
+                    throw new BuildFailedException(
+                        $"Remote bundle {bundleName} has no fileName. Run {BuildRemoteBundlesMenuPath} before starting the Douyin WebGL build.");
+                }
+
+                var localBundlePath = Path.Combine(outputDirectory, fileName);
+                if (!File.Exists(localBundlePath))
+                {
+                    Debug.LogWarning(
+                        $"Remote bundle file was not found locally: {localBundlePath}. "
+                        + "The player build can continue if this exact bundle has already been uploaded to the configured CDN.");
+                }
+            }
+        }
+
         internal static RemoteResourceSettingsData LoadSettings()
         {
             if (!File.Exists(SettingsPath))
@@ -175,6 +231,14 @@ namespace LeiTing.Editor
 
             var projectRoot = Directory.GetParent(Application.dataPath)?.FullName ?? Application.dataPath;
             return Path.Combine(projectRoot, root);
+        }
+
+        private static bool IsPlayerBuildInProgress()
+        {
+            var property = typeof(BuildPipeline).GetProperty("isBuildingPlayer");
+            return property != null
+                && property.PropertyType == typeof(bool)
+                && (bool)property.GetValue(null, null);
         }
     }
 }

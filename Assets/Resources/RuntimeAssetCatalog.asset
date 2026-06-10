@@ -173,6 +173,10 @@ MonoBehaviour:
     bundleName: leiting_runtime_assets
     assetName: Assets/Prefabs/SplinePaths/level_path.prefab
     prefab: {fileID: 0}
+  - path: Assets/Prefabs/UI/SettingPage.prefab
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Prefabs/UI/SettingPage.prefab
+    prefab: {fileID: 0}
   - path: Assets/Prefabs/UI/UILobby.prefab
     bundleName: leiting_runtime_assets
     assetName: Assets/Prefabs/UI/UILobby.prefab

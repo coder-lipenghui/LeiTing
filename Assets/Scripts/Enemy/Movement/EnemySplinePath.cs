@@ -215,9 +215,14 @@ namespace LeiTing.Enemy.Movement
             }
 #endif
 
-            return RuntimeAssetCatalog.LoadPrefab(assetPath)
-                ?? RuntimeAssetCatalog.LoadPrefab(pathId)
-                ?? Resources.Load<GameObject>(NormalizeResourcesPath(assetPath))
+            var catalogPrefab = RuntimeAssetCatalog.LoadPrefab(assetPath)
+                ?? RuntimeAssetCatalog.LoadPrefab(pathId);
+            if (catalogPrefab != null || !RuntimeRemoteResourceManager.CanUseResourcesFallback)
+            {
+                return catalogPrefab;
+            }
+
+            return Resources.Load<GameObject>(NormalizeResourcesPath(assetPath))
                 ?? Resources.Load<GameObject>($"SplinePaths/{pathId}");
         }
 

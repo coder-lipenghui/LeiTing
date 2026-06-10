@@ -265,6 +265,37 @@ namespace LeiTing.UI
             SetErrorDialogVisible(true);
         }
 
+        public void ShowError(string message)
+        {
+            Debug.LogError($"CDN resource loading failed: {message}");
+
+            if (statusText != null)
+            {
+                statusText.text = "RESOURCE LOAD FAILED";
+            }
+
+            if (retryButton != null)
+            {
+                retryButton.gameObject.SetActive(false);
+            }
+
+            EnsureErrorDialog();
+            if (errorMessageText != null)
+            {
+                errorMessageText.text = string.IsNullOrWhiteSpace(message)
+                    ? "CDN resource loading failed. Please check CDN configuration and uploaded bundles."
+                    : message;
+            }
+
+            if (errorRetryButton != null)
+            {
+                errorRetryButton.onClick.RemoveAllListeners();
+                errorRetryButton.gameObject.SetActive(false);
+            }
+
+            SetErrorDialogVisible(true);
+        }
+
         public void Destroy()
         {
             if (root != null)

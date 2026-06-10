@@ -210,6 +210,20 @@ namespace LeiTing.Audio
                 yield break;
             }
 
+#if UNITY_EDITOR
+            if (RuntimeRemoteResourceManager.RequiresRemoteAssetLoad)
+            {
+                isBgmClipPreparing = false;
+                bgmStartCoroutine = null;
+                if (!bgmSource.mute && !bgmSource.isPlaying)
+                {
+                    StartBgm();
+                }
+
+                yield break;
+            }
+#endif
+
             if (clip.loadState == AudioDataLoadState.Unloaded)
             {
                 clip.LoadAudioData();
@@ -337,21 +351,34 @@ namespace LeiTing.Audio
         private static AudioClip LoadAudioClip(string clipPath)
         {
 #if UNITY_EDITOR
-            if (RuntimeRemoteResourceManager.CanUseEditorLocalAssets
-                && !string.IsNullOrEmpty(clipPath)
-                && clipPath.StartsWith("Assets/", System.StringComparison.OrdinalIgnoreCase))
+            var editorClip = LoadEditorAudioClip(clipPath);
+            if (editorClip != null)
             {
-                var editorClip = AssetDatabase.LoadAssetAtPath<AudioClip>(clipPath);
-                if (editorClip != null)
-                {
-                    return editorClip;
-                }
+                return editorClip;
             }
 #endif
 
-            return RuntimeAssetCatalog.LoadAudioClip(clipPath)
-                ?? Resources.Load<AudioClip>(NormalizeResourcesPath(clipPath));
+            var catalogClip = RuntimeAssetCatalog.LoadAudioClip(clipPath);
+            if (catalogClip != null || !RuntimeRemoteResourceManager.CanUseResourcesFallback)
+            {
+                return catalogClip;
+            }
+
+            return Resources.Load<AudioClip>(NormalizeResourcesPath(clipPath));
         }
+
+#if UNITY_EDITOR
+        private static AudioClip LoadEditorAudioClip(string clipPath)
+        {
+            if (string.IsNullOrEmpty(clipPath)
+                || !clipPath.StartsWith("Assets/", System.StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
+            }
+
+            return AssetDatabase.LoadAssetAtPath<AudioClip>(clipPath);
+        }
+#endif
 
         private static bool ShouldWaitForRemoteResources()
         {

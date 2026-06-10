@@ -244,8 +244,13 @@ namespace LeiTing.Enemy
                 }
             }
 #endif
-            return RuntimeAssetCatalog.LoadSprite(enemySpritePath)
-                ?? Resources.Load<Sprite>("Enemies/enemy-01");
+            var catalogSprite = RuntimeAssetCatalog.LoadSprite(enemySpritePath);
+            if (catalogSprite != null || !RuntimeRemoteResourceManager.CanUseResourcesFallback)
+            {
+                return catalogSprite;
+            }
+
+            return Resources.Load<Sprite>("Enemies/enemy-01");
         }
 
         private SpriteRenderer ResolveSpriteRenderer()

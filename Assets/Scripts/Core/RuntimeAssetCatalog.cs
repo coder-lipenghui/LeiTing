@@ -172,6 +172,7 @@ namespace LeiTing.Core
             EnsureLookups();
             if (!prefabLookup.TryGetValue(NormalizeKey(assetPath), out var entry))
             {
+                RuntimeRemoteResourceManager.ReportRuntimeAssetLoadFailure($"CDN prefab is not registered in RuntimeAssetCatalog: {assetPath}");
                 return null;
             }
 
@@ -184,6 +185,7 @@ namespace LeiTing.Core
             EnsureLookups();
             if (!spriteLookup.TryGetValue(NormalizeKey(assetPath), out var entry))
             {
+                RuntimeRemoteResourceManager.ReportRuntimeAssetLoadFailure($"CDN sprite is not registered in RuntimeAssetCatalog: {assetPath}");
                 return null;
             }
 
@@ -196,6 +198,7 @@ namespace LeiTing.Core
             EnsureLookups();
             if (!fontLookup.TryGetValue(NormalizeKey(assetPath), out var entry))
             {
+                RuntimeRemoteResourceManager.ReportRuntimeAssetLoadFailure($"CDN font is not registered in RuntimeAssetCatalog: {assetPath}");
                 return null;
             }
 
@@ -208,6 +211,7 @@ namespace LeiTing.Core
             EnsureLookups();
             if (!audioClipLookup.TryGetValue(NormalizeKey(assetPath), out var entry))
             {
+                RuntimeRemoteResourceManager.ReportRuntimeAssetLoadFailure($"CDN audio clip is not registered in RuntimeAssetCatalog: {assetPath}");
                 return null;
             }
 

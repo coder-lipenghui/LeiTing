@@ -45,7 +45,7 @@ namespace LeiTing.UI
                     {
                         pageType = UIPageType.Setting,
                         index = 2,
-                        prefabPath = "UI/Page/SettingPage",
+                        prefabPath = "Assets/Prefabs/UI/SettingPage.prefab",
                         cache = true
                     }
                 }

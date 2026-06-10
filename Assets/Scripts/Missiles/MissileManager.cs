@@ -168,8 +168,13 @@ namespace LeiTing.Missiles
             }
 #endif
 
-            return RuntimeAssetCatalog.LoadPrefab(missileConfig.prefabPath)
-                ?? Resources.Load<GameObject>(NormalizeResourcesPath(missileConfig.prefabPath));
+            var catalogPrefab = RuntimeAssetCatalog.LoadPrefab(missileConfig.prefabPath);
+            if (catalogPrefab != null || !RuntimeRemoteResourceManager.CanUseResourcesFallback)
+            {
+                return catalogPrefab;
+            }
+
+            return Resources.Load<GameObject>(NormalizeResourcesPath(missileConfig.prefabPath));
         }
 
         private static string NormalizeResourcesPath(string assetPath)
