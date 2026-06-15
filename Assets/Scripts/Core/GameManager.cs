@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using LeiTing.Config;
 using LeiTing.Pickups;
+using LeiTing.Player;
 using LeiTing.Progress;
 using LeiTing.Storage;
 using LeiTing.UI;
@@ -34,6 +35,8 @@ namespace LeiTing.Core
 
         private Coroutine pendingVictoryRoutine;
         private bool levelProgressFinished;
+        private bool adReviveUsedThisBattle;
+        private PlayerController defeatedPlayer;
 
         public GameState CurrentState => currentState;
         public int Score => score;
@@ -44,6 +47,7 @@ namespace LeiTing.Core
         public string CurrentLevelDisplayName => ResolveCurrentLevelDisplayName();
         public string CurrentLevelBossId => ResolveCurrentLevelBossId();
         public string CurrentLevelBossDisplayName => ResolveCurrentLevelBossDisplayName();
+        public bool CanUseAdRevive => currentState == GameState.Defeat && !adReviveUsedThisBattle && ResolveRevivePlayer() != null;
         public static int RequestedLevelNumber => ResolveRequestedLevelNumber();
         public static bool InvincibleModeEnabled => Instance != null && Instance.invincibleMode;
 
@@ -55,6 +59,8 @@ namespace LeiTing.Core
             currentState = GameState.Ready;
             score = 0;
             levelProgressFinished = false;
+            adReviveUsedThisBattle = false;
+            defeatedPlayer = null;
             LevelProgressService.BeginLevel(currentLevelNumber);
         }
 
@@ -110,11 +116,45 @@ namespace LeiTing.Core
             CompleteVictory();
         }
 
-        public void LoseGame()
+        public void LoseGame(PlayerController player = null)
         {
             CancelPendingVictory();
+            defeatedPlayer = player != null ? player : defeatedPlayer;
             currentState = GameState.Defeat;
-            FinishCurrentLevelProgress();
+            if (!CanUseAdRevive)
+            {
+                FinishCurrentLevelProgress();
+            }
+        }
+
+        public bool ReviveGameFromAd()
+        {
+            if (currentState != GameState.Defeat || adReviveUsedThisBattle)
+            {
+                return false;
+            }
+
+            var player = ResolveRevivePlayer();
+            if (player == null)
+            {
+                return false;
+            }
+
+            CancelPendingVictory();
+            adReviveUsedThisBattle = true;
+            levelProgressFinished = false;
+            currentState = GameState.Playing;
+            player.ReviveInPlace();
+            defeatedPlayer = null;
+            return true;
+        }
+
+        public void ConfirmDefeat()
+        {
+            if (currentState == GameState.Defeat)
+            {
+                FinishCurrentLevelProgress();
+            }
         }
 
         public void RestartCurrentScene()
@@ -134,6 +174,7 @@ namespace LeiTing.Core
 
         public void LoadLevel(int levelNumber)
         {
+            ConfirmDefeat();
             var requestedLevelNumber = Mathf.Clamp(levelNumber, 1, MaxLevelCount);
             RequestLevel(requestedLevelNumber);
             GameBootstrap.PlayLevelBgm(requestedLevelNumber);
@@ -295,6 +336,17 @@ namespace LeiTing.Core
 
             levelProgressFinished = true;
             LevelProgressService.CompleteLevel(currentLevelNumber, score);
+        }
+
+        private PlayerController ResolveRevivePlayer()
+        {
+            if (defeatedPlayer != null)
+            {
+                return defeatedPlayer;
+            }
+
+            defeatedPlayer = FindObjectOfType<PlayerController>(true);
+            return defeatedPlayer;
         }
     }
 }

@@ -1440,7 +1440,7 @@ namespace LeiTing.UI
                 var lockedSelection = !IsSelectedLevelUnlocked();
                 var lockedStamina = !HasEnoughStamina();
                 SetStartButtonLockedVisual(lockedSelection || lockedStamina);
-                startButton.interactable = interactable && !lockedSelection && !lockedStamina;
+                startButton.interactable = interactable && !lockedSelection;
 
                 if (lockedSelection || lockedStamina)
                 {
@@ -1564,21 +1564,34 @@ namespace LeiTing.UI
             }
         }
 
-        private void OnClickStart()
+        private async void OnClickStart()
         {
             if (battleStartRequested || !IsSelectedLevelUnlocked())
             {
                 return;
             }
 
+            battleStartRequested = true;
+            SetStartButtonState(false);
+
             if (!StaminaService.TryConsume(StaminaService.BattleCost))
             {
+                var watchedAd = await AdManager.GetOrCreate().ShowRewardAd();
+                if (!watchedAd)
+                {
+                    battleStartRequested = false;
+                    RefreshStartButtonAvailability();
+                    return;
+                }
+            }
+
+            if (!isActiveAndEnabled)
+            {
+                battleStartRequested = false;
                 RefreshStartButtonAvailability();
                 return;
             }
 
-            battleStartRequested = true;
-            SetStartButtonState(false);
             GameManager.RequestLevel(selectedLevelNumber);
             GameSceneManager.GetOrCreate().EnterBattle(selectedLevelNumber);
         }

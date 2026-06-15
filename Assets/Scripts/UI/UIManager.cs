@@ -92,6 +92,9 @@ namespace LeiTing.UI
         private DefeatGameOverView missionCompleteView;
         private GameObject defeatBackRoot;
         private Button defeatBackButton;
+        private GameObject defeatAdReviveRoot;
+        private Button defeatAdReviveButton;
+        private Text defeatAdReviveButtonText;
         private GameObject victoryContinueRoot;
         private Button victoryContinueButton;
         private GameObject settlementContinueRoot;
@@ -110,6 +113,7 @@ namespace LeiTing.UI
         private GameState lastBattleEndState = GameState.Boot;
         private bool victorySettlementVisible;
         private bool defeatAnimationStarted;
+        private bool adReviveInProgress;
         private bool battleHudInitialized;
         private bool battlePaused;
         private float battlePausePreviousTimeScale = 1f;
@@ -1551,6 +1555,7 @@ namespace LeiTing.UI
 
             CreateDefeatGameOverView(settlementRoot.transform);
             CreateDefeatBackButton(parent);
+            CreateDefeatAdReviveButton(parent);
             settlementRoot.SetActive(false);
         }
 
@@ -1708,6 +1713,37 @@ namespace LeiTing.UI
 
             defeatBackRoot.SetActive(false);
             UpdateDefeatBackButtonLayout();
+        }
+
+        private void CreateDefeatAdReviveButton(Transform parent)
+        {
+            defeatAdReviveRoot = CreateSettlementActionButton(
+                parent,
+                "DefeatAdReviveButton",
+                "\u89C2\u770B\u5E7F\u544A\u590D\u6D3B",
+                new Vector2(0f, 500f));
+
+            var rect = defeatAdReviveRoot.GetComponent<RectTransform>();
+            if (rect != null)
+            {
+                rect.sizeDelta = new Vector2(420f, 90f);
+            }
+
+            var image = defeatAdReviveRoot.GetComponent<Image>();
+            if (image != null)
+            {
+                image.color = new Color(1f, 0.56f, 0.12f, 0.96f);
+            }
+
+            defeatAdReviveButton = defeatAdReviveRoot.GetComponent<Button>();
+            defeatAdReviveButtonText = defeatAdReviveRoot.GetComponentInChildren<Text>(true);
+            if (defeatAdReviveButton != null)
+            {
+                defeatAdReviveButton.onClick.AddListener(OnClickDefeatAdRevive);
+            }
+
+            defeatAdReviveRoot.SetActive(false);
+            UpdateDefeatAdReviveButtonLayout();
         }
 
         private void CreateVictoryContinueButton(Transform parent)
@@ -2081,6 +2117,7 @@ namespace LeiTing.UI
             UpdateBattleControlButtons();
             UpdateBattleCornerButtonLayout();
             UpdateDefeatBackButtonLayout();
+            UpdateDefeatAdReviveButtonLayout();
         }
 
         private void UpdateBattleControlButtons()
@@ -2292,6 +2329,20 @@ namespace LeiTing.UI
             }
         }
 
+        private void UpdateDefeatAdReviveButtonLayout()
+        {
+            if (defeatAdReviveRoot == null)
+            {
+                return;
+            }
+
+            var rect = defeatAdReviveRoot.GetComponent<RectTransform>();
+            if (rect != null)
+            {
+                rect.anchoredPosition = new Vector2(0f, Mathf.Max(0f, GetCanvasHeight() / 3f - 135f));
+            }
+        }
+
         private void UpdateStageTimer()
         {
             if (stageTimerText == null)
@@ -2351,6 +2402,7 @@ namespace LeiTing.UI
 
         private void HideBattleEndUi()
         {
+            adReviveInProgress = false;
             SetVictorySlowMotionActive(false);
             SetObjectActive(settlementRoot, false);
             SetObjectActive(victorySettlementRoot, false);
@@ -2358,6 +2410,7 @@ namespace LeiTing.UI
             defeatAnimationStarted = false;
             SetButtonVisible(victoryContinueRoot, victoryContinueButton, false);
             SetButtonVisible(defeatBackRoot, defeatBackButton, false);
+            SetButtonVisible(defeatAdReviveRoot, defeatAdReviveButton, false);
             SetButtonVisible(settlementContinueRoot, settlementContinueButton, false);
             SetButtonVisible(settlementShareRoot, settlementShareButton, false);
 
@@ -2377,6 +2430,7 @@ namespace LeiTing.UI
             HideDefeatGameOver();
             defeatAnimationStarted = false;
             SetButtonVisible(defeatBackRoot, defeatBackButton, false);
+            SetButtonVisible(defeatAdReviveRoot, defeatAdReviveButton, false);
 
             if (victorySettlementVisible)
             {
@@ -2416,6 +2470,14 @@ namespace LeiTing.UI
             settlementDetailText.enabled = false;
             PlayDefeatGameOver();
             SetButtonVisible(defeatBackRoot, defeatBackButton, true);
+            var canUseAdRevive = GameManager.Instance != null && GameManager.Instance.CanUseAdRevive;
+            SetDefeatAdReviveButtonText(adReviveInProgress ? "\u5E7F\u544A\u4E2D..." : "\u89C2\u770B\u5E7F\u544A\u590D\u6D3B");
+            SetButtonVisible(defeatAdReviveRoot, defeatAdReviveButton, canUseAdRevive || adReviveInProgress);
+            if (defeatAdReviveButton != null)
+            {
+                defeatAdReviveButton.interactable = canUseAdRevive && !adReviveInProgress;
+            }
+
             SetButtonVisible(settlementContinueRoot, settlementContinueButton, false);
             SetButtonVisible(settlementShareRoot, settlementShareButton, false);
         }
@@ -2508,11 +2570,53 @@ namespace LeiTing.UI
             UpdateSettlement();
         }
 
+        private async void OnClickDefeatAdRevive()
+        {
+            if (adReviveInProgress || GameManager.Instance == null || !GameManager.Instance.CanUseAdRevive)
+            {
+                return;
+            }
+
+            adReviveInProgress = true;
+            UpdateSettlement();
+
+            var watchedAd = await AdManager.GetOrCreate().ShowRewardAd();
+            if (this == null)
+            {
+                return;
+            }
+
+            adReviveInProgress = false;
+            if (!watchedAd)
+            {
+                UpdateSettlement();
+                return;
+            }
+
+            if (GameManager.Instance != null && GameManager.Instance.ReviveGameFromAd())
+            {
+                HideBattleEndUi();
+                lastBattleEndState = GameState.Playing;
+                return;
+            }
+
+            UpdateSettlement();
+        }
+
+        private void SetDefeatAdReviveButtonText(string text)
+        {
+            if (defeatAdReviveButtonText != null)
+            {
+                defeatAdReviveButtonText.text = text;
+            }
+        }
+
         private static void ReturnToLobby()
         {
             Instance?.ResetBattlePauseState(true);
             BattleTimeController.Instance?.ResetTimeScaleForSceneExit();
             SetVictorySlowMotionActive(false);
+            GameManager.Instance?.ConfirmDefeat();
             GameSceneManager.GetOrCreate().EnterLobby();
         }
 

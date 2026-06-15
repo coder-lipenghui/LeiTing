@@ -472,7 +472,7 @@ namespace LeiTing.UI
             return GameManager.GetMaxUnlockedLevel(levelCount);
         }
 
-        private void OnClickStart()
+        private async void OnClickStart()
         {
             if (battleStartRequested)
             {
@@ -485,18 +485,35 @@ namespace LeiTing.UI
                 return;
             }
 
-            if (!StaminaService.TryConsume(StaminaService.BattleCost))
-            {
-                Debug.LogWarning("[UIStage] Not enough stamina to enter battle.");
-                return;
-            }
-
             battleStartRequested = true;
             if (startButton != null)
             {
                 startButton.interactable = false;
             }
 
+            if (!StaminaService.TryConsume(StaminaService.BattleCost))
+            {
+                var watchedAd = await AdManager.GetOrCreate().ShowRewardAd();
+                if (!watchedAd)
+                {
+                    Debug.LogWarning("[UIStage] Not enough stamina and reward ad was not completed.");
+                    battleStartRequested = false;
+                    if (startButton != null)
+                    {
+                        startButton.interactable = true;
+                    }
+
+                    return;
+                }
+            }
+
+            if (!isActiveAndEnabled)
+            {
+                battleStartRequested = false;
+                return;
+            }
+
+            GameManager.RequestLevel(selectedLevelNumber);
             GameSceneManager.GetOrCreate().EnterBattle(selectedLevelNumber);
         }
 

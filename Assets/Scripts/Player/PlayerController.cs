@@ -327,10 +327,32 @@ namespace LeiTing.Player
 
             if (GameManager.Instance != null)
             {
-                GameManager.Instance.LoseGame();
+                GameManager.Instance.LoseGame(this);
             }
 
             gameObject.SetActive(false);
+        }
+
+        public void ReviveInPlace()
+        {
+            isDead = false;
+            maxHp = Mathf.Max(1, GetMaxHp());
+            currentHp = maxHp;
+            currentShield = Mathf.Max(0, config != null ? config.shield : fallbackShield);
+            targetPosition = transform.position;
+            invincibleUntil = Mathf.Max(invincibleUntil, Time.time + Mathf.Max(2f, GetInvincibleTime()));
+
+            if (!gameObject.activeSelf)
+            {
+                gameObject.SetActive(true);
+            }
+
+            if (spriteRenderer != null)
+            {
+                spriteRenderer.color = originalColor;
+            }
+
+            UpdateInvincibleVisual();
         }
 
         private bool TryGetDragTargetPosition(out Vector3 worldPosition)
