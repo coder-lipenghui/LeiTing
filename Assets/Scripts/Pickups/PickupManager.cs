@@ -66,18 +66,23 @@ namespace LeiTing.Pickups
 
             for (var index = 0; index < drops.Count; index++)
             {
-                SpawnPickup(drops[index], position, index, drops.Count);
+                SpawnPickup(drops[index], position, index, drops.Count, true);
             }
         }
 
         public PickupItemController SpawnPickup(PickupItemConfig pickupConfig, Vector3 position)
         {
-            return SpawnPickup(pickupConfig, position, 0, 1);
+            return SpawnPickup(pickupConfig, position, 0, 1, true);
         }
 
         public PickupItemController SpawnPickup(string itemId, Vector3 position)
         {
-            return SpawnPickup(ResolvePickupConfig(itemId), position, 0, 1);
+            return SpawnPickup(itemId, position, true);
+        }
+
+        public PickupItemController SpawnPickup(string itemId, Vector3 position, bool countTowardProgress)
+        {
+            return SpawnPickup(ResolvePickupConfig(itemId), position, 0, 1, countTowardProgress);
         }
 
         public void AttractAllStarsToPlayer(PlayerController player)
@@ -164,7 +169,12 @@ namespace LeiTing.Pickups
             }
         }
 
-        private PickupItemController SpawnPickup(PickupItemConfig pickupConfig, Vector3 position, int index, int count)
+        private PickupItemController SpawnPickup(
+            PickupItemConfig pickupConfig,
+            Vector3 position,
+            int index,
+            int count,
+            bool countTowardProgress)
         {
             if (pickupConfig == null)
             {
@@ -177,7 +187,7 @@ namespace LeiTing.Pickups
 
             var pickup = pickupObject.AddComponent<PickupItemController>();
             pickup.Initialize(pickupConfig);
-            if (LevelProgressService.IsStarPickup(pickupConfig))
+            if (countTowardProgress && LevelProgressService.IsStarPickup(pickupConfig))
             {
                 LevelProgressService.RecordStarSpawned(LevelProgressService.GetPickupStarValue(pickupConfig));
             }

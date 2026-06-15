@@ -110,6 +110,7 @@ namespace LeiTing.UI
         private Text bossPhaseText;
         private Text bossNoticeText;
         private Coroutine bossNoticeRoutine;
+        private BattleActiveItemView activeItemView;
         private GameState lastBattleEndState = GameState.Boot;
         private bool victorySettlementVisible;
         private bool defeatAnimationStarted;
@@ -1410,7 +1411,20 @@ namespace LeiTing.UI
             CreateVictorySettlementPanel(canvasObject.transform);
             CreateMissionCompleteView(canvasObject.transform);
             CreateVictoryContinueButton(canvasObject.transform);
+            CreateActiveItemView(canvasObject.transform);
             UpdateBattleHudSafeAreaLayout();
+        }
+
+        private void CreateActiveItemView(Transform parent)
+        {
+            var activeItemObject = new GameObject("BattleActiveItemView", typeof(RectTransform));
+            activeItemObject.transform.SetParent(parent, false);
+
+            var rect = activeItemObject.GetComponent<RectTransform>();
+            UIFactory.Stretch(rect);
+
+            activeItemView = activeItemObject.AddComponent<BattleActiveItemView>();
+            activeItemView.BindPlayer(FindObjectOfType<PlayerController>());
         }
 
         private void CreateScoreText(Transform parent)

@@ -258,6 +258,10 @@ MonoBehaviour:
     bundleName: leiting_runtime_assets
     assetName: Assets/Art/Sprites/Item/item_hp.png
     sprite: {fileID: 0}
+  - path: Assets/Art/Sprites/Item/item_lightning.png
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/Item/item_lightning.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/Item/item_magnet.png
     bundleName: leiting_runtime_assets
     assetName: Assets/Art/Sprites/Item/item_magnet.png
@@ -298,6 +302,10 @@ MonoBehaviour:
     bundleName: leiting_runtime_assets
     assetName: Assets/Art/Sprites/UI/btnClose.png
     sprite: {fileID: 0}
+  - path: Assets/Art/Sprites/UI/btnExit.png
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/btnExit.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/btnMenu.png
     bundleName: leiting_runtime_assets
     assetName: Assets/Art/Sprites/UI/btnMenu.png
@@ -305,6 +313,10 @@ MonoBehaviour:
   - path: Assets/Art/Sprites/UI/btnNext.png
     bundleName: leiting_runtime_assets
     assetName: Assets/Art/Sprites/UI/btnNext.png
+    sprite: {fileID: 0}
+  - path: Assets/Art/Sprites/UI/btnPause.png
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/btnPause.png
     sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/btnRank.png
     bundleName: leiting_runtime_assets

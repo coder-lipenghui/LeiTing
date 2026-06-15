@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using LeiTing.Config;
 using LeiTing.Core;
+using LeiTing.Pickups;
 using UnityEngine;
 
 namespace LeiTing.Bullets
@@ -47,6 +48,11 @@ namespace LeiTing.Bullets
         public void ClearEnemyBullets()
         {
             ClearBulletsInLayer(GetLayerRoot("Enemy"));
+        }
+
+        public int ConvertVisibleEnemyBulletsToStars()
+        {
+            return ConvertVisibleBulletsToStars(GetLayerRoot("Enemy"));
         }
 
         protected override void Awake()
@@ -129,6 +135,58 @@ namespace LeiTing.Bullets
             {
                 Recycle(projectile);
             }
+        }
+
+        private int ConvertVisibleBulletsToStars(Transform layerRoot)
+        {
+            if (layerRoot == null)
+            {
+                return 0;
+            }
+
+            var camera = Camera.main;
+            var bullets = new List<BulletProjectile>();
+            foreach (Transform child in layerRoot)
+            {
+                var projectile = child.GetComponent<BulletProjectile>();
+                if (projectile != null
+                    && projectile.gameObject.activeInHierarchy
+                    && IsVisibleOnScreen(projectile.transform.position, camera))
+                {
+                    bullets.Add(projectile);
+                }
+            }
+
+            var pickupManager = PickupManager.GetOrCreate();
+            for (var index = 0; index < bullets.Count; index++)
+            {
+                var projectile = bullets[index];
+                if (projectile == null)
+                {
+                    continue;
+                }
+
+                pickupManager.SpawnPickup("star", projectile.transform.position, false);
+                Recycle(projectile);
+            }
+
+            return bullets.Count;
+        }
+
+        private static bool IsVisibleOnScreen(Vector3 worldPosition, Camera camera)
+        {
+            if (camera == null)
+            {
+                return true;
+            }
+
+            const float margin = 0.08f;
+            var viewportPosition = camera.WorldToViewportPoint(worldPosition);
+            return viewportPosition.z >= 0f
+                && viewportPosition.x >= -margin
+                && viewportPosition.x <= 1f + margin
+                && viewportPosition.y >= -margin
+                && viewportPosition.y <= 1f + margin;
         }
     }
 }

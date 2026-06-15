@@ -61,6 +61,7 @@ namespace LeiTing.Core
             levelProgressFinished = false;
             adReviveUsedThisBattle = false;
             defeatedPlayer = null;
+            ActiveItemInventory.BeginBattle();
             LevelProgressService.BeginLevel(currentLevelNumber);
         }
 
