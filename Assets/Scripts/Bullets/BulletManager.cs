@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using LeiTing.Config;
 using LeiTing.Core;
@@ -10,11 +11,14 @@ namespace LeiTing.Bullets
     public class BulletManager : MonoSingleton<BulletManager>
     {
         [SerializeField] private int initialPoolSize = 32;
+        [SerializeField] private int lightningStarSpawnBudgetPerFrame = 48;
         [SerializeField] private Transform playerBulletLayer;
         [SerializeField] private Transform enemyBulletLayer;
 
         private readonly Stack<BulletProjectile> pooledBullets = new Stack<BulletProjectile>();
+        private readonly Queue<Vector3> pendingLightningStarPositions = new Queue<Vector3>(256);
         private bool isPoolWarmed;
+        private Coroutine lightningStarSpawnCoroutine;
 
         public BulletProjectile Fire(BulletConfig bulletConfig, Vector2 position, Vector2 direction, Transform followTarget = null)
         {
@@ -121,19 +125,14 @@ namespace LeiTing.Bullets
                 return;
             }
 
-            var bullets = new List<BulletProjectile>();
-            foreach (Transform child in layerRoot)
+            for (var index = layerRoot.childCount - 1; index >= 0; index--)
             {
+                var child = layerRoot.GetChild(index);
                 var projectile = child.GetComponent<BulletProjectile>();
                 if (projectile != null)
                 {
-                    bullets.Add(projectile);
+                    Recycle(projectile);
                 }
-            }
-
-            foreach (var projectile in bullets)
-            {
-                Recycle(projectile);
             }
         }
 
@@ -145,32 +144,52 @@ namespace LeiTing.Bullets
             }
 
             var camera = Camera.main;
-            var bullets = new List<BulletProjectile>();
-            foreach (Transform child in layerRoot)
+            var convertedCount = 0;
+            for (var index = layerRoot.childCount - 1; index >= 0; index--)
             {
+                var child = layerRoot.GetChild(index);
                 var projectile = child.GetComponent<BulletProjectile>();
                 if (projectile != null
                     && projectile.gameObject.activeInHierarchy
                     && IsVisibleOnScreen(projectile.transform.position, camera))
                 {
-                    bullets.Add(projectile);
+                    pendingLightningStarPositions.Enqueue(projectile.transform.position);
+                    convertedCount++;
+                    Recycle(projectile);
                 }
             }
 
-            var pickupManager = PickupManager.GetOrCreate();
-            for (var index = 0; index < bullets.Count; index++)
+            if (convertedCount > 0 && lightningStarSpawnCoroutine == null)
             {
-                var projectile = bullets[index];
-                if (projectile == null)
-                {
-                    continue;
-                }
-
-                pickupManager.SpawnPickup("star", projectile.transform.position, false);
-                Recycle(projectile);
+                lightningStarSpawnCoroutine = StartCoroutine(SpawnPendingLightningStars());
             }
 
-            return bullets.Count;
+            return convertedCount;
+        }
+
+        private IEnumerator SpawnPendingLightningStars()
+        {
+            var budget = Mathf.Max(1, lightningStarSpawnBudgetPerFrame);
+            while (pendingLightningStarPositions.Count > 0)
+            {
+                if (GameManager.Instance != null && GameManager.Instance.CurrentState != GameState.Playing)
+                {
+                    pendingLightningStarPositions.Clear();
+                    break;
+                }
+
+                var pickupManager = PickupManager.GetOrCreate();
+                for (var spawnedThisFrame = 0;
+                    spawnedThisFrame < budget && pendingLightningStarPositions.Count > 0;
+                    spawnedThisFrame++)
+                {
+                    pickupManager.SpawnPickup("star", pendingLightningStarPositions.Dequeue(), false);
+                }
+
+                yield return null;
+            }
+
+            lightningStarSpawnCoroutine = null;
         }
 
         private static bool IsVisibleOnScreen(Vector3 worldPosition, Camera camera)

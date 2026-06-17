@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using LeiTing.Audio;
 using LeiTing.Config;
 using LeiTing.Core;
@@ -51,10 +52,14 @@ namespace LeiTing.Pickups
         private static readonly Color TrophyConnectionColor = new Color(1f, 0.83f, 0.18f, 0.62f);
         private static readonly Color DefaultGlowColor = new Color(1f, 1f, 1f, 0.42f);
         private static Sprite glowSprite;
+        private static Sprite fallbackStarSprite;
         private static Material defaultSpriteMaterial;
+        private static PlayerController cachedPlayer;
+        private static readonly Dictionary<string, Sprite> configuredSprites = new Dictionary<string, Sprite>();
 
         [SerializeField] private PickupItemConfig config;
 
+        private PickupManager manager;
         private Rigidbody2D body;
         private CircleCollider2D pickupCollider;
         private SpriteRenderer spriteRenderer;
@@ -83,10 +88,11 @@ namespace LeiTing.Pickups
         private bool trophyOuterGlowConfigured;
         private bool specialSplitVisual;
 
-        public void Initialize(PickupItemConfig pickupConfig)
+        public void Initialize(PickupItemConfig pickupConfig, PickupManager owningManager = null)
         {
             EnsureComponents();
 
+            manager = owningManager;
             config = pickupConfig;
             spawnTime = Time.time;
             isCollected = false;
@@ -134,10 +140,15 @@ namespace LeiTing.Pickups
                 return;
             }
 
-            var player = FindObjectOfType<PlayerController>();
+            var player = ResolvePlayer();
             if (IsTrophyPickup)
             {
                 DriftDown();
+                if (isCollected)
+                {
+                    return;
+                }
+
                 UpdateTrophyHold(player);
                 return;
             }
@@ -156,7 +167,10 @@ namespace LeiTing.Pickups
             }
 
             DriftDown();
-            CheckLifetime();
+            if (!isCollected)
+            {
+                CheckLifetime();
+            }
         }
 
         private void OnTriggerEnter2D(Collider2D other)
@@ -182,6 +196,7 @@ namespace LeiTing.Pickups
 
             pickupCollider = pickupCollider != null ? pickupCollider : GetComponent<CircleCollider2D>();
             pickupCollider.isTrigger = true;
+            pickupCollider.enabled = true;
 
             gameplayCamera = gameplayCamera != null ? gameplayCamera : Camera.main;
 
@@ -210,8 +225,6 @@ namespace LeiTing.Pickups
             {
                 glowRenderer = glowRoot.gameObject.AddComponent<SpriteRenderer>();
             }
-
-            EnsureSplitVisualRenderers();
         }
 
         private bool TryAttractToPlayer(PlayerController player, bool forceAttract = false)
@@ -243,7 +256,7 @@ namespace LeiTing.Pickups
 
             if (IsBelowScreen())
             {
-                Destroy(gameObject);
+                RecycleOrDestroy();
             }
         }
 
@@ -279,7 +292,7 @@ namespace LeiTing.Pickups
             var lifetime = config != null && config.lifetime > 0f ? config.lifetime : 12f;
             if (Time.time - spawnTime >= lifetime)
             {
-                Destroy(gameObject);
+                RecycleOrDestroy();
             }
         }
 
@@ -336,6 +349,43 @@ namespace LeiTing.Pickups
                 }
 
                 PlayPickupSound(SpecialPickupSoundPath);
+            }
+
+            RecycleOrDestroy();
+        }
+
+        public void DeactivateForPool()
+        {
+            isCollected = true;
+            forcedAttractTarget = null;
+            manager = null;
+            glowConfigured = false;
+            trophyOuterGlowConfigured = false;
+            specialSplitVisual = false;
+            HideTrophyHoldVisuals();
+            SetSplitVisualsEnabled(false);
+
+            if (pickupCollider != null)
+            {
+                pickupCollider.enabled = false;
+            }
+
+            if (body != null)
+            {
+                body.velocity = Vector2.zero;
+                body.angularVelocity = 0f;
+            }
+
+            gameObject.SetActive(false);
+        }
+
+        private void RecycleOrDestroy()
+        {
+            isCollected = true;
+            if (manager != null)
+            {
+                manager.Recycle(this);
+                return;
             }
 
             Destroy(gameObject);
@@ -578,18 +628,17 @@ namespace LeiTing.Pickups
 
         private void ConfigureSplitVisual(Sprite sprite)
         {
-            EnsureSplitVisualRenderers();
-
             specialSplitVisual = IsSpecialPickup && !IsTrophyPickup && sprite != null;
             spriteRenderer.enabled = !specialSplitVisual;
-            leftVisualRenderer.enabled = specialSplitVisual;
-            rightVisualRenderer.enabled = specialSplitVisual;
 
             if (!specialSplitVisual)
             {
+                SetSplitVisualsEnabled(false);
                 return;
             }
 
+            EnsureSplitVisualRenderers();
+            SetSplitVisualsEnabled(true);
             leftVisualRenderer.sprite = CreateHalfSprite(sprite, true);
             rightVisualRenderer.sprite = CreateHalfSprite(sprite, false);
             leftVisualRenderer.sortingOrder = spriteRenderer.sortingOrder;
@@ -600,6 +649,19 @@ namespace LeiTing.Pickups
                 ? spriteRenderer.sharedMaterial
                 : GetDefaultSpriteMaterial();
             rightVisualRenderer.sharedMaterial = leftVisualRenderer.sharedMaterial;
+        }
+
+        private void SetSplitVisualsEnabled(bool visible)
+        {
+            if (leftVisualRenderer != null)
+            {
+                leftVisualRenderer.enabled = visible;
+            }
+
+            if (rightVisualRenderer != null)
+            {
+                rightVisualRenderer.enabled = visible;
+            }
         }
 
         private static Sprite CreateHalfSprite(Sprite source, bool leftHalf)
@@ -831,6 +893,13 @@ namespace LeiTing.Pickups
                 return null;
             }
 
+            if (configuredSprites.TryGetValue(config.spritePath, out var cachedSprite))
+            {
+                return cachedSprite;
+            }
+
+            Sprite sprite = null;
+
 #if UNITY_EDITOR
             if (RuntimeRemoteResourceManager.CanUseEditorLocalAssets)
             {
@@ -840,19 +909,24 @@ namespace LeiTing.Pickups
                     var editorSprite = AssetDatabase.LoadAssetAtPath<Sprite>(editorSpritePath);
                     if (editorSprite != null)
                     {
-                        return editorSprite;
+                        sprite = editorSprite;
                     }
                 }
             }
 #endif
 
-            var catalogSprite = RuntimeAssetCatalog.LoadSprite(config.spritePath);
-            if (catalogSprite != null || !RuntimeRemoteResourceManager.CanUseResourcesFallback)
+            if (sprite == null)
             {
-                return catalogSprite;
+                sprite = RuntimeAssetCatalog.LoadSprite(config.spritePath);
             }
 
-            return Resources.Load<Sprite>(NormalizeResourcesPath(config.spritePath));
+            if (sprite == null && RuntimeRemoteResourceManager.CanUseResourcesFallback)
+            {
+                sprite = Resources.Load<Sprite>(NormalizeResourcesPath(config.spritePath));
+            }
+
+            configuredSprites[config.spritePath] = sprite;
+            return sprite;
         }
 
 #if UNITY_EDITOR
@@ -908,6 +982,16 @@ namespace LeiTing.Pickups
 
         private static Sprite CreateFallbackStarSprite()
         {
+            if (fallbackStarSprite == null)
+            {
+                fallbackStarSprite = BuildFallbackStarSprite();
+            }
+
+            return fallbackStarSprite;
+        }
+
+        private static Sprite BuildFallbackStarSprite()
+        {
             const int size = 32;
             var texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
             texture.filterMode = FilterMode.Point;
@@ -946,6 +1030,16 @@ namespace LeiTing.Pickups
 
             texture.Apply();
             return Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
+        }
+
+        private static PlayerController ResolvePlayer()
+        {
+            if (cachedPlayer == null)
+            {
+                cachedPlayer = FindObjectOfType<PlayerController>();
+            }
+
+            return cachedPlayer;
         }
 
         private static Sprite GetGlowSprite()

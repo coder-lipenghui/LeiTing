@@ -4,7 +4,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using LeiTing.Config;
 using LeiTing.Core;
+using LeiTing.Player;
 using LeiTing.Progress;
+using LeiTing.Storage;
 #if UNITY_WEBGL && !UNITY_EDITOR
 using LeiTing.Platform;
 #endif
@@ -36,6 +38,11 @@ namespace LeiTing.UI
         private const float StaminaRefreshUiInterval = 1f;
         private const string RankZoneId = "default";
         private const int NumericRankDataType = 0;
+        private const string SidebarCompletedKey = "leiting_sidebar_completed";
+        private const string SidebarRewardClaimedKey = "leiting_sidebar_bomb_claimed";
+        private const string SidebarActivityIdKey = "leiting_sidebar_activity_id";
+        private const string SidebarSceneName = "sidebar";
+        private const int SidebarBombRewardCount = 1;
 
         private const string ToggleUnlockedSpritePath = "Assets/Art/Sprites/UI/toggleLvBg01.png";
         private const string ToggleSelectedSpritePath = "Assets/Art/Sprites/UI/toggleLvBg02.png";
@@ -68,6 +75,7 @@ namespace LeiTing.UI
         [SerializeField] private Button sidebarGoButton;
         [SerializeField] private Button sidebarClaimButton;
         [SerializeField] private Button sidebarCloseButton;
+        [SerializeField] private GameObject sidebarRedDot;
 
         private readonly List<LevelItemView> levelItems = new List<LevelItemView>();
         private readonly List<InfoToggleView> infoItems = new List<InfoToggleView>();
@@ -111,6 +119,7 @@ namespace LeiTing.UI
         private Coroutine startButtonGlowRoutine;
         private Image activeLevelGlow;
         private Image activeStartButtonGlow;
+        private bool sidebarRewardClaimInProgress;
 
         public override void OnCreate()
         {
@@ -216,6 +225,10 @@ namespace LeiTing.UI
             sidebarGoButton = sidebarGoButton != null ? sidebarGoButton : FindFirstButton("BtnGod", "BtnGo");
             sidebarClaimButton = sidebarClaimButton != null ? sidebarClaimButton : FindOrCreateButton("BtnClame");
             sidebarCloseButton = sidebarCloseButton != null ? sidebarCloseButton : FindOrCreateButton("BtnClose");
+            var redDotTransform = cebianButton != null
+                ? FindChildRecursive(cebianButton.transform, "ImageRed")
+                : FindChildRecursive(transform, "ImageRed");
+            sidebarRedDot = sidebarRedDot != null ? sidebarRedDot : redDotTransform != null ? redDotTransform.gameObject : null;
 
             if (stageInfo != null)
             {
@@ -245,6 +258,7 @@ namespace LeiTing.UI
             BindButton(rankButton, OnClickRank);
             BindButton(settingButton, OnClickSetting);
             BindButton(sidebarGoButton, OnClickSidebarGo);
+            BindButton(sidebarClaimButton, OnClickSidebarClaim);
             BindButton(sidebarCloseButton, OnClickSidebarClose);
 
             foreach (var item in levelItems)
@@ -343,19 +357,34 @@ namespace LeiTing.UI
 
         private void RefreshSidebarVisitState()
         {
-            SetSidebarRewardState(IsSidebarRevisit());
+            var completed = IsSidebarCompleted();
+            if (!completed && IsSidebarRevisit())
+            {
+                MarkSidebarCompleted();
+                completed = true;
+            }
+
+            SetSidebarRewardState(completed, IsSidebarRewardClaimed());
         }
 
-        private void SetSidebarRewardState(bool revisitedFromSidebar)
+        private void SetSidebarRewardState(bool completed, bool claimed)
         {
+            var canClaim = completed && !claimed;
+
             if (sidebarGoButton != null)
             {
-                sidebarGoButton.gameObject.SetActive(!revisitedFromSidebar);
+                sidebarGoButton.gameObject.SetActive(!completed);
             }
 
             if (sidebarClaimButton != null)
             {
-                sidebarClaimButton.gameObject.SetActive(revisitedFromSidebar);
+                sidebarClaimButton.gameObject.SetActive(canClaim);
+                sidebarClaimButton.interactable = canClaim && !sidebarRewardClaimInProgress;
+            }
+
+            if (sidebarRedDot != null)
+            {
+                sidebarRedDot.SetActive(!completed);
             }
         }
 
@@ -1576,7 +1605,9 @@ namespace LeiTing.UI
 
             if (!StaminaService.TryConsume(StaminaService.BattleCost))
             {
-                var watchedAd = await AdManager.GetOrCreate().ShowRewardAd();
+                Debug.LogWarning("[LobbyPage] Not enough stamina; requesting reward ad before battle start.");
+                var watchedAd = await AdManager.GetOrCreate().ShowRewardAd("LobbyStartStamina");
+                Debug.LogWarning($"[LobbyPage] Reward ad result before battle start. watched={watchedAd}");
                 if (!watchedAd)
                 {
                     battleStartRequested = false;
@@ -1621,6 +1652,31 @@ namespace LeiTing.UI
             OpenDouyinSidebar();
 #else
             Debug.Log("[UIHall] Douyin sidebar requested.");
+            MarkSidebarCompleted();
+            RefreshSidebarVisitState();
+#endif
+        }
+
+        private void OnClickSidebarClaim()
+        {
+            if (sidebarRewardClaimInProgress)
+            {
+                return;
+            }
+
+            RefreshSidebarVisitState();
+            if (!IsSidebarCompleted() || IsSidebarRewardClaimed())
+            {
+                return;
+            }
+
+            sidebarRewardClaimInProgress = true;
+            RefreshSidebarVisitState();
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+            ReceiveDouyinSidebarCoupon();
+#else
+            CompleteSidebarBombRewardClaim();
 #endif
         }
 
@@ -1703,10 +1759,33 @@ namespace LeiTing.UI
         {
             try
             {
-                var data = new JsonData();
-                data["scene"] = "sidebar";
+                TT.RequestPromotionActivity(
+                    CreateSidebarActivityData(),
+                    response =>
+                    {
+                        StoreSidebarActivityId(response);
+                        NavigateToDouyinSidebar();
+                    },
+                    () => { },
+                    (code, message) =>
+                    {
+                        Debug.LogWarning($"[UIHall] Douyin sidebar promotion request failed: code={code}, message={message}");
+                        NavigateToDouyinSidebar();
+                    });
+            }
+            catch (Exception exception)
+            {
+                Debug.LogWarning($"[UIHall] Douyin sidebar promotion request failed: {exception.Message}");
+                NavigateToDouyinSidebar();
+            }
+        }
+
+        private static void NavigateToDouyinSidebar()
+        {
+            try
+            {
                 TT.NavigateToScene(
-                    data,
+                    CreateSidebarNavigateData(),
                     () => Debug.Log("[UIHall] Douyin sidebar opened."),
                     () => { },
                     (code, message) =>
@@ -1718,6 +1797,89 @@ namespace LeiTing.UI
             {
                 Debug.LogWarning($"[UIHall] Douyin sidebar open failed: {exception.Message}");
             }
+        }
+
+        private void ReceiveDouyinSidebarCoupon()
+        {
+            try
+            {
+                TT.ReceiveCoupon(
+                    CreateSidebarActivityData(),
+                    response =>
+                    {
+                        if (this == null)
+                        {
+                            return;
+                        }
+
+                        StoreSidebarActivityId(response);
+                        CompleteSidebarBombRewardClaim();
+                    },
+                    () => { },
+                    (code, message) =>
+                    {
+                        if (this == null)
+                        {
+                            return;
+                        }
+
+                        sidebarRewardClaimInProgress = false;
+                        Debug.LogWarning($"[UIHall] Douyin sidebar reward claim failed: code={code}, message={message}");
+                        RefreshSidebarVisitState();
+                    });
+            }
+            catch (Exception exception)
+            {
+                sidebarRewardClaimInProgress = false;
+                Debug.LogWarning($"[UIHall] Douyin sidebar reward claim failed: {exception.Message}");
+                RefreshSidebarVisitState();
+            }
+        }
+
+        private static JsonData CreateSidebarNavigateData()
+        {
+            var data = CreateSidebarActivityData();
+            data["scene"] = SidebarSceneName;
+            return data;
+        }
+
+        private static JsonData CreateSidebarActivityData()
+        {
+            var data = new JsonData();
+            var activityId = GameStorage.GetString(SidebarActivityIdKey, string.Empty);
+            if (!string.IsNullOrEmpty(activityId))
+            {
+                data["activityId"] = activityId;
+            }
+
+            return data;
+        }
+
+        private static void StoreSidebarActivityId(JsonData data)
+        {
+            var activityId = ReadJsonString(data, "activityId");
+            if (string.IsNullOrEmpty(activityId))
+            {
+                activityId = ReadJsonString(data, "activity_id");
+            }
+
+            if (string.IsNullOrEmpty(activityId))
+            {
+                return;
+            }
+
+            GameStorage.SetString(SidebarActivityIdKey, activityId);
+            GameStorage.Save();
+        }
+
+        private static string ReadJsonString(JsonData data, string key)
+        {
+            if (data == null || !data.IsObject || string.IsNullOrEmpty(key) || !data.ContainsKey(key))
+            {
+                return string.Empty;
+            }
+
+            return data.OptGetString(key, string.Empty);
         }
 
         private static bool IsSidebarRevisit()
@@ -1740,6 +1902,37 @@ namespace LeiTing.UI
             }
         }
 
+        private void CompleteSidebarBombRewardClaim()
+        {
+            if (!IsSidebarRewardClaimed())
+            {
+                ActiveItemInventory.Add(ActiveItemKind.Bomb, SidebarBombRewardCount);
+                GameStorage.SetInt(SidebarRewardClaimedKey, 1);
+                GameStorage.Save();
+                Debug.Log($"[UIHall] Sidebar reward claimed. item={ActiveItemKind.Bomb}, count={SidebarBombRewardCount}");
+            }
+
+            sidebarRewardClaimInProgress = false;
+            RefreshSidebarVisitState();
+        }
+
+        private static bool IsSidebarCompleted()
+        {
+            return GameStorage.GetInt(SidebarCompletedKey, 0) != 0;
+        }
+
+        private static bool IsSidebarRewardClaimed()
+        {
+            return GameStorage.GetInt(SidebarRewardClaimedKey, 0) != 0;
+        }
+
+        private static void MarkSidebarCompleted()
+        {
+            GameStorage.SetInt(SidebarCompletedKey, 1);
+            GameStorage.Save();
+            Debug.Log("[UIHall] Sidebar revisit completed.");
+        }
+
         private static bool IsSidebarLaunchValue(object value)
         {
             if (value == null)
@@ -1748,14 +1941,44 @@ namespace LeiTing.UI
             }
 
             var text = value.ToString();
-            return string.Equals(text, "sidebar", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(text, "homepage", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(text, "home_page", StringComparison.OrdinalIgnoreCase);
+            return text.IndexOf("sidebar", StringComparison.OrdinalIgnoreCase) >= 0
+                || text.IndexOf("side_bar", StringComparison.OrdinalIgnoreCase) >= 0;
         }
 #else
         private static bool IsSidebarRevisit()
         {
             return false;
+        }
+
+        private void CompleteSidebarBombRewardClaim()
+        {
+            if (!IsSidebarRewardClaimed())
+            {
+                ActiveItemInventory.Add(ActiveItemKind.Bomb, SidebarBombRewardCount);
+                GameStorage.SetInt(SidebarRewardClaimedKey, 1);
+                GameStorage.Save();
+                Debug.Log($"[UIHall] Sidebar reward claimed in editor. item={ActiveItemKind.Bomb}, count={SidebarBombRewardCount}");
+            }
+
+            sidebarRewardClaimInProgress = false;
+            RefreshSidebarVisitState();
+        }
+
+        private static bool IsSidebarCompleted()
+        {
+            return GameStorage.GetInt(SidebarCompletedKey, 0) != 0;
+        }
+
+        private static bool IsSidebarRewardClaimed()
+        {
+            return GameStorage.GetInt(SidebarRewardClaimedKey, 0) != 0;
+        }
+
+        private static void MarkSidebarCompleted()
+        {
+            GameStorage.SetInt(SidebarCompletedKey, 1);
+            GameStorage.Save();
+            Debug.Log("[UIHall] Sidebar revisit completed in editor.");
         }
 #endif
 

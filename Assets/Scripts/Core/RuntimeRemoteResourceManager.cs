@@ -233,6 +233,11 @@ namespace LeiTing.Core
                 var asset = loadedBundle.bundle.LoadAsset<TAsset>(resolvedAssetName);
                 if (asset == null)
                 {
+                    asset = LoadSubAsset<TAsset>(loadedBundle.bundle, resolvedAssetName);
+                }
+
+                if (asset == null)
+                {
                     ReportRuntimeAssetLoadFailure($"CDN asset returned null: {resolvedBundleName}/{resolvedAssetName}");
                 }
 
@@ -243,6 +248,31 @@ namespace LeiTing.Core
                 ReportRuntimeAssetLoadFailure($"CDN asset load failed: {resolvedBundleName}/{resolvedAssetName}. {exception.Message}");
                 return null;
             }
+        }
+
+        private static TAsset LoadSubAsset<TAsset>(AssetBundle bundle, string assetName)
+            where TAsset : UnityEngine.Object
+        {
+            if (bundle == null || string.IsNullOrWhiteSpace(assetName))
+            {
+                return null;
+            }
+
+            var subAssets = bundle.LoadAssetWithSubAssets<TAsset>(assetName);
+            if (subAssets == null)
+            {
+                return null;
+            }
+
+            foreach (var subAsset in subAssets)
+            {
+                if (subAsset != null)
+                {
+                    return subAsset;
+                }
+            }
+
+            return null;
         }
 
         private static UnityWebRequest CreateBundleRequest(string url, uint crc)

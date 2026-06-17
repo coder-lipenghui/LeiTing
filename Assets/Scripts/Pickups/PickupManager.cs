@@ -12,9 +12,14 @@ namespace LeiTing.Pickups
     {
         private const float DropScatterRadius = 0.7f;
 
+        [SerializeField] private int initialPoolSize = 24;
         [SerializeField] private Transform pickupLayer;
 
         private readonly HashSet<string> droppedOnceItemIds = new HashSet<string>();
+        private readonly HashSet<PickupItemController> activePickups = new HashSet<PickupItemController>();
+        private readonly Stack<PickupItemController> pooledPickups = new Stack<PickupItemController>();
+        private readonly Dictionary<string, PickupItemConfig> pickupConfigCache = new Dictionary<string, PickupItemConfig>();
+        private bool isPoolWarmed;
 
         public static PickupManager GetOrCreate()
         {
@@ -92,10 +97,9 @@ namespace LeiTing.Pickups
                 return;
             }
 
-            var pickups = FindObjectsOfType<PickupItemController>();
-            foreach (var pickup in pickups)
+            foreach (var pickup in activePickups)
             {
-                if (pickup != null && pickup.IsStarPickup)
+                if (pickup != null && !pickup.IsCollected && pickup.IsStarPickup)
                 {
                     pickup.BeginForcedAttract(player);
                 }
@@ -109,8 +113,7 @@ namespace LeiTing.Pickups
                 return;
             }
 
-            var pickups = FindObjectsOfType<PickupItemController>();
-            foreach (var pickup in pickups)
+            foreach (var pickup in activePickups)
             {
                 if (pickup != null && !pickup.IsCollected)
                 {
@@ -121,8 +124,7 @@ namespace LeiTing.Pickups
 
         public bool HasActivePickups()
         {
-            var pickups = FindObjectsOfType<PickupItemController>();
-            foreach (var pickup in pickups)
+            foreach (var pickup in activePickups)
             {
                 if (pickup != null && !pickup.IsCollected)
                 {
@@ -135,8 +137,7 @@ namespace LeiTing.Pickups
 
         public bool HasActiveStarOrCoinPickups()
         {
-            var pickups = FindObjectsOfType<PickupItemController>();
-            foreach (var pickup in pickups)
+            foreach (var pickup in activePickups)
             {
                 if (pickup != null && !pickup.IsCollected && pickup.IsStarOrCoinPickup)
                 {
@@ -166,7 +167,25 @@ namespace LeiTing.Pickups
             if (Instance == this)
             {
                 CacheLayerRoot();
+                EnsurePool();
             }
+        }
+
+        public void Recycle(PickupItemController pickup)
+        {
+            if (pickup == null)
+            {
+                return;
+            }
+
+            if (!activePickups.Remove(pickup) && !pickup.gameObject.activeSelf)
+            {
+                return;
+            }
+
+            pickup.DeactivateForPool();
+            pickup.transform.SetParent(transform, false);
+            pooledPickups.Push(pickup);
         }
 
         private PickupItemController SpawnPickup(
@@ -181,12 +200,16 @@ namespace LeiTing.Pickups
                 return null;
             }
 
-            var pickupObject = new GameObject(pickupConfig.id);
-            pickupObject.transform.SetParent(GetLayerRoot(), false);
-            pickupObject.transform.position = position + ResolveScatterOffset(index, count);
+            EnsurePool();
 
-            var pickup = pickupObject.AddComponent<PickupItemController>();
-            pickup.Initialize(pickupConfig);
+            var pickup = GetPickup();
+            pickup.transform.SetParent(GetLayerRoot(), false);
+            pickup.transform.position = position + ResolveScatterOffset(index, count);
+            pickup.transform.rotation = Quaternion.identity;
+            pickup.gameObject.SetActive(true);
+            activePickups.Add(pickup);
+
+            pickup.Initialize(pickupConfig, this);
             if (countTowardProgress && LevelProgressService.IsStarPickup(pickupConfig))
             {
                 LevelProgressService.RecordStarSpawned(LevelProgressService.GetPickupStarValue(pickupConfig));
@@ -197,18 +220,24 @@ namespace LeiTing.Pickups
 
         private PickupItemConfig ResolvePickupConfig(string itemId)
         {
+            if (!string.IsNullOrEmpty(itemId) && pickupConfigCache.TryGetValue(itemId, out var cachedConfig))
+            {
+                return cachedConfig;
+            }
+
             var pickupConfig = ConfigManager.Instance != null && ConfigManager.Instance.IsLoaded
                 ? ConfigManager.Instance.GetPickupItem(itemId)
                 : null;
 
             if (pickupConfig != null)
             {
+                CachePickupConfig(itemId, pickupConfig);
                 return pickupConfig;
             }
 
             if (string.Equals(itemId, "star", System.StringComparison.OrdinalIgnoreCase))
             {
-                return new PickupItemConfig
+                pickupConfig = new PickupItemConfig
                 {
                     id = "star",
                     displayName = "Star",
@@ -220,11 +249,13 @@ namespace LeiTing.Pickups
                     pickupRadius = 0.22f,
                     visualScale = 0.62f
                 };
+                CachePickupConfig(itemId, pickupConfig);
+                return pickupConfig;
             }
 
             if (string.Equals(itemId, "trophy", System.StringComparison.OrdinalIgnoreCase))
             {
-                return new PickupItemConfig
+                pickupConfig = new PickupItemConfig
                 {
                     id = "trophy",
                     displayName = "Trophy",
@@ -235,10 +266,49 @@ namespace LeiTing.Pickups
                     pickupRadius = 1.5f,
                     visualScale = 1f
                 };
+                CachePickupConfig(itemId, pickupConfig);
+                return pickupConfig;
             }
 
             Debug.LogWarning($"Pickup item config not found: {itemId}");
             return null;
+        }
+
+        private void EnsurePool()
+        {
+            if (isPoolWarmed)
+            {
+                return;
+            }
+
+            var count = Mathf.Max(0, initialPoolSize);
+            for (var index = 0; index < count; index++)
+            {
+                pooledPickups.Push(CreatePickup());
+            }
+
+            isPoolWarmed = true;
+        }
+
+        private PickupItemController GetPickup()
+        {
+            return pooledPickups.Count > 0 ? pooledPickups.Pop() : CreatePickup();
+        }
+
+        private PickupItemController CreatePickup()
+        {
+            var pickupObject = new GameObject("Pickup");
+            pickupObject.transform.SetParent(transform, false);
+            pickupObject.SetActive(false);
+            return pickupObject.AddComponent<PickupItemController>();
+        }
+
+        private void CachePickupConfig(string itemId, PickupItemConfig pickupConfig)
+        {
+            if (!string.IsNullOrEmpty(itemId) && pickupConfig != null)
+            {
+                pickupConfigCache[itemId] = pickupConfig;
+            }
         }
 
         private Transform GetLayerRoot()

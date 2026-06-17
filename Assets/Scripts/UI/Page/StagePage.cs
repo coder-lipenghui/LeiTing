@@ -493,7 +493,9 @@ namespace LeiTing.UI
 
             if (!StaminaService.TryConsume(StaminaService.BattleCost))
             {
-                var watchedAd = await AdManager.GetOrCreate().ShowRewardAd();
+                Debug.LogWarning("[UIStage] Not enough stamina; requesting reward ad before battle start.");
+                var watchedAd = await AdManager.GetOrCreate().ShowRewardAd("StageStartStamina");
+                Debug.LogWarning($"[UIStage] Reward ad result before battle start. watched={watchedAd}");
                 if (!watchedAd)
                 {
                     Debug.LogWarning("[UIStage] Not enough stamina and reward ad was not completed.");

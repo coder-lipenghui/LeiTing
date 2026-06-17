@@ -141,7 +141,9 @@ namespace LeiTing.UI
             }
 
             watchAdButton.interactable = false;
-            var success = await AdManager.GetOrCreate().ShowRewardAd();
+            Debug.LogWarning($"[PlaneUnlockPopup] Requesting reward ad. planeId={data.id}");
+            var success = await AdManager.GetOrCreate().ShowRewardAd($"PlaneUnlock:{data.id}");
+            Debug.LogWarning($"[PlaneUnlockPopup] Reward ad result. planeId={data.id}, success={success}");
 
             if (!success)
             {

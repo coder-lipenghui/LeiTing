@@ -2594,13 +2594,15 @@ namespace LeiTing.UI
             adReviveInProgress = true;
             UpdateSettlement();
 
-            var watchedAd = await AdManager.GetOrCreate().ShowRewardAd();
+            Debug.LogWarning("[BattleRevive] Requesting reward ad for defeat revive.");
+            var watchedAd = await AdManager.GetOrCreate().ShowRewardAd("BattleDefeatRevive");
             if (this == null)
             {
                 return;
             }
 
             adReviveInProgress = false;
+            Debug.LogWarning($"[BattleRevive] Reward ad result for defeat revive. watched={watchedAd}");
             if (!watchedAd)
             {
                 UpdateSettlement();

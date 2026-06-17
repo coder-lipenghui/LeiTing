@@ -24,6 +24,7 @@ namespace LeiTing.UI
         private const float CountBadgeSize = 38f;
         private const float LinkWidth = 5f;
         private const float ShieldDuration = 5f;
+        private const string RewardAdSourcePrefix = "BattleActiveItem";
 
         private const string LightningIconPath = "Assets/Art/Sprites/Item/item_lightning.png";
         private const string ShieldIconPath = "Assets/Art/Sprites/Item/item_shield.png";
@@ -65,6 +66,10 @@ namespace LeiTing.UI
         private ActiveItemKind pendingAdKind;
         private bool promptIsAdRequest;
         private bool adInProgress;
+        private bool adPauseActive;
+        private bool adPausePausedGame;
+        private float adPausePreviousTimeScale = 1f;
+        private float adPausePreviousFixedDeltaTime = 0.02f;
 
         private static Sprite circleSprite;
         private static readonly Dictionary<ActiveItemKind, Sprite> fallbackIcons =
@@ -91,6 +96,7 @@ namespace LeiTing.UI
         private void OnDestroy()
         {
             ActiveItemInventory.InventoryChanged -= RefreshItems;
+            EndAdPause(pendingAdKind);
         }
 
         private void Update()
@@ -473,21 +479,40 @@ namespace LeiTing.UI
         {
             if (adInProgress || !ActiveItemInventory.CanClaimAdRewardThisBattle(pendingAdKind))
             {
+                Debug.LogWarning(
+                    $"[BattleActiveItem] Reward ad request ignored. kind={pendingAdKind}, adInProgress={adInProgress}, canClaim={ActiveItemInventory.CanClaimAdRewardThisBattle(pendingAdKind)}");
                 return;
             }
 
+            Debug.LogWarning($"[BattleActiveItem] Reward ad requested for active item. kind={pendingAdKind}");
             adInProgress = true;
             confirmText.text = "\u5E7F\u544A\u4E2D...";
             SetPromptButtonsInteractable(false);
             RefreshItems();
 
-            var watchedAd = await AdManager.GetOrCreate().ShowRewardAd();
+            BeginAdPause(pendingAdKind);
+
+            var watchedAd = false;
+            try
+            {
+                watchedAd = await AdManager.GetOrCreate().ShowRewardAd($"{RewardAdSourcePrefix}:{pendingAdKind}");
+            }
+            catch (Exception exception)
+            {
+                Debug.LogWarning($"[BattleActiveItem] Reward ad exception. kind={pendingAdKind}, message={exception.Message}");
+            }
+            finally
+            {
+                EndAdPause(pendingAdKind);
+            }
+
             if (this == null)
             {
                 return;
             }
 
             adInProgress = false;
+            Debug.LogWarning($"[BattleActiveItem] Reward ad result received. kind={pendingAdKind}, watched={watchedAd}");
             if (watchedAd)
             {
                 ActiveItemInventory.TryClaimAdReward(pendingAdKind);
@@ -498,6 +523,52 @@ namespace LeiTing.UI
 
             ShowInfoPrompt("\u5E7F\u544A\u672A\u5B8C\u6210");
             RefreshItems();
+        }
+
+        private void BeginAdPause(ActiveItemKind kind)
+        {
+            if (adPauseActive)
+            {
+                return;
+            }
+
+            adPauseActive = true;
+            adPausePreviousTimeScale = Time.timeScale > 0f ? Time.timeScale : 1f;
+            adPausePreviousFixedDeltaTime = Time.fixedDeltaTime > 0f ? Time.fixedDeltaTime : 0.02f;
+
+            var gameManager = GameManager.Instance;
+            adPausePausedGame = gameManager != null && gameManager.CurrentState == GameState.Playing;
+            if (adPausePausedGame)
+            {
+                gameManager.PauseGame();
+            }
+
+            Time.timeScale = 0f;
+            Time.fixedDeltaTime = 0f;
+            Debug.LogWarning(
+                $"[BattleActiveItem] Battle paused for reward ad. kind={kind}, pausedGame={adPausePausedGame}, previousTimeScale={adPausePreviousTimeScale}, previousFixedDeltaTime={adPausePreviousFixedDeltaTime}");
+        }
+
+        private void EndAdPause(ActiveItemKind kind)
+        {
+            if (!adPauseActive)
+            {
+                return;
+            }
+
+            var gameManager = GameManager.Instance;
+            if (adPausePausedGame && gameManager != null && gameManager.CurrentState == GameState.Paused)
+            {
+                gameManager.ResumeGame();
+            }
+
+            Time.timeScale = adPausePreviousTimeScale > 0f ? adPausePreviousTimeScale : 1f;
+            Time.fixedDeltaTime = adPausePreviousFixedDeltaTime > 0f ? adPausePreviousFixedDeltaTime : 0.02f;
+            Debug.LogWarning(
+                $"[BattleActiveItem] Battle resumed after reward ad. kind={kind}, restoredTimeScale={Time.timeScale}, restoredFixedDeltaTime={Time.fixedDeltaTime}");
+
+            adPauseActive = false;
+            adPausePausedGame = false;
         }
 
         private void SetPromptButtonsInteractable(bool interactable)

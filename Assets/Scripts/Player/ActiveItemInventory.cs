@@ -70,6 +70,17 @@ namespace LeiTing.Player
             return true;
         }
 
+        public static void Add(ActiveItemKind kind, int amount)
+        {
+            if (amount <= 0)
+            {
+                return;
+            }
+
+            SetCount(kind, GetCount(kind) + amount);
+            NotifyChanged();
+        }
+
         private static void SetCount(ActiveItemKind kind, int value)
         {
             GameStorage.SetInt(GetCountKey(kind), Mathf.Max(0, value));
