@@ -61,7 +61,9 @@ and a phone test.
   levels, stage events, boss phases, and related patterns from that object.
 - `RuntimeAssetCatalog` is the runtime lookup path for configured prefabs,
   sprites, and audio assets outside editor-only `AssetDatabase` loading.
-  Rebuild its asset data when referenced runtime assets change.
+  Remote bundle loading falls back to typed sub-assets after the main asset
+  lookup, so sprite PNGs imported as Sprite sub-assets can still resolve in
+  WebGL. Rebuild catalog asset data when referenced runtime assets change.
 
 ## Scene And Game Flow
 

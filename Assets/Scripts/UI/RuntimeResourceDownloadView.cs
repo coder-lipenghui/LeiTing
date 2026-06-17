@@ -184,7 +184,7 @@ namespace LeiTing.UI
             var background = CreateImage("Background", parent, new Color(0.02f, 0.04f, 0.07f, 1f));
             Stretch(background.rectTransform);
 
-            var title = CreateText("Title", parent, "DOWNLOADING RESOURCES", 44, FontStyle.Bold, TextAnchor.MiddleCenter);
+            var title = CreateText("Title", parent, "资源更新", 44, FontStyle.Bold, TextAnchor.MiddleCenter);
             title.color = Color.white;
             ConfigureRect(title.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(720f, 80f), new Vector2(0f, 112f));
 
@@ -202,7 +202,7 @@ namespace LeiTing.UI
             percent.color = new Color(0.86f, 0.96f, 1f, 1f);
             ConfigureRect(percent.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(240f, 48f), new Vector2(0f, -48f));
 
-            status = CreateText(StatusTextName, parent, "CONNECTING", 24, FontStyle.Normal, TextAnchor.MiddleCenter);
+            status = CreateText(StatusTextName, parent, "连接中...", 24, FontStyle.Normal, TextAnchor.MiddleCenter);
             status.color = new Color(0.65f, 0.78f, 0.9f, 1f);
             ConfigureRect(status.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(720f, 48f), new Vector2(0f, -96f));
 
@@ -234,11 +234,11 @@ namespace LeiTing.UI
 
         public void ShowRetry(string message, Action retry)
         {
-            Debug.LogError($"CDN resource loading failed: {message}");
+            Debug.LogError($"资源加载失败: {message}");
 
             if (statusText != null)
             {
-                statusText.text = string.IsNullOrWhiteSpace(message) ? "DOWNLOAD FAILED" : "DOWNLOAD FAILED";
+                statusText.text = string.IsNullOrWhiteSpace(message) ? "下载失败" : "下载失败";
             }
 
             if (retryButton != null)
@@ -252,7 +252,8 @@ namespace LeiTing.UI
             if (errorMessageText != null)
             {
                 errorMessageText.text = string.IsNullOrWhiteSpace(message)
-                    ? "CDN resource loading failed. Please check CDN configuration and network."
+                    ? "资源下载失败."
+                    // ? "资源加载失败. Please check CDN configuration and network."
                     : message;
             }
 
@@ -267,11 +268,11 @@ namespace LeiTing.UI
 
         public void ShowError(string message)
         {
-            Debug.LogError($"CDN resource loading failed: {message}");
+            Debug.LogError($"资源加载失败: {message}");
 
             if (statusText != null)
             {
-                statusText.text = "RESOURCE LOAD FAILED";
+                statusText.text = "下载失败";
             }
 
             if (retryButton != null)
@@ -283,7 +284,7 @@ namespace LeiTing.UI
             if (errorMessageText != null)
             {
                 errorMessageText.text = string.IsNullOrWhiteSpace(message)
-                    ? "CDN resource loading failed. Please check CDN configuration and uploaded bundles."
+                    ? "资源加载失败,请检查配置."
                     : message;
             }
 
@@ -329,7 +330,7 @@ namespace LeiTing.UI
             var button = image.gameObject.AddComponent<Button>();
             button.targetGraphic = image;
 
-            var label = CreateText("Label", image.transform, "RETRY", 28, FontStyle.Bold, TextAnchor.MiddleCenter);
+            var label = CreateText("Label", image.transform, "重试", 28, FontStyle.Bold, TextAnchor.MiddleCenter);
             label.color = Color.white;
             Stretch(label.rectTransform);
             return button;
@@ -349,7 +350,7 @@ namespace LeiTing.UI
             var panel = CreateImage("Panel", overlay.transform, new Color(0.06f, 0.1f, 0.14f, 0.96f));
             ConfigureRect(panel.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(760f, 360f), Vector2.zero);
 
-            var title = CreateText("Title", panel.transform, "RESOURCE LOAD FAILED", 34, FontStyle.Bold, TextAnchor.MiddleCenter);
+            var title = CreateText("Title", panel.transform, "资源下载失败", 34, FontStyle.Bold, TextAnchor.MiddleCenter);
             title.color = Color.white;
             ConfigureRect(title.rectTransform, new Vector2(0.5f, 1f), new Vector2(680f, 70f), new Vector2(0f, -64f));
 
@@ -364,7 +365,7 @@ namespace LeiTing.UI
             retryButton = retryImage.gameObject.AddComponent<Button>();
             retryButton.targetGraphic = retryImage;
 
-            var label = CreateText("Label", retryImage.transform, "RETRY", 28, FontStyle.Bold, TextAnchor.MiddleCenter);
+            var label = CreateText("Label", retryImage.transform, "重试", 28, FontStyle.Bold, TextAnchor.MiddleCenter);
             label.color = Color.white;
             Stretch(label.rectTransform);
 

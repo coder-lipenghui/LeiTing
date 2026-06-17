@@ -163,32 +163,32 @@ namespace LeiTing.Core
                     while (!operation.isDone)
                     {
                         var progress = (index + Mathf.Clamp01(request.downloadProgress)) / Mathf.Max(1, bundleCount);
-                        ReportProgress(onProgress, progress, $"DOWNLOADING {index + 1}/{bundleCount}");
+                        ReportProgress(onProgress, progress, $"下载中( {index + 1}/{bundleCount})...");
                         yield return null;
                     }
 
                     if (request.result != UnityWebRequest.Result.Success)
                     {
-                        Fail($"Remote bundle download failed: {url}. {request.error}", onProgress, onComplete);
+                        Fail($"资源下载失败:{request.error}", onProgress, onComplete);
                         yield break;
                     }
 
                     var assetBundle = GetAssetBundle(request);
                     if (assetBundle == null)
                     {
-                        Fail($"Remote bundle load failed: {url}", onProgress, onComplete);
+                        Fail($"资源下载失败:{request.error}", onProgress, onComplete);
                         yield break;
                     }
 
                     loadedBundles[bundleName] = new LoadedBundle(assetBundle);
                 }
 
-                ReportProgress(onProgress, (index + 1f) / Mathf.Max(1, bundleCount), $"LOADED {index + 1}/{bundleCount}");
+                ReportProgress(onProgress, (index + 1f) / Mathf.Max(1, bundleCount), $"加载中: {index + 1}/{bundleCount}");
                 yield return null;
             }
 
             state = LoadState.Ready;
-            ReportProgress(onProgress, 1f, "READY");
+            ReportProgress(onProgress, 1f, "资源下载结束");
             onComplete?.Invoke(true, string.Empty);
         }
 

@@ -41,6 +41,8 @@ namespace LeiTing.UI
         private const string SidebarCompletedKey = "leiting_sidebar_completed";
         private const string SidebarRewardClaimedKey = "leiting_sidebar_bomb_claimed";
         private const string SidebarActivityIdKey = "leiting_sidebar_activity_id";
+        private const string DesktopShortcutStatusKey = "leiting_desktop_shortcut_status";
+        private const string DesktopShortcutStatusAdded = "\u6dfb\u52a0\u6210\u529f";
         private const string SidebarSceneName = "sidebar";
         private const int SidebarBombRewardCount = 1;
 
@@ -76,6 +78,8 @@ namespace LeiTing.UI
         [SerializeField] private Button sidebarClaimButton;
         [SerializeField] private Button sidebarCloseButton;
         [SerializeField] private GameObject sidebarRedDot;
+        [SerializeField] private Button desktopButton;
+        [SerializeField] private GameObject desktopRedDot;
 
         private readonly List<LevelItemView> levelItems = new List<LevelItemView>();
         private readonly List<InfoToggleView> infoItems = new List<InfoToggleView>();
@@ -133,6 +137,7 @@ namespace LeiTing.UI
             BindPrefabView();
             BindEvents();
             RefreshSidebarVisitState();
+            RefreshDesktopShortcutState();
             RefreshLobby(true, false);
         }
 
@@ -140,6 +145,7 @@ namespace LeiTing.UI
         {
             battleStartRequested = false;
             RefreshSidebarVisitState();
+            RefreshDesktopShortcutState();
             RefreshLobby(true, false);
         }
 
@@ -230,6 +236,10 @@ namespace LeiTing.UI
                 : FindChildRecursive(transform, "ImageRed");
             sidebarRedDot = sidebarRedDot != null ? sidebarRedDot : redDotTransform != null ? redDotTransform.gameObject : null;
 
+            desktopButton = desktopButton != null ? desktopButton : FindOrCreateButton("BtnDesktop");
+            var desktopRedDotTransform = desktopButton != null ? FindChildRecursive(desktopButton.transform, "ImageRed") : null;
+            desktopRedDot = desktopRedDot != null ? desktopRedDot : desktopRedDotTransform != null ? desktopRedDotTransform.gameObject : null;
+
             if (stageInfo != null)
             {
                 stageInfoCanvasGroup = EnsureCanvasGroup(stageInfo.gameObject);
@@ -260,6 +270,7 @@ namespace LeiTing.UI
             BindButton(sidebarGoButton, OnClickSidebarGo);
             BindButton(sidebarClaimButton, OnClickSidebarClaim);
             BindButton(sidebarCloseButton, OnClickSidebarClose);
+            BindButton(desktopButton, OnClickDesktop);
 
             foreach (var item in levelItems)
             {
@@ -365,6 +376,14 @@ namespace LeiTing.UI
             }
 
             SetSidebarRewardState(completed, IsSidebarRewardClaimed());
+        }
+
+        private void RefreshDesktopShortcutState()
+        {
+            if (desktopRedDot != null)
+            {
+                desktopRedDot.SetActive(!IsDesktopShortcutAdded());
+            }
         }
 
         private void SetSidebarRewardState(bool completed, bool claimed)
@@ -1646,6 +1665,54 @@ namespace LeiTing.UI
             }
         }
 
+        private void OnClickDesktop()
+        {
+#if UNITY_WEBGL && !UNITY_EDITOR
+            var markImmediately = IsDouyinIos();
+            try
+            {
+                TT.AddShortcut(success =>
+                {
+                    if (this == null)
+                    {
+                        return;
+                    }
+
+                    if (success)
+                    {
+                        if (!markImmediately)
+                        {
+                            MarkDesktopShortcutAdded("[UIHall] Desktop shortcut added.");
+                        }
+                        else
+                        {
+                            RefreshDesktopShortcutState();
+                        }
+
+                        return;
+                    }
+
+                    Debug.LogWarning(markImmediately
+                        ? "[UIHall] Douyin desktop shortcut add callback reported failed on iOS."
+                        : "[UIHall] Douyin desktop shortcut add failed.");
+                    RefreshDesktopShortcutState();
+                }, true);
+            }
+            catch (Exception exception)
+            {
+                Debug.LogWarning($"[UIHall] Douyin desktop shortcut add failed: {exception.Message}");
+                RefreshDesktopShortcutState();
+            }
+
+            if (markImmediately)
+            {
+                MarkDesktopShortcutAdded("[UIHall] Desktop shortcut marked added on iOS after AddShortcut request.");
+            }
+#else
+            MarkDesktopShortcutAdded("[UIHall] Desktop shortcut marked added in editor.");
+#endif
+        }
+
         private void OnClickSidebarGo()
         {
 #if UNITY_WEBGL && !UNITY_EDITOR
@@ -1743,6 +1810,7 @@ namespace LeiTing.UI
             if (hasFocus)
             {
                 RefreshSidebarVisitState();
+                RefreshDesktopShortcutState();
             }
         }
 
@@ -1751,10 +1819,53 @@ namespace LeiTing.UI
             if (!pauseStatus)
             {
                 RefreshSidebarVisitState();
+                RefreshDesktopShortcutState();
             }
         }
 
+        private static bool IsDesktopShortcutAdded()
+        {
+            return string.Equals(
+                GameStorage.GetString(DesktopShortcutStatusKey, string.Empty),
+                DesktopShortcutStatusAdded,
+                StringComparison.Ordinal);
+        }
+
+        private void MarkDesktopShortcutAdded(string logMessage)
+        {
+            if (!IsDesktopShortcutAdded())
+            {
+                GameStorage.SetString(DesktopShortcutStatusKey, DesktopShortcutStatusAdded);
+                GameStorage.Save();
+                Debug.Log(logMessage);
+            }
+
+            RefreshDesktopShortcutState();
+        }
+
 #if UNITY_WEBGL && !UNITY_EDITOR
+        private static bool IsDouyinIos()
+        {
+            try
+            {
+                var systemInfo = TT.GetSystemInfo();
+                return ContainsIgnoreCase(systemInfo.platform, "ios")
+                    || ContainsIgnoreCase(systemInfo.system, "ios");
+            }
+            catch (Exception exception)
+            {
+                Debug.LogWarning($"[UIHall] Douyin platform check failed: {exception.Message}");
+                return false;
+            }
+        }
+
+        private static bool ContainsIgnoreCase(string text, string value)
+        {
+            return !string.IsNullOrEmpty(text)
+                && !string.IsNullOrEmpty(value)
+                && text.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
         private static void OpenDouyinSidebar()
         {
             try

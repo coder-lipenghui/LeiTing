@@ -302,6 +302,10 @@ MonoBehaviour:
     bundleName: leiting_runtime_assets
     assetName: Assets/Art/Sprites/UI/btnClose.png
     sprite: {fileID: 0}
+  - path: Assets/Art/Sprites/UI/btnDesktop.png
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/btnDesktop.png
+    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/btnExit.png
     bundleName: leiting_runtime_assets
     assetName: Assets/Art/Sprites/UI/btnExit.png
@@ -377,6 +381,18 @@ MonoBehaviour:
   - path: Assets/Art/Sprites/UI/lineZong.png
     bundleName: leiting_runtime_assets
     assetName: Assets/Art/Sprites/UI/lineZong.png
+    sprite: {fileID: 0}
+  - path: Assets/Art/Sprites/UI/loadingbg.png
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/loadingbg.png
+    sprite: {fileID: 0}
+  - path: Assets/Art/Sprites/UI/loadingProgress_bar.png
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/loadingProgress_bar.png
+    sprite: {fileID: 0}
+  - path: Assets/Art/Sprites/UI/loadingProgress_bg.png
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/loadingProgress_bg.png
     sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/M.png
     bundleName: leiting_runtime_assets
