@@ -13,86 +13,86 @@
     "displayName": "第 2 关",
     "backgroundSpritePath": "Assets/Art/Sprites/Backgrounds/background-02.png",
     "backgroundScrollSpeed": 2.1,
-    "bgmPath": ""
+    "bgmPath": "Assets/Art/Sound/SFX/Ambience/SFX_Ambience_Battle_Loop_01.mp3"
   },
   {
     "index": 3,
     "id": "level_03",
     "displayName": "第 3 关",
-    "backgroundSpritePath": "Assets/Art/Sprites/Backgrounds/background-01.png",
+    "backgroundSpritePath": "Assets/Art/Sprites/Backgrounds/background-02.png",
     "backgroundScrollSpeed": 2.1,
-    "bgmPath": ""
+    "bgmPath": "Assets/Art/Sound/SFX/Ambience/SFX_Ambience_Battle_Loop_01.mp3"
   },
   {
     "index": 4,
     "id": "level_04",
     "displayName": "第 4 关",
-    "backgroundSpritePath": "Assets/Art/Sprites/Backgrounds/background-01.png",
+    "backgroundSpritePath": "Assets/Art/Sprites/Backgrounds/background-02.png",
     "backgroundScrollSpeed": 2.1,
-    "bgmPath": ""
+    "bgmPath": "Assets/Art/Sound/SFX/Ambience/SFX_Ambience_Battle_Loop_01.mp3"
   },
   {
     "index": 5,
     "id": "level_05",
     "displayName": "第 5 关",
-    "backgroundSpritePath": "Assets/Art/Sprites/Backgrounds/background-01.png",
+    "backgroundSpritePath": "Assets/Art/Sprites/Backgrounds/background-02.png",
     "backgroundScrollSpeed": 2.1,
-    "bgmPath": ""
+    "bgmPath": "Assets/Art/Sound/SFX/Ambience/SFX_Ambience_Battle_Loop_01.mp3"
   },
   {
     "index": 6,
     "id": "level_06",
     "displayName": "第 6 关",
-    "backgroundSpritePath": "Assets/Art/Sprites/Backgrounds/background-01.png",
+    "backgroundSpritePath": "Assets/Art/Sprites/Backgrounds/background-02.png",
     "backgroundScrollSpeed": 2.1,
-    "bgmPath": ""
+    "bgmPath": "Assets/Art/Sound/SFX/Ambience/SFX_Ambience_Battle_Loop_01.mp3"
   },
   {
     "index": 7,
     "id": "level_07",
     "displayName": "第 7 关",
-    "backgroundSpritePath": "Assets/Art/Sprites/Backgrounds/background-01.png",
+    "backgroundSpritePath": "Assets/Art/Sprites/Backgrounds/background-02.png",
     "backgroundScrollSpeed": 2.1,
-    "bgmPath": ""
+    "bgmPath": "Assets/Art/Sound/SFX/Ambience/SFX_Ambience_Battle_Loop_01.mp3"
   },
   {
     "index": 8,
     "id": "level_08",
     "displayName": "第 8 关",
-    "backgroundSpritePath": "Assets/Art/Sprites/Backgrounds/background-01.png",
+    "backgroundSpritePath": "Assets/Art/Sprites/Backgrounds/background-02.png",
     "backgroundScrollSpeed": 2.1,
-    "bgmPath": ""
+    "bgmPath": "Assets/Art/Sound/SFX/Ambience/SFX_Ambience_Battle_Loop_01.mp3"
   },
   {
     "index": 9,
     "id": "level_09",
     "displayName": "第 9 关",
-    "backgroundSpritePath": "Assets/Art/Sprites/Backgrounds/background-01.png",
+    "backgroundSpritePath": "Assets/Art/Sprites/Backgrounds/background-02.png",
     "backgroundScrollSpeed": 2.1,
-    "bgmPath": ""
+    "bgmPath": "Assets/Art/Sound/SFX/Ambience/SFX_Ambience_Battle_Loop_01.mp3"
   },
   {
     "index": 10,
     "id": "level_10",
     "displayName": "第 10 关",
-    "backgroundSpritePath": "Assets/Art/Sprites/Backgrounds/background-01.png",
+    "backgroundSpritePath": "Assets/Art/Sprites/Backgrounds/background-02.png",
     "backgroundScrollSpeed": 2.1,
-    "bgmPath": ""
+    "bgmPath": "Assets/Art/Sound/SFX/Ambience/SFX_Ambience_Battle_Loop_01.mp3"
   },
   {
     "index": 11,
     "id": "level_11",
     "displayName": "第 11 关",
-    "backgroundSpritePath": "Assets/Art/Sprites/Backgrounds/background-01.png",
+    "backgroundSpritePath": "Assets/Art/Sprites/Backgrounds/background-02.png",
     "backgroundScrollSpeed": 2.1,
-    "bgmPath": ""
+    "bgmPath": "Assets/Art/Sound/SFX/Ambience/SFX_Ambience_Battle_Loop_01.mp3"
   },
   {
     "index": 12,
     "id": "level_12",
     "displayName": "第 12 关",
-    "backgroundSpritePath": "Assets/Art/Sprites/Backgrounds/background-01.png",
+    "backgroundSpritePath": "Assets/Art/Sprites/Backgrounds/background-02.png",
     "backgroundScrollSpeed": 2.1,
-    "bgmPath": ""
+    "bgmPath": "Assets/Art/Sound/SFX/Ambience/SFX_Ambience_Battle_Loop_01.mp3"
   }
 ]
