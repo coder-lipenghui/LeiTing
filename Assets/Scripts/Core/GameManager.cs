@@ -263,7 +263,7 @@ namespace LeiTing.Core
 
             return enemyConfig != null && !string.IsNullOrEmpty(enemyConfig.displayName)
                 ? enemyConfig.displayName
-                : "BOSS";
+                : "首领";
         }
 
         private bool TryDelayVictoryForPickups()

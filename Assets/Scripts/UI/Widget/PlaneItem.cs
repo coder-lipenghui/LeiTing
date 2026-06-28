@@ -94,7 +94,7 @@ namespace LeiTing.UI
             }
 
             nameText.text = data.name;
-            statsText.text = $"HP {data.hp}   ATK {data.attack}\nRATE {data.fireRate:0.0}   SPD {data.moveSpeed:0.0}";
+            statsText.text = $"生命 {data.hp}   攻击 {data.attack}\n射速 {data.fireRate:0.0}   速度 {data.moveSpeed:0.0}";
 
             if (data.owned && data.selected)
             {

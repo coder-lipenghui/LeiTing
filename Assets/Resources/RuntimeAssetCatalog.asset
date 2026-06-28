@@ -194,10 +194,6 @@ MonoBehaviour:
     bundleName: leiting_runtime_assets
     assetName: Assets/Art/Animations/Enemies/enemy-01.png
     sprite: {fileID: 0}
-  - path: Assets/Art/Sprites/Backgrounds/background-01.png
-    bundleName: leiting_runtime_assets
-    assetName: Assets/Art/Sprites/Backgrounds/background-01.png
-    sprite: {fileID: 0}
   - path: Assets/Art/Sprites/Backgrounds/background-02.png
     bundleName: leiting_runtime_assets
     assetName: Assets/Art/Sprites/Backgrounds/background-02.png
@@ -282,9 +278,9 @@ MonoBehaviour:
     bundleName: leiting_runtime_assets
     assetName: Assets/Art/Sprites/UI/A.png
     sprite: {fileID: 0}
-  - path: Assets/Art/Sprites/UI/backgroundH.png
+  - path: Assets/Art/Sprites/UI/APPICON.png
     bundleName: leiting_runtime_assets
-    assetName: Assets/Art/Sprites/UI/backgroundH.png
+    assetName: Assets/Art/Sprites/UI/APPICON.png
     sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/btnBack.png
     bundleName: leiting_runtime_assets
@@ -397,6 +393,18 @@ MonoBehaviour:
   - path: Assets/Art/Sprites/UI/M.png
     bundleName: leiting_runtime_assets
     assetName: Assets/Art/Sprites/UI/M.png
+    sprite: {fileID: 0}
+  - path: Assets/Art/Sprites/UI/Navigate_bg1.png
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/Navigate_bg1.png
+    sprite: {fileID: 0}
+  - path: Assets/Art/Sprites/UI/Navigate_bg2.png
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/Navigate_bg2.png
+    sprite: {fileID: 0}
+  - path: Assets/Art/Sprites/UI/Navigate_bg3.png
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/UI/Navigate_bg3.png
     sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/O.png
     bundleName: leiting_runtime_assets

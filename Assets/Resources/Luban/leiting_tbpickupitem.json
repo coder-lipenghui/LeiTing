@@ -92,7 +92,7 @@
   {
     "index": 7,
     "id": "trophy",
-    "displayName": "Trophy",
+    "displayName": "奖杯",
     "itemType": "Trophy",
     "spritePath": "Sprites/Item/item_trophy",
     "starValue": 0,

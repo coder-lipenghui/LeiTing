@@ -8,6 +8,11 @@ Unity scene/prefab data, and Luban source tables under `Luban/Datas`.
 
 - Treat runtime code, active Unity assets, and Luban source workbooks as the
   source of truth when a document disagrees with the implementation.
+- User-visible text must be expressed in Chinese. This includes in-game prompts,
+  UI labels, buttons, HUD text, config display names, loading/error messages,
+  and other player-facing copy. Keep internal identifiers, enum values, resource
+  paths, generated code keys, protocol fields, and platform/API parameters in
+  their required technical form.
 - Every change to core runtime logic must update this file and any affected
   topic document in the same work item. Core logic includes game flow, player
   controls, combat, config/data loading, pickups, UI/navigation, audio,

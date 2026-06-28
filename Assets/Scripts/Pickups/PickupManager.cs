@@ -240,7 +240,7 @@ namespace LeiTing.Pickups
                 pickupConfig = new PickupItemConfig
                 {
                     id = "star",
-                    displayName = "Star",
+                    displayName = "星星",
                     itemType = "Star",
                     spritePath = "Assets/Art/Sprites/Item/item_star.png",
                     starValue = 1,
@@ -258,7 +258,7 @@ namespace LeiTing.Pickups
                 pickupConfig = new PickupItemConfig
                 {
                     id = "trophy",
-                    displayName = "Trophy",
+                    displayName = "奖杯",
                     itemType = "Trophy",
                     spritePath = "Sprites/Item/item_trophy",
                     lifetime = 0f,

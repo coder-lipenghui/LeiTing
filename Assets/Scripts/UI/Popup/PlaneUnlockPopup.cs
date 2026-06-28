@@ -118,7 +118,7 @@ namespace LeiTing.UI
             data = latest;
 
             nameText.text = data.name;
-            statsText.text = $"HP {data.hp}    ATK {data.attack}\nFireRate {data.fireRate:0.0}    MoveSpeed {data.moveSpeed:0.0}";
+            statsText.text = $"生命 {data.hp}    攻击 {data.attack}\n射速 {data.fireRate:0.0}    速度 {data.moveSpeed:0.0}";
             progressText.text = $"广告进度 {data.adCountWatched}/{data.adCountRequired}";
 
             if (data.owned)

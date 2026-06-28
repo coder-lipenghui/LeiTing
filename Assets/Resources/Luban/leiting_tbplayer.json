@@ -2,7 +2,7 @@
   {
     "index": 1,
     "id": "warplane_01",
-    "displayName": "Warplane 01",
+    "displayName": "雷霆战机 01",
     "prefabPath": "Assets/Prefabs/Player/warplane-01.prefab",
     "hp": 3,
     "shield": 1,

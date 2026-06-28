@@ -670,7 +670,7 @@ namespace LeiTing.UI
 
             if (bossNameText != null)
             {
-                bossNameText.text = string.IsNullOrEmpty(bossName) ? "BOSS" : bossName;
+                bossNameText.text = string.IsNullOrEmpty(bossName) ? "首领" : bossName;
             }
 
             if (bossPhaseText != null)
@@ -1446,7 +1446,7 @@ namespace LeiTing.UI
             scoreText.alignment = TextAnchor.MiddleCenter;
             scoreText.color = new Color(1f, 0.9f, 0.34f, 1f);
             scoreText.raycastTarget = false;
-            scoreText.text = "SCORE 0";
+            scoreText.text = "积分 0";
         }
 
         private void CreateStageTimer(Transform parent)
@@ -1468,7 +1468,7 @@ namespace LeiTing.UI
             stageTimerText.alignment = TextAnchor.MiddleCenter;
             stageTimerText.color = new Color(0.78f, 0.96f, 1f, 1f);
             stageTimerText.raycastTarget = false;
-            stageTimerText.text = "TIME 00:00";
+            stageTimerText.text = "时间 00:00";
         }
 
         private void CreateBattleControlButtons(Transform parent)
@@ -2095,7 +2095,7 @@ namespace LeiTing.UI
             }
 
             var score = GameManager.Instance != null ? GameManager.Instance.Score : 0;
-            scoreText.text = $"SCORE {score}";
+            scoreText.text = $"积分 {score}";
         }
 
         private void UpdateBattleHudSafeAreaLayout()
@@ -2365,7 +2365,7 @@ namespace LeiTing.UI
             }
 
             var stageTime = StageManager.Instance != null ? StageManager.Instance.StageTime : 0f;
-            stageTimerText.text = "TIME " + FormatStageTime(stageTime);
+            stageTimerText.text = "时间 " + FormatStageTime(stageTime);
         }
 
         private static string FormatStageTime(float time)

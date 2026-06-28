@@ -1,17 +1,17 @@
 {
     "enabled": true,
     "simulateInEditor": false,
-    "editorResourceMode": "CDN",
+    "editorResourceMode": "Local",
     "cdnBaseUrl": "https://xyx-1392619530.cos.ap-shanghai.myqcloud.com/lingyun/",
     "localBundleRoot": "CDNResources/WebGL",
-    "version": "20260617074548",
+    "version": "20260618033516",
     "bundles": [
         {
             "name": "leiting_runtime_assets",
-            "fileName": "leiting_runtime_assets_cf369a528825e0fdfa19b12e15956f48",
-            "hash": "cf369a528825e0fdfa19b12e15956f48",
-            "crc": 323290551,
-            "size": 24838663
+            "fileName": "leiting_runtime_assets_56f1c5c71029dacf245f0528748c2d61",
+            "hash": "56f1c5c71029dacf245f0528748c2d61",
+            "crc": 993540901,
+            "size": 20332550
         }
     ]
 }

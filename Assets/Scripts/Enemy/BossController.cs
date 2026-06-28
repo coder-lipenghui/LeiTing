@@ -80,7 +80,7 @@ namespace LeiTing.Enemy
 
             if (UIManager.Instance != null)
             {
-                UIManager.Instance.ShowBossPhaseNotice("WARNING\nBOSS APPROACHING");
+                UIManager.Instance.ShowBossPhaseNotice("警告\n首领来袭");
             }
 
             if (AudioManager.Instance != null)
@@ -544,7 +544,7 @@ namespace LeiTing.Enemy
 
             if (UIManager.Instance != null)
             {
-                UIManager.Instance.ShowBossPhaseNotice("BOSS DESTROYED");
+                UIManager.Instance.ShowBossPhaseNotice("首领已击破");
             }
 
             const int explosionCount = 9;
@@ -591,7 +591,7 @@ namespace LeiTing.Enemy
         {
             if (UIManager.Instance != null)
             {
-                UIManager.Instance.UpdateBossHud(config != null ? config.displayName : "BOSS", currentHp, maxHp, GetCurrentPhaseName());
+                UIManager.Instance.UpdateBossHud(config != null ? config.displayName : "首领", currentHp, maxHp, GetCurrentPhaseName());
             }
         }
 

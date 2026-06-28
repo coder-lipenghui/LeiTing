@@ -44,7 +44,7 @@
     "id": "stage_notice_boss_warning",
     "levelId": "",
     "startTime": 176,
-    "message": "BOSS来袭！",
+    "message": "首领来袭！",
     "clearEnemyBullets": true
   },
   {

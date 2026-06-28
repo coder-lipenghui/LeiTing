@@ -39,9 +39,9 @@ namespace LeiTing.UI
             layout.childForceExpandWidth = false;
 
             CreateAvatar();
-            coinText = CreateResourceText("Coin", "COIN 1200");
-            diamondText = CreateResourceText("Diamond", "GEM 80");
-            scoreText = CreateResourceText("Score", "SCORE 0");
+            coinText = CreateResourceText("Coin", "金币 1200");
+            diamondText = CreateResourceText("Diamond", "钻石 80");
+            scoreText = CreateResourceText("Score", "积分 0");
         }
 
         public void UpdatePlayerInfo(PlayerInfo data)
@@ -62,7 +62,7 @@ namespace LeiTing.UI
 
             if (coinText != null)
             {
-                coinText.text = $"COIN {value}";
+                coinText.text = $"金币 {value}";
             }
         }
 
@@ -72,7 +72,7 @@ namespace LeiTing.UI
 
             if (diamondText != null)
             {
-                diamondText.text = $"GEM {value}";
+                diamondText.text = $"钻石 {value}";
             }
         }
 
@@ -82,7 +82,7 @@ namespace LeiTing.UI
 
             if (scoreText != null)
             {
-                scoreText.text = $"SCORE {value}";
+                scoreText.text = $"积分 {value}";
             }
         }
 
@@ -94,7 +94,7 @@ namespace LeiTing.UI
             var image = rect.gameObject.AddComponent<Image>();
             image.color = new Color(0.1f, 0.68f, 1f, 0.95f);
 
-            var label = UIFactory.CreateText("Icon", rect, "P", 34f, TextAnchor.MiddleCenter, Color.white);
+            var label = UIFactory.CreateText("Icon", rect, "飞", 34f, TextAnchor.MiddleCenter, Color.white);
             UIFactory.Stretch(label.rectTransform);
         }
 

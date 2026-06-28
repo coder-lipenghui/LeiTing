@@ -111,14 +111,14 @@ namespace LeiTing.Core
             if (!ShouldUseRemoteBundles)
             {
                 state = LoadState.Ready;
-                ReportProgress(onProgress, 1f, "READY");
+                ReportProgress(onProgress, 1f, "已就绪");
                 onComplete?.Invoke(true, string.Empty);
                 yield break;
             }
 
             if (state == LoadState.Ready)
             {
-                ReportProgress(onProgress, 1f, "READY");
+                ReportProgress(onProgress, 1f, "已就绪");
                 onComplete?.Invoke(true, string.Empty);
                 yield break;
             }
@@ -153,7 +153,7 @@ namespace LeiTing.Core
 
                 if (string.IsNullOrWhiteSpace(url))
                 {
-                    Fail($"Remote bundle url is empty: {bundleName}", onProgress, onComplete);
+                    Fail($"远程资源地址为空：{bundleName}", onProgress, onComplete);
                     yield break;
                 }
 
@@ -205,26 +205,26 @@ namespace LeiTing.Core
                 : RemoteResourceSettings.DefaultBundleName;
             if (!IsReady)
             {
-                ReportRuntimeAssetLoadFailure($"CDN asset requested before resources were ready: {resolvedBundleName}/{assetName}");
+                ReportRuntimeAssetLoadFailure($"远程资源尚未就绪：{resolvedBundleName}/{assetName}");
                 return null;
             }
 
             if (loadedBundles.Count == 0)
             {
-                ReportRuntimeAssetLoadFailure($"CDN asset bundle cache is empty while loading: {resolvedBundleName}/{assetName}");
+                ReportRuntimeAssetLoadFailure($"远程资源包缓存为空：{resolvedBundleName}/{assetName}");
                 return null;
             }
 
             if (!loadedBundles.TryGetValue(resolvedBundleName, out var loadedBundle) || loadedBundle?.bundle == null)
             {
-                ReportRuntimeAssetLoadFailure($"CDN asset bundle is not loaded: {resolvedBundleName}");
+                ReportRuntimeAssetLoadFailure($"远程资源包未加载：{resolvedBundleName}");
                 return null;
             }
 
             var resolvedAssetName = ResolveAssetName(loadedBundle, assetName);
             if (string.IsNullOrWhiteSpace(resolvedAssetName))
             {
-                ReportRuntimeAssetLoadFailure($"CDN asset is missing from bundle {resolvedBundleName}: {assetName}");
+                ReportRuntimeAssetLoadFailure($"远程资源包中缺少资源 {resolvedBundleName}：{assetName}");
                 return null;
             }
 
@@ -238,14 +238,14 @@ namespace LeiTing.Core
 
                 if (asset == null)
                 {
-                    ReportRuntimeAssetLoadFailure($"CDN asset returned null: {resolvedBundleName}/{resolvedAssetName}");
+                    ReportRuntimeAssetLoadFailure($"远程资源加载为空：{resolvedBundleName}/{resolvedAssetName}");
                 }
 
                 return asset;
             }
             catch (Exception exception)
             {
-                ReportRuntimeAssetLoadFailure($"CDN asset load failed: {resolvedBundleName}/{resolvedAssetName}. {exception.Message}");
+                ReportRuntimeAssetLoadFailure($"远程资源加载失败：{resolvedBundleName}/{resolvedAssetName}。{exception.Message}");
                 return null;
             }
         }
@@ -351,7 +351,7 @@ namespace LeiTing.Core
             lastError = message;
             state = LoadState.Failed;
             Debug.LogError(message);
-            ReportProgress(onProgress, lastProgress, "FAILED");
+            ReportProgress(onProgress, lastProgress, "失败");
             onComplete?.Invoke(false, message);
         }
 

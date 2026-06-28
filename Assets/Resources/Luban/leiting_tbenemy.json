@@ -240,7 +240,7 @@
   {
     "index": 18,
     "id": "boss_helicopter_01",
-    "displayName": "直升机 BOSS 01",
+    "displayName": "直升机首领 01",
     "prefabPath": "Assets/Prefabs/Enemies/boss_helicopter_01.prefab",
     "hp": 95,
     "moveSpeed": 1.2,
@@ -254,7 +254,7 @@
   {
     "index": 19,
     "id": "boss_helicopter_02",
-    "displayName": "直升机 BOSS 02",
+    "displayName": "直升机首领 02",
     "prefabPath": "Assets/Prefabs/Enemies/boss_helicopter_02.prefab",
     "hp": 125,
     "moveSpeed": 1.2,
@@ -268,7 +268,7 @@
   {
     "index": 20,
     "id": "boss_helicopter_03",
-    "displayName": "直升机 BOSS 03",
+    "displayName": "直升机首领 03",
     "prefabPath": "Assets/Prefabs/Enemies/boss_helicopter_03.prefab",
     "hp": 155,
     "moveSpeed": 1.2,
@@ -282,7 +282,7 @@
   {
     "index": 21,
     "id": "boss_helicopter_04",
-    "displayName": "直升机 BOSS 04",
+    "displayName": "直升机首领 04",
     "prefabPath": "Assets/Prefabs/Enemies/boss_helicopter_04.prefab",
     "hp": 185,
     "moveSpeed": 1.2,
@@ -296,7 +296,7 @@
   {
     "index": 22,
     "id": "boss_helicopter_05",
-    "displayName": "直升机 BOSS 05",
+    "displayName": "直升机首领 05",
     "prefabPath": "Assets/Prefabs/Enemies/boss_helicopter_05.prefab",
     "hp": 230,
     "moveSpeed": 1.2,
@@ -310,7 +310,7 @@
   {
     "index": 23,
     "id": "boss_helicopter_06",
-    "displayName": "直升机 BOSS 06",
+    "displayName": "直升机首领 06",
     "prefabPath": "Assets/Prefabs/Enemies/boss_helicopter_06.prefab",
     "hp": 290,
     "moveSpeed": 1.2,
@@ -394,7 +394,7 @@
   {
     "index": 29,
     "id": "level1_enemy_08",
-    "displayName": "关卡1测试 enemy_08",
+    "displayName": "关卡1测试敌机08",
     "prefabPath": "Assets/Prefabs/Enemies/enemy_08.prefab",
     "hp": 120,
     "moveSpeed": 1.2,
