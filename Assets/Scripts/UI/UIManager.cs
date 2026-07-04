@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
+using LeiTing.Audio;
 using LeiTing.Core;
 using LeiTing.Player;
 using LeiTing.Progress;
@@ -225,14 +226,27 @@ namespace LeiTing.UI
 
             if (succeeded)
             {
-                downloadView?.Destroy();
-                downloadView = null;
-                InitMainUi();
+                downloadView?.ShowEnterGame(EnterGameAfterRemoteResources);
                 yield break;
             }
 
             Debug.LogError($"CDN resource loading failed. Game UI will not open. {message}");
             downloadView?.ShowRetry(message, StartRemoteResourceInit);
+        }
+
+        private void EnterGameAfterRemoteResources()
+        {
+            downloadView?.Destroy();
+            downloadView = null;
+
+            if (GameSceneManager.IsLobbySceneName(SceneManager.GetActiveScene().name))
+            {
+                AudioManager.Instance?.PlayMenuBgm();
+                InitMainUi();
+                return;
+            }
+
+            GameSceneManager.GetOrCreate().EnterLobby();
         }
 
         private void OnRuntimeAssetLoadFailed(string message)

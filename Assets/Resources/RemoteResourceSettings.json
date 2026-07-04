@@ -4,7 +4,7 @@
     "editorResourceMode": "Local",
     "cdnBaseUrl": "https://xyx-1392619530.cos.ap-shanghai.myqcloud.com/lingyun/",
     "localBundleRoot": "CDNResources/WebGL",
-    "version": "20260618033516",
+    "version": "20260703161029",
     "bundles": [
         {
             "name": "leiting_runtime_assets",

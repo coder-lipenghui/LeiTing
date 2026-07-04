@@ -11,6 +11,7 @@ namespace LeiTing.UI
         private const string PercentTextName = "PercentText";
         private const string StatusTextName = "StatusText";
         private const string RetryButtonName = "RetryButton";
+        private const string EnterGameButtonName = "EnterGameButton";
         private const string ErrorDialogName = "ErrorDialog";
         private const string ErrorMessageTextName = "ErrorMessageText";
         private const string ErrorRetryButtonName = "ErrorRetryButton";
@@ -20,6 +21,8 @@ namespace LeiTing.UI
         private readonly Text percentText;
         private readonly Text statusText;
         private readonly Button retryButton;
+        private Button enterGameButton;
+        private bool enterGameReady;
         private GameObject errorDialog;
         private Text errorMessageText;
         private Button errorRetryButton;
@@ -30,6 +33,7 @@ namespace LeiTing.UI
             Text percentText,
             Text statusText,
             Button retryButton,
+            Button enterGameButton,
             GameObject errorDialog,
             Text errorMessageText,
             Button errorRetryButton)
@@ -39,6 +43,7 @@ namespace LeiTing.UI
             this.percentText = percentText;
             this.statusText = statusText;
             this.retryButton = retryButton;
+            this.enterGameButton = enterGameButton;
             this.errorDialog = errorDialog;
             this.errorMessageText = errorMessageText;
             this.errorRetryButton = errorRetryButton;
@@ -53,6 +58,7 @@ namespace LeiTing.UI
                     out var percent,
                     out var status,
                     out var retryButton,
+                    out var enterGameButton,
                     out var errorDialog,
                     out var errorMessageText,
                     out var errorRetryButton))
@@ -63,6 +69,7 @@ namespace LeiTing.UI
                     percent,
                     status,
                     retryButton,
+                    enterGameButton,
                     errorDialog,
                     errorMessageText,
                     errorRetryButton);
@@ -74,6 +81,7 @@ namespace LeiTing.UI
                 out percent,
                 out status,
                 out retryButton,
+                out enterGameButton,
                 out errorDialog,
                 out errorMessageText,
                 out errorRetryButton);
@@ -83,6 +91,7 @@ namespace LeiTing.UI
                 percent,
                 status,
                 retryButton,
+                enterGameButton,
                 errorDialog,
                 errorMessageText,
                 errorRetryButton);
@@ -112,6 +121,7 @@ namespace LeiTing.UI
             out Text percent,
             out Text status,
             out Button retryButton,
+            out Button enterGameButton,
             out GameObject errorDialog,
             out Text errorMessageText,
             out Button errorRetryButton)
@@ -120,6 +130,7 @@ namespace LeiTing.UI
             percent = null;
             status = null;
             retryButton = null;
+            enterGameButton = null;
             errorDialog = null;
             errorMessageText = null;
             errorRetryButton = null;
@@ -141,6 +152,13 @@ namespace LeiTing.UI
             percent = FindChildComponent<Text>(content.transform, PercentTextName) ?? FindChildComponent<Text>(content.transform, "Percent");
             status = FindChildComponent<Text>(content.transform, StatusTextName) ?? FindChildComponent<Text>(content.transform, "Status");
             retryButton = FindChildComponent<Button>(content.transform, RetryButtonName);
+            enterGameButton = FindChildComponent<Button>(content.transform, EnterGameButtonName);
+            var enterButtonFont = ResolveButtonFont(retryButton, status, percent);
+            if (enterGameButton == null)
+            {
+                enterGameButton = CreateEnterGameButton(content.transform, retryButton, enterButtonFont);
+            }
+
             errorDialog = FindChildTransform(content.transform, ErrorDialogName)?.gameObject;
             errorMessageText = FindChildComponent<Text>(content.transform, ErrorMessageTextName);
             errorRetryButton = FindChildComponent<Button>(content.transform, ErrorRetryButtonName);
@@ -158,6 +176,8 @@ namespace LeiTing.UI
                 retryButton.gameObject.SetActive(false);
             }
 
+            ConfigureEnterGameButton(enterGameButton, enterButtonFont);
+
             if (errorDialog != null)
             {
                 errorDialog.SetActive(false);
@@ -165,7 +185,7 @@ namespace LeiTing.UI
 
             if (fill == null || percent == null || status == null)
             {
-                Debug.LogWarning($"UILoading prefab loaded, but one or more binding nodes are missing. Expected child names: {ProgressFillName}, {PercentTextName}, {StatusTextName}, {RetryButtonName}. Optional error dialog names: {ErrorDialogName}, {ErrorMessageTextName}, {ErrorRetryButtonName}.");
+                Debug.LogWarning($"UILoading prefab loaded, but one or more binding nodes are missing. Expected child names: {ProgressFillName}, {PercentTextName}, {StatusTextName}, {RetryButtonName}. Optional button/dialog names: {EnterGameButtonName}, {ErrorDialogName}, {ErrorMessageTextName}, {ErrorRetryButtonName}.");
             }
 
             return true;
@@ -177,6 +197,7 @@ namespace LeiTing.UI
             out Text percent,
             out Text status,
             out Button retryButton,
+            out Button enterGameButton,
             out GameObject errorDialog,
             out Text errorMessageText,
             out Button errorRetryButton)
@@ -208,12 +229,16 @@ namespace LeiTing.UI
 
             retryButton = CreateRetryButton(parent);
             retryButton.gameObject.SetActive(false);
+            enterGameButton = CreateEnterGameButton(parent, retryButton, ResolveButtonFont(retryButton, status, percent));
+            ConfigureEnterGameButton(enterGameButton, ResolveButtonFont(retryButton, status, percent));
             CreateFallbackErrorDialog(parent, out errorDialog, out errorMessageText, out errorRetryButton);
         }
 
         public void SetProgress(float progress, string status)
         {
             SetErrorDialogVisible(false);
+            HideRetryButtonDuringProgress();
+            HideEnterGameButtonUntilReady();
 
             var clamped = Mathf.Clamp01(progress);
             if (fillImage != null)
@@ -235,6 +260,7 @@ namespace LeiTing.UI
         public void ShowRetry(string message, Action retry)
         {
             Debug.LogError($"资源加载失败: {message}");
+            enterGameReady = false;
 
             if (statusText != null)
             {
@@ -247,6 +273,8 @@ namespace LeiTing.UI
                 retryButton.onClick.AddListener(() => retry?.Invoke());
                 retryButton.gameObject.SetActive(true);
             }
+
+            HideEnterGameButtonUntilReady();
 
             EnsureErrorDialog();
             if (errorMessageText != null)
@@ -269,6 +297,7 @@ namespace LeiTing.UI
         public void ShowError(string message)
         {
             Debug.LogError($"资源加载失败: {message}");
+            enterGameReady = false;
 
             if (statusText != null)
             {
@@ -279,6 +308,8 @@ namespace LeiTing.UI
             {
                 retryButton.gameObject.SetActive(false);
             }
+
+            HideEnterGameButtonUntilReady();
 
             EnsureErrorDialog();
             if (errorMessageText != null)
@@ -297,6 +328,28 @@ namespace LeiTing.UI
             SetErrorDialogVisible(true);
         }
 
+        public void ShowEnterGame(Action enterGame)
+        {
+            SetProgress(1f, "资源下载完成");
+            enterGameReady = true;
+
+            if (retryButton != null)
+            {
+                retryButton.gameObject.SetActive(false);
+            }
+
+            EnsureEnterGameButton();
+            if (enterGameButton == null)
+            {
+                return;
+            }
+
+            ConfigureEnterGameButton(enterGameButton, ResolveButtonFont(retryButton, statusText, percentText));
+            enterGameButton.onClick.RemoveAllListeners();
+            enterGameButton.onClick.AddListener(() => enterGame?.Invoke());
+            enterGameButton.gameObject.SetActive(true);
+        }
+
         public void Destroy()
         {
             if (root != null)
@@ -313,6 +366,36 @@ namespace LeiTing.UI
             }
 
             CreateFallbackErrorDialog(root.transform, out errorDialog, out errorMessageText, out errorRetryButton);
+        }
+
+        private void EnsureEnterGameButton()
+        {
+            if (enterGameButton != null || root == null)
+            {
+                return;
+            }
+
+            var enterButtonFont = ResolveButtonFont(retryButton, statusText, percentText);
+            enterGameButton = CreateEnterGameButton(root.transform, retryButton, enterButtonFont);
+            ConfigureEnterGameButton(enterGameButton, enterButtonFont);
+        }
+
+        private void HideEnterGameButtonUntilReady()
+        {
+            if (enterGameReady || enterGameButton == null)
+            {
+                return;
+            }
+
+            enterGameButton.gameObject.SetActive(false);
+        }
+
+        private void HideRetryButtonDuringProgress()
+        {
+            if (retryButton != null)
+            {
+                retryButton.gameObject.SetActive(false);
+            }
         }
 
         private void SetErrorDialogVisible(bool visible)
@@ -334,6 +417,98 @@ namespace LeiTing.UI
             label.color = Color.white;
             Stretch(label.rectTransform);
             return button;
+        }
+
+        private static Button CreateEnterGameButton(Transform parent, Button layoutSource, Font labelFont)
+        {
+            var image = CreateImage(EnterGameButtonName, parent, new Color(0.1f, 0.56f, 0.82f, 1f));
+
+            if (layoutSource != null && layoutSource.transform is RectTransform sourceRect)
+            {
+                CopyRectLayout(sourceRect, image.rectTransform);
+            }
+            else
+            {
+                ConfigureRect(image.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(300f, 84f), new Vector2(0f, -188f));
+            }
+
+            var button = image.gameObject.AddComponent<Button>();
+            button.targetGraphic = image;
+
+            var label = CreateText("Label", image.transform, "进入游戏", 30, FontStyle.Bold, TextAnchor.MiddleCenter);
+            ApplyButtonLabelStyle(label, labelFont);
+            label.color = Color.white;
+            Stretch(label.rectTransform);
+            return button;
+        }
+
+        private static void ConfigureEnterGameButton(Button button, Font labelFont)
+        {
+            if (button == null)
+            {
+                return;
+            }
+
+            var label = button.GetComponentInChildren<Text>(true);
+            if (label == null)
+            {
+                label = CreateText("Label", button.transform, "进入游戏", 30, FontStyle.Bold, TextAnchor.MiddleCenter);
+                Stretch(label.rectTransform);
+            }
+
+            label.text = "进入游戏";
+            ApplyButtonLabelStyle(label, labelFont);
+            button.onClick.RemoveAllListeners();
+            button.gameObject.SetActive(false);
+        }
+
+        private static void ApplyButtonLabelStyle(Text label, Font labelFont)
+        {
+            if (label == null)
+            {
+                return;
+            }
+
+            var resolvedFont = labelFont != null ? labelFont : ResolveUiFont();
+            if (resolvedFont != null)
+            {
+                label.font = resolvedFont;
+            }
+
+            label.fontSize = 30;
+            label.fontStyle = FontStyle.Bold;
+            label.alignment = TextAnchor.MiddleCenter;
+            label.color = Color.white;
+            label.raycastTarget = false;
+            label.horizontalOverflow = HorizontalWrapMode.Wrap;
+            label.verticalOverflow = VerticalWrapMode.Truncate;
+        }
+
+        private static Font ResolveButtonFont(Button sourceButton, Text primaryText, Text secondaryText)
+        {
+            var sourceLabel = sourceButton != null ? sourceButton.GetComponentInChildren<Text>(true) : null;
+            if (sourceLabel != null && sourceLabel.font != null)
+            {
+                return sourceLabel.font;
+            }
+
+            if (primaryText != null && primaryText.font != null)
+            {
+                return primaryText.font;
+            }
+
+            if (secondaryText != null && secondaryText.font != null)
+            {
+                return secondaryText.font;
+            }
+
+            return ResolveUiFont();
+        }
+
+        private static Font ResolveUiFont()
+        {
+            var font = UIFactory.GetDefaultFont();
+            return font != null ? font : Resources.GetBuiltinResource<Font>("Arial.ttf");
         }
 
         private static void CreateFallbackErrorDialog(
@@ -438,6 +613,15 @@ namespace LeiTing.UI
             rect.pivot = new Vector2(0.5f, 0.5f);
             rect.sizeDelta = size;
             rect.anchoredPosition = anchoredPosition;
+        }
+
+        private static void CopyRectLayout(RectTransform source, RectTransform target)
+        {
+            target.anchorMin = source.anchorMin;
+            target.anchorMax = source.anchorMax;
+            target.pivot = source.pivot;
+            target.sizeDelta = source.sizeDelta;
+            target.anchoredPosition = source.anchoredPosition;
         }
 
         private static void Stretch(RectTransform rect)

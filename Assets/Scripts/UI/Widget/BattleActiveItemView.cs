@@ -245,7 +245,7 @@ namespace LeiTing.UI
             confirmButton = UIFactory.CreateButton(
                 "ConfirmButton",
                 panelRect,
-                "\u786E\u5B9A",
+                "\u89C2\u770B\u5E7F\u544A",
                 new Color(0.08f, 0.52f, 1f, 0.95f),
                 out confirmText,
                 out _);
@@ -435,7 +435,7 @@ namespace LeiTing.UI
             promptRoot.gameObject.SetActive(true);
             promptTitle.text = "\u9053\u5177\u4E0D\u8DB3";
             promptMessage.text = "\u89C2\u770B\u5E7F\u544A\u53EF\u83B7\u5F97";
-            confirmText.text = "\u786E\u5B9A";
+            confirmText.text = "\u89C2\u770B\u5E7F\u544A";
             SetPromptButtonsInteractable(true);
             cancelButton.gameObject.SetActive(true);
             confirmButton.GetComponent<RectTransform>().anchoredPosition = new Vector2(-150f, 42f);

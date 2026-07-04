@@ -69,6 +69,11 @@ and a phone test.
   Remote bundle loading falls back to typed sub-assets after the main asset
   lookup, so sprite PNGs imported as Sprite sub-assets can still resolve in
   WebGL. Rebuild catalog asset data when referenced runtime assets change.
+- When startup remote resources are required, `UIManager` shows
+  `RuntimeResourceDownloadView` on top of the scene. A successful download now
+  leaves the loading view visible at 100% and shows the `进入游戏` button. That
+  button and the retry button stay hidden during all download/progress states;
+  the lobby is opened only after `进入游戏` is clicked.
 
 ## Scene And Game Flow
 
@@ -88,7 +93,10 @@ and a phone test.
   stopping any menu BGM; directly launching `BattleScene` starts the same BGM
   from `GameBootstrap`. Entering the lobby starts the looping menu BGM at
   `Assets/Art/Sound/BGM/BGM_Menu_Main_Loop_01.wav`; all lobby pages, including
-  hall, stage selection, hangar, and settings, share it.
+  hall, stage selection, hangar, and settings, share it. If remote resources
+  finished loading in `SampleScene`, the `进入游戏` click initializes the lobby UI
+  directly and starts menu BGM from that click; outside the lobby scene it
+  falls back to `GameSceneManager.EnterLobby()`.
 - `GameManager` owns state, score, selected level, unlock progression, restart
   and next-level transitions. On victory it first attracts remaining pickups
   to the player and waits for collection before completing settlement.
