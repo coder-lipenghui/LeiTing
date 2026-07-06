@@ -417,6 +417,8 @@ namespace LeiTing.EditorTools
                     return "smoke";
                 case MissileVisualTrailMode.LightAndSmoke:
                     return "fire_smoke";
+                case MissileVisualTrailMode.Contrail:
+                    return "contrail";
                 default:
                     return "light";
             }

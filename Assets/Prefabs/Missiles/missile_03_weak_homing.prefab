@@ -124,8 +124,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4f2b7b3a9d7a4b2a8e4f1c6d3a5b9c10, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  trailMode: 2
-  useConfigTailColor: 0
+  trailMode: 0
+  useConfigTailColor: 1
   customTailColor: {r: 1, g: 1, b: 1, a: 1}
   tailPoint: {fileID: 7219436000000000002}
   trailController: {fileID: 9041649102491590400}

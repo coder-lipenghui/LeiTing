@@ -41,6 +41,10 @@ namespace LeiTing.UI
         private const float VictoryContinueButtonBottomOffset = 64f;
         private const float VictorySettlementButtonRowY = 150f;
         private const float FallbackVictorySettlementContinueBottomOffset = VictorySettlementButtonRowY - 63f;
+        private const float DefeatBackButtonSize = 118f;
+        private const float DefeatAdReviveButtonWidth = 420f;
+        private const float DefeatAdReviveButtonHeight = 90f;
+        private const float DefeatButtonVerticalGap = 52f;
 
         private static readonly Color BossHealthColor = new Color32(0x86, 0x28, 0x00, 0xFF);
 
@@ -1727,7 +1731,7 @@ namespace LeiTing.UI
             rect.anchorMax = new Vector2(0.5f, 0f);
             rect.pivot = new Vector2(0.5f, 0.5f);
             rect.anchoredPosition = new Vector2(0f, 640f);
-            rect.sizeDelta = new Vector2(118f, 118f);
+            rect.sizeDelta = new Vector2(DefeatBackButtonSize, DefeatBackButtonSize);
 
             var image = defeatBackRoot.AddComponent<Image>();
             image.sprite = LoadSprite("Assets/Art/Sprites/UI/btnBack.png");
@@ -1754,7 +1758,7 @@ namespace LeiTing.UI
             var rect = defeatAdReviveRoot.GetComponent<RectTransform>();
             if (rect != null)
             {
-                rect.sizeDelta = new Vector2(420f, 90f);
+                rect.sizeDelta = new Vector2(DefeatAdReviveButtonWidth, DefeatAdReviveButtonHeight);
             }
 
             var image = defeatAdReviveRoot.GetComponent<Image>();
@@ -2353,7 +2357,7 @@ namespace LeiTing.UI
             var rect = defeatBackRoot.GetComponent<RectTransform>();
             if (rect != null)
             {
-                rect.anchoredPosition = new Vector2(0f, GetCanvasHeight() / 3f);
+                rect.anchoredPosition = new Vector2(0f, GetDefeatBottomButtonCenterY());
             }
         }
 
@@ -2367,8 +2371,22 @@ namespace LeiTing.UI
             var rect = defeatAdReviveRoot.GetComponent<RectTransform>();
             if (rect != null)
             {
-                rect.anchoredPosition = new Vector2(0f, Mathf.Max(0f, GetCanvasHeight() / 3f - 135f));
+                var reviveBottomY = GetDefeatTopButtonCenterY() - DefeatAdReviveButtonHeight * 0.5f;
+                rect.anchoredPosition = new Vector2(0f, Mathf.Max(0f, reviveBottomY));
             }
+        }
+
+        private float GetDefeatTopButtonCenterY()
+        {
+            return GetCanvasHeight() / 3f;
+        }
+
+        private float GetDefeatBottomButtonCenterY()
+        {
+            return GetDefeatTopButtonCenterY()
+                - DefeatAdReviveButtonHeight * 0.5f
+                - DefeatButtonVerticalGap
+                - DefeatBackButtonSize * 0.5f;
         }
 
         private void UpdateStageTimer()

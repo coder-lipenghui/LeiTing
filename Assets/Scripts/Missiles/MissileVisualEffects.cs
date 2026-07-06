@@ -13,7 +13,8 @@ namespace LeiTing.Missiles
         None = 1,
         Light = 2,
         Smoke = 3,
-        LightAndSmoke = 4
+        LightAndSmoke = 4,
+        Contrail = 5
     }
 
     public struct MissileVisualEffectContext
@@ -80,6 +81,10 @@ namespace LeiTing.Missiles
         private bool activeFlame;
         private bool activeSmokeTrail;
         private bool activeSparkTrail;
+        private float activeLightTrailDuration;
+        private float activeFlameLifetimeMax;
+        private float activeSmokeLifetimeMax;
+        private float activeSparkLifetimeMax;
         private bool hasAuthoredTailPoint;
 
 #if UNITY_EDITOR
@@ -145,15 +150,16 @@ namespace LeiTing.Missiles
             activeTailColor = ResolveTailColor(context);
 
             var resolvedMode = ResolveTrailMode(context.TailType);
+            var useContrail = resolvedMode == MissileVisualTrailMode.Contrail;
             activeLightTrail = UsesLightTrail(resolvedMode);
             activeFlame = UsesFlame(resolvedMode);
             activeSmokeTrail = UsesSmokeTrail(resolvedMode);
             activeSparkTrail = UsesSparks(resolvedMode, context.CanBeDestroyed, context.TailType);
 
             ConfigureTailPoint(activeRadius);
-            ConfigureLightTrail(activeLightTrail, activeTailColor, activeRadius);
-            ConfigureFlame(activeFlame, activeTailColor, activeRadius);
-            ConfigureSmokeTrail(activeSmokeTrail, activeTailColor, activeRadius, context.CanBeDestroyed);
+            ConfigureLightTrail(activeLightTrail, activeTailColor, activeRadius, useContrail);
+            ConfigureFlame(activeFlame, activeTailColor, activeRadius, useContrail);
+            ConfigureSmokeTrail(activeSmokeTrail, activeTailColor, activeRadius, context.CanBeDestroyed, useContrail);
             ConfigureSparks(activeSparkTrail, activeTailColor, activeRadius);
             ConfigureTailGlow(activeTailColor, activeRadius, context.Time);
 
@@ -244,23 +250,43 @@ namespace LeiTing.Missiles
             customTailColor = defaultTailColor;
 
             var radius = Mathf.Max(0.04f, missileRadius);
-            lightTrail.duration = Mathf.Lerp(0.22f, 0.46f, Mathf.InverseLerp(0.12f, 0.32f, radius));
-            lightTrail.startWidthRadiusScale = defaultTrailMode == MissileVisualTrailMode.LightAndSmoke ? 0.62f : 0.82f;
-            lightTrail.endWidth = 0.01f;
+            var isContrail = defaultTrailMode == MissileVisualTrailMode.Contrail;
+            lightTrail.duration = isContrail ? 0.52f : Mathf.Lerp(0.22f, 0.46f, Mathf.InverseLerp(0.12f, 0.32f, radius));
+            lightTrail.startWidthRadiusScale = isContrail ? 0.38f : defaultTrailMode == MissileVisualTrailMode.LightAndSmoke ? 0.62f : 0.82f;
+            lightTrail.endWidth = isContrail ? 0.006f : 0.01f;
             lightTrail.offsetRadiusScale = 0.9f;
 
-            flameTrail.emissionRate = defaultTrailMode == MissileVisualTrailMode.LightAndSmoke ? 92f : 72f;
-            flameTrail.sizeRadiusScaleMax = defaultTrailMode == MissileVisualTrailMode.LightAndSmoke ? 1.95f : 1.55f;
+            flameTrail.emissionRate = isContrail ? 42f : defaultTrailMode == MissileVisualTrailMode.LightAndSmoke ? 92f : 72f;
+            flameTrail.sizeRadiusScaleMin = isContrail ? 0.36f : 0.75f;
+            flameTrail.sizeRadiusScaleMax = isContrail ? 1.05f : defaultTrailMode == MissileVisualTrailMode.LightAndSmoke ? 1.95f : 1.55f;
 
-            smoke.emissionRate = defaultTrailMode == MissileVisualTrailMode.LightAndSmoke ? 16f : 24f;
-            smoke.sizeRadiusScaleMax = defaultTrailMode == MissileVisualTrailMode.LightAndSmoke ? 1.95f : 2.45f;
-            smoke.offsetRadiusScale = 0.78f;
+            smoke.lifetimeMin = isContrail ? 1.1f : 0.58f;
+            smoke.lifetimeMax = isContrail ? 1.75f : 0.92f;
+            smoke.startSpeedMin = isContrail ? 0f : 0.02f;
+            smoke.startSpeedMax = isContrail ? 0.035f : 0.16f;
+            smoke.sizeRadiusScaleMin = isContrail ? 0.32f : 1.2f;
+            smoke.sizeRadiusScaleMax = isContrail ? 0.72f : defaultTrailMode == MissileVisualTrailMode.LightAndSmoke ? 1.95f : 2.45f;
+            smoke.emissionRate = isContrail ? 10f : defaultTrailMode == MissileVisualTrailMode.LightAndSmoke ? 16f : 24f;
+            smoke.shapeRadiusScale = isContrail ? 0.2f : 0.45f;
+            smoke.offsetRadiusScale = isContrail ? 0.9f : 0.78f;
+            smoke.sideDrift = isContrail ? 0.025f : 0.08f;
+            smoke.backwardSpeedMin = isContrail ? -0.025f : -0.28f;
+            smoke.backwardSpeedMax = isContrail ? 0.025f : -0.08f;
+            smoke.startAlpha = isContrail ? 0.82f : 0.68f;
+            smoke.midAlpha = isContrail ? 0.42f : 0.36f;
+            smoke.colorToWhite = isContrail ? 0.92f : 0.45f;
+            smoke.midSizeMultiplier = isContrail ? 0.86f : 0.62f;
+            smoke.endSizeMultiplier = isContrail ? 0.18f : 0.08f;
+            smoke.noiseStrengthRadiusScale = isContrail ? 0.08f : 0.28f;
+            smoke.noiseFrequency = isContrail ? 0.9f : 1.6f;
+            smoke.noiseScrollSpeed = isContrail ? 0.05f : 0.25f;
+            smoke.maxParticles = isContrail ? 160 : 72;
 
             sparkTrail.emissionRate = defaultTrailMode == MissileVisualTrailMode.LightAndSmoke ? 12f : 0f;
 
             tailGlow.enabled = true;
-            tailGlow.diameterRadiusScale = defaultTrailMode == MissileVisualTrailMode.Smoke ? 1.75f : 2.05f;
-            tailGlow.alpha = defaultTrailMode == MissileVisualTrailMode.Smoke ? 0.52f : 0.76f;
+            tailGlow.diameterRadiusScale = isContrail ? 1.65f : defaultTrailMode == MissileVisualTrailMode.Smoke ? 1.75f : 2.05f;
+            tailGlow.alpha = isContrail ? 0.52f : defaultTrailMode == MissileVisualTrailMode.Smoke ? 0.52f : 0.76f;
 
             EnsureEffectObjects();
             Apply(new MissileVisualEffectContext
@@ -348,7 +374,13 @@ namespace LeiTing.Missiles
             tailPoint.localScale = Vector3.one;
         }
 
-        private void ConfigureLightTrail(bool enabled, Color tailColor, float radius)
+        public void UseConfigDrivenSource(bool enabled)
+        {
+            trailMode = enabled ? MissileVisualTrailMode.UseConfig : trailMode;
+            useConfigTailColor = enabled;
+        }
+
+        private void ConfigureLightTrail(bool enabled, Color tailColor, float radius, bool useContrail)
         {
             if (lightTrailRenderer == null)
             {
@@ -359,19 +391,30 @@ namespace LeiTing.Missiles
             lightTrailRoot.localRotation = Quaternion.identity;
             lightTrailRoot.localScale = Vector3.one;
 
+            var duration = useContrail ? Mathf.Max(lightTrail.duration, 0.5f) : lightTrail.duration;
+            var startWidth = useContrail
+                ? Mathf.Max(0.025f, radius * 0.36f)
+                : Mathf.Max(lightTrail.minStartWidth, radius * lightTrail.startWidthRadiusScale);
+            var endWidth = useContrail ? Mathf.Min(0.008f, Mathf.Max(0f, lightTrail.endWidth)) : Mathf.Max(0f, lightTrail.endWidth);
+            var startAlpha = useContrail ? Mathf.Min(lightTrail.startAlpha, 0.48f) : lightTrail.startAlpha;
+            var minVertexDistance = useContrail
+                ? Mathf.Max(0.018f, radius * 0.28f)
+                : Mathf.Max(0.03f, radius * lightTrail.minVertexDistanceRadiusScale);
+
             lightTrailRenderer.enabled = enabled;
             lightTrailRenderer.emitting = enabled;
-            lightTrailRenderer.time = Mathf.Max(0f, lightTrail.duration);
-            lightTrailRenderer.startWidth = Mathf.Max(lightTrail.minStartWidth, radius * lightTrail.startWidthRadiusScale);
-            lightTrailRenderer.endWidth = Mathf.Max(0f, lightTrail.endWidth);
-            lightTrailRenderer.startColor = WithAlpha(tailColor, lightTrail.startAlpha);
+            lightTrailRenderer.time = Mathf.Max(0f, duration);
+            lightTrailRenderer.startWidth = startWidth;
+            lightTrailRenderer.endWidth = endWidth;
+            lightTrailRenderer.startColor = WithAlpha(Color.Lerp(tailColor, Color.white, useContrail ? 0.72f : 0f), startAlpha);
             lightTrailRenderer.endColor = WithAlpha(tailColor, lightTrail.endAlpha);
             lightTrailRenderer.material = lightTrail.material != null ? lightTrail.material : GetDefaultSpriteMaterial();
             lightTrailRenderer.sortingOrder = lightTrail.sortingOrder;
             lightTrailRenderer.numCapVertices = Mathf.Max(0, lightTrail.capVertices);
-            lightTrailRenderer.minVertexDistance = Mathf.Max(0.03f, radius * lightTrail.minVertexDistanceRadiusScale);
+            lightTrailRenderer.minVertexDistance = minVertexDistance;
             lightTrailRenderer.alignment = LineAlignment.View;
             lightTrailRenderer.textureMode = LineTextureMode.Stretch;
+            activeLightTrailDuration = enabled ? lightTrailRenderer.time : 0f;
 
             if (!enabled)
             {
@@ -379,7 +422,7 @@ namespace LeiTing.Missiles
             }
         }
 
-        private void ConfigureFlame(bool enabled, Color tailColor, float radius)
+        private void ConfigureFlame(bool enabled, Color tailColor, float radius, bool useContrail)
         {
             if (flame == null)
             {
@@ -396,11 +439,15 @@ namespace LeiTing.Missiles
             main.prewarm = false;
             main.duration = Mathf.Max(0.05f, flameTrail.duration);
             main.startDelay = 0f;
-            main.startLifetime = new ParticleSystem.MinMaxCurve(flameTrail.lifetimeMin, flameTrail.lifetimeMax);
-            main.startSpeed = new ParticleSystem.MinMaxCurve(flameTrail.startSpeedMin, flameTrail.startSpeedMax);
+            var lifetimeMin = useContrail ? Mathf.Min(flameTrail.lifetimeMin, 0.06f) : flameTrail.lifetimeMin;
+            var lifetimeMax = useContrail ? Mathf.Min(flameTrail.lifetimeMax, 0.13f) : flameTrail.lifetimeMax;
+            main.startLifetime = new ParticleSystem.MinMaxCurve(lifetimeMin, lifetimeMax);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(
+                useContrail ? Mathf.Min(flameTrail.startSpeedMin, 0.25f) : flameTrail.startSpeedMin,
+                useContrail ? Mathf.Min(flameTrail.startSpeedMax, 0.85f) : flameTrail.startSpeedMax);
             main.startSize = new ParticleSystem.MinMaxCurve(
-                Mathf.Max(0.01f, radius * flameTrail.sizeRadiusScaleMin),
-                Mathf.Max(0.01f, radius * flameTrail.sizeRadiusScaleMax));
+                Mathf.Max(0.01f, radius * (useContrail ? Mathf.Min(flameTrail.sizeRadiusScaleMin, 0.38f) : flameTrail.sizeRadiusScaleMin)),
+                Mathf.Max(0.01f, radius * (useContrail ? Mathf.Min(flameTrail.sizeRadiusScaleMax, 1.05f) : flameTrail.sizeRadiusScaleMax)));
             main.startRotation = new ParticleSystem.MinMaxCurve(0f, Mathf.PI * 2f);
             main.startColor = WithAlpha(Color.Lerp(Color.white, tailColor, 0.35f), flameTrail.startAlpha);
             main.simulationSpace = ParticleSystemSimulationSpace.Local;
@@ -410,8 +457,9 @@ namespace LeiTing.Missiles
             var emission = flame.emission;
             emission.enabled = enabled;
             emission.rateOverTime = enabled
-                ? new ParticleSystem.MinMaxCurve(Mathf.Max(0f, flameTrail.emissionRate))
+                ? new ParticleSystem.MinMaxCurve(Mathf.Max(0f, useContrail ? Mathf.Min(flameTrail.emissionRate, 44f) : flameTrail.emissionRate))
                 : new ParticleSystem.MinMaxCurve(0f);
+            emission.rateOverDistance = new ParticleSystem.MinMaxCurve(0f);
 
             var shape = flame.shape;
             shape.enabled = true;
@@ -424,7 +472,8 @@ namespace LeiTing.Missiles
             var velocity = flame.velocityOverLifetime;
             velocity.enabled = true;
             velocity.space = ParticleSystemSimulationSpace.Local;
-            velocity.x = new ParticleSystem.MinMaxCurve(-flameTrail.sideSpread, flameTrail.sideSpread);
+            var sideSpread = useContrail ? Mathf.Min(flameTrail.sideSpread, 0.02f) : flameTrail.sideSpread;
+            velocity.x = new ParticleSystem.MinMaxCurve(-sideSpread, sideSpread);
             velocity.y = new ParticleSystem.MinMaxCurve(flameTrail.backwardSpeedMin, flameTrail.backwardSpeedMax);
             velocity.z = new ParticleSystem.MinMaxCurve(0f, 0f);
 
@@ -470,9 +519,11 @@ namespace LeiTing.Missiles
             {
                 flame.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             }
+
+            activeFlameLifetimeMax = enabled ? lifetimeMax : 0f;
         }
 
-        private void ConfigureSmokeTrail(bool enabled, Color tailColor, float radius, bool canBeDestroyed)
+        private void ConfigureSmokeTrail(bool enabled, Color tailColor, float radius, bool canBeDestroyed, bool useContrail)
         {
             if (smokeTrail == null)
             {
@@ -489,53 +540,65 @@ namespace LeiTing.Missiles
             main.prewarm = false;
             main.duration = Mathf.Max(0.05f, smoke.duration);
             main.startDelay = 0f;
-            main.startLifetime = new ParticleSystem.MinMaxCurve(smoke.lifetimeMin, smoke.lifetimeMax);
-            main.startSpeed = new ParticleSystem.MinMaxCurve(smoke.startSpeedMin, smoke.startSpeedMax);
+            var lifetimeMin = useContrail ? Mathf.Max(1.1f, smoke.lifetimeMin) : smoke.lifetimeMin;
+            var lifetimeMax = useContrail ? Mathf.Max(1.75f, smoke.lifetimeMax) : smoke.lifetimeMax;
+            main.startLifetime = new ParticleSystem.MinMaxCurve(lifetimeMin, lifetimeMax);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(
+                useContrail ? Mathf.Min(smoke.startSpeedMin, 0.01f) : smoke.startSpeedMin,
+                useContrail ? Mathf.Min(smoke.startSpeedMax, 0.035f) : smoke.startSpeedMax);
             main.startSize = new ParticleSystem.MinMaxCurve(
-                Mathf.Max(0.01f, radius * smoke.sizeRadiusScaleMin),
-                Mathf.Max(0.01f, radius * smoke.sizeRadiusScaleMax));
+                Mathf.Max(0.01f, radius * (useContrail ? Mathf.Min(smoke.sizeRadiusScaleMin, 0.34f) : smoke.sizeRadiusScaleMin)),
+                Mathf.Max(0.01f, radius * (useContrail ? Mathf.Min(smoke.sizeRadiusScaleMax, 0.76f) : smoke.sizeRadiusScaleMax)));
             main.startRotation = new ParticleSystem.MinMaxCurve(0f, Mathf.PI * 2f);
             main.startColor = new ParticleSystem.MinMaxGradient(
-                WithAlpha(Color.Lerp(tailColor, Color.white, smoke.colorToWhite), smoke.startAlpha),
-                WithAlpha(Color.Lerp(tailColor, smoke.shadowColor, 0.45f), smoke.startAlpha * 0.78f));
+                WithAlpha(Color.Lerp(tailColor, Color.white, useContrail ? 0.92f : smoke.colorToWhite), useContrail ? Mathf.Max(smoke.startAlpha, 0.8f) : smoke.startAlpha),
+                WithAlpha(Color.Lerp(tailColor, smoke.shadowColor, useContrail ? 0.18f : 0.45f), useContrail ? 0.62f : smoke.startAlpha * 0.78f));
             main.simulationSpace = ParticleSystemSimulationSpace.World;
             main.scalingMode = ParticleSystemScalingMode.Hierarchy;
-            main.maxParticles = Mathf.Max(1, canBeDestroyed ? Mathf.RoundToInt(smoke.maxParticles * 1.3f) : smoke.maxParticles);
+            main.maxParticles = Mathf.Max(1, useContrail ? Mathf.Max(smoke.maxParticles, 160) : canBeDestroyed ? Mathf.RoundToInt(smoke.maxParticles * 1.3f) : smoke.maxParticles);
 
             var emission = smokeTrail.emission;
             emission.enabled = enabled;
             emission.rateOverTime = enabled
-                ? new ParticleSystem.MinMaxCurve(Mathf.Max(0f, smoke.emissionRate))
+                ? new ParticleSystem.MinMaxCurve(Mathf.Max(0f, useContrail ? Mathf.Min(smoke.emissionRate, 10f) : smoke.emissionRate))
+                : new ParticleSystem.MinMaxCurve(0f);
+            emission.rateOverDistance = enabled && useContrail
+                ? new ParticleSystem.MinMaxCurve(18f)
                 : new ParticleSystem.MinMaxCurve(0f);
 
             var shape = smokeTrail.shape;
             shape.enabled = true;
             shape.shapeType = ParticleSystemShapeType.Circle;
-            shape.radius = Mathf.Max(0.005f, radius * smoke.shapeRadiusScale);
+            shape.radius = Mathf.Max(0.005f, radius * (useContrail ? Mathf.Min(smoke.shapeRadiusScale, 0.22f) : smoke.shapeRadiusScale));
             shape.radiusThickness = 1f;
 
             var velocity = smokeTrail.velocityOverLifetime;
             velocity.enabled = true;
-            velocity.space = ParticleSystemSimulationSpace.Local;
-            velocity.x = new ParticleSystem.MinMaxCurve(-smoke.sideDrift, smoke.sideDrift);
-            velocity.y = new ParticleSystem.MinMaxCurve(smoke.backwardSpeedMin, smoke.backwardSpeedMax);
+            velocity.space = useContrail ? ParticleSystemSimulationSpace.World : ParticleSystemSimulationSpace.Local;
+            var sideDrift = useContrail ? Mathf.Min(smoke.sideDrift, 0.025f) : smoke.sideDrift;
+            velocity.x = new ParticleSystem.MinMaxCurve(-sideDrift, sideDrift);
+            velocity.y = useContrail
+                ? new ParticleSystem.MinMaxCurve(-sideDrift, sideDrift)
+                : new ParticleSystem.MinMaxCurve(smoke.backwardSpeedMin, smoke.backwardSpeedMax);
             velocity.z = new ParticleSystem.MinMaxCurve(0f, 0f);
 
             var colorOverLifetime = smokeTrail.colorOverLifetime;
             colorOverLifetime.enabled = true;
             var gradient = new Gradient();
-            var startColor = Color.Lerp(tailColor, Color.white, smoke.colorToWhite);
+            var startColor = Color.Lerp(tailColor, Color.white, useContrail ? 0.92f : smoke.colorToWhite);
+            var midColor = useContrail ? new Color(0.86f, 0.9f, 0.94f, 1f) : Color.Lerp(startColor, smoke.shadowColor, 0.35f);
+            var endColor = useContrail ? new Color(0.64f, 0.69f, 0.74f, 1f) : smoke.shadowColor;
             gradient.SetKeys(
                 new[]
                 {
                     new GradientColorKey(startColor, 0f),
-                    new GradientColorKey(Color.Lerp(startColor, smoke.shadowColor, 0.35f), 0.62f),
-                    new GradientColorKey(smoke.shadowColor, 1f)
+                    new GradientColorKey(midColor, 0.62f),
+                    new GradientColorKey(endColor, 1f)
                 },
                 new[]
                 {
-                    new GradientAlphaKey(smoke.startAlpha, 0f),
-                    new GradientAlphaKey(smoke.midAlpha, 0.48f),
+                    new GradientAlphaKey(useContrail ? Mathf.Max(smoke.startAlpha, 0.8f) : smoke.startAlpha, 0f),
+                    new GradientAlphaKey(useContrail ? Mathf.Max(smoke.midAlpha, 0.42f) : smoke.midAlpha, 0.48f),
                     new GradientAlphaKey(0f, 1f)
                 });
             colorOverLifetime.color = new ParticleSystem.MinMaxGradient(gradient);
@@ -543,15 +606,15 @@ namespace LeiTing.Missiles
             var sizeOverLifetime = smokeTrail.sizeOverLifetime;
             sizeOverLifetime.enabled = true;
             sizeOverLifetime.size = new ParticleSystem.MinMaxCurve(1f, new AnimationCurve(
-                new Keyframe(0f, 1f),
-                new Keyframe(0.6f, smoke.midSizeMultiplier),
-                new Keyframe(1f, smoke.endSizeMultiplier)));
+                new Keyframe(0f, useContrail ? 0.72f : 1f),
+                new Keyframe(0.6f, useContrail ? Mathf.Max(smoke.midSizeMultiplier, 0.82f) : smoke.midSizeMultiplier),
+                new Keyframe(1f, useContrail ? Mathf.Max(smoke.endSizeMultiplier, 0.18f) : smoke.endSizeMultiplier)));
 
             var noise = smokeTrail.noise;
             noise.enabled = smoke.noiseStrengthRadiusScale > 0f;
-            noise.strength = new ParticleSystem.MinMaxCurve(radius * smoke.noiseStrengthRadiusScale);
-            noise.frequency = smoke.noiseFrequency;
-            noise.scrollSpeed = smoke.noiseScrollSpeed;
+            noise.strength = new ParticleSystem.MinMaxCurve(radius * (useContrail ? Mathf.Min(smoke.noiseStrengthRadiusScale, 0.08f) : smoke.noiseStrengthRadiusScale));
+            noise.frequency = useContrail ? Mathf.Min(smoke.noiseFrequency, 0.9f) : smoke.noiseFrequency;
+            noise.scrollSpeed = useContrail ? Mathf.Min(smoke.noiseScrollSpeed, 0.05f) : smoke.noiseScrollSpeed;
 
             if (smokeTrailRenderer != null)
             {
@@ -565,6 +628,8 @@ namespace LeiTing.Missiles
             {
                 smokeTrail.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             }
+
+            activeSmokeLifetimeMax = enabled ? lifetimeMax : 0f;
         }
 
         private void ConfigureSparks(bool enabled, Color tailColor, float radius)
@@ -602,6 +667,7 @@ namespace LeiTing.Missiles
             emission.rateOverTime = enabled
                 ? new ParticleSystem.MinMaxCurve(Mathf.Max(0f, sparkTrail.emissionRate))
                 : new ParticleSystem.MinMaxCurve(0f);
+            emission.rateOverDistance = new ParticleSystem.MinMaxCurve(0f);
 
             var shape = sparks.shape;
             shape.enabled = true;
@@ -657,6 +723,8 @@ namespace LeiTing.Missiles
             {
                 sparks.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             }
+
+            activeSparkLifetimeMax = enabled ? sparkTrail.lifetimeMax : 0f;
         }
 
         private void ConfigureTailGlow(Color tailColor, float radius, float time)
@@ -720,6 +788,13 @@ namespace LeiTing.Missiles
                 case "smoke":
                 case "exhaust":
                     return MissileVisualTrailMode.Smoke;
+                case "contrail":
+                case "white_smoke":
+                case "smoke_line":
+                case "smoke_ribbon":
+                case "tracking_smoke":
+                case "missile_smoke":
+                    return MissileVisualTrailMode.Contrail;
                 case "fire":
                 case "flame":
                 case "fire_smoke":
@@ -748,25 +823,25 @@ namespace LeiTing.Missiles
             var duration = 0f;
             if (activeLightTrail && lightTrailRenderer != null && lightTrailRenderer.enabled)
             {
-                duration = Mathf.Max(duration, lightTrailRenderer.time);
+                duration = Mathf.Max(duration, activeLightTrailDuration > 0f ? activeLightTrailDuration : lightTrailRenderer.time);
             }
 
             if (activeFlame)
             {
-                duration = Mathf.Max(duration, flameTrail.lifetimeMax);
+                duration = Mathf.Max(duration, activeFlameLifetimeMax > 0f ? activeFlameLifetimeMax : flameTrail.lifetimeMax);
             }
 
             if (activeSmokeTrail)
             {
-                duration = Mathf.Max(duration, smoke.lifetimeMax);
+                duration = Mathf.Max(duration, activeSmokeLifetimeMax > 0f ? activeSmokeLifetimeMax : smoke.lifetimeMax);
             }
 
             if (activeSparkTrail)
             {
-                duration = Mathf.Max(duration, sparkTrail.lifetimeMax);
+                duration = Mathf.Max(duration, activeSparkLifetimeMax > 0f ? activeSparkLifetimeMax : sparkTrail.lifetimeMax);
             }
 
-            return Mathf.Clamp(duration + 0.06f, 0.05f, 1.35f);
+            return Mathf.Clamp(duration + 0.06f, 0.05f, 2.2f);
         }
 
         private Transform EnsureTailPoint()
@@ -877,7 +952,8 @@ namespace LeiTing.Missiles
         {
             return mode == MissileVisualTrailMode.Light
                 || mode == MissileVisualTrailMode.Smoke
-                || mode == MissileVisualTrailMode.LightAndSmoke;
+                || mode == MissileVisualTrailMode.LightAndSmoke
+                || mode == MissileVisualTrailMode.Contrail;
         }
 
         private static bool UsesFlame(MissileVisualTrailMode mode)
@@ -887,7 +963,9 @@ namespace LeiTing.Missiles
 
         private static bool UsesSmokeTrail(MissileVisualTrailMode mode)
         {
-            return mode == MissileVisualTrailMode.Smoke || mode == MissileVisualTrailMode.LightAndSmoke;
+            return mode == MissileVisualTrailMode.Smoke
+                || mode == MissileVisualTrailMode.LightAndSmoke
+                || mode == MissileVisualTrailMode.Contrail;
         }
 
         private static bool UsesSparks(MissileVisualTrailMode mode, bool canBeDestroyed, string configTailType)
@@ -919,6 +997,8 @@ namespace LeiTing.Missiles
                     return "smoke";
                 case MissileVisualTrailMode.LightAndSmoke:
                     return "fire_smoke";
+                case MissileVisualTrailMode.Contrail:
+                    return "contrail";
                 default:
                     return "light";
             }

@@ -25,8 +25,9 @@ namespace LeiTing.EditorTools
                 "missile_03_weak_homing",
                 "Assets/Art/Sprites/Bullets/missile_03.png",
                 0.17f,
-                new Color(1f, 0.25f, 0.45f, 1f),
-                MissileVisualTrailMode.Light);
+                new Color(0.95f, 0.97f, 1f, 1f),
+                MissileVisualTrailMode.Contrail,
+                true);
             CreateMissilePrefab(
                 "missile_09_lock_dash",
                 "Assets/Art/Sprites/Bullets/missile_09.png",
@@ -66,7 +67,7 @@ namespace LeiTing.EditorTools
                 {
                     var radius = ResolveMissileRadius(prefabRoot);
                     var preset = ResolveMissileVisualPreset(prefabRoot.name);
-                    ConfigureMissileVisualEffects(prefabRoot, radius, preset.Color, preset.Mode);
+                    ConfigureMissileVisualEffects(prefabRoot, radius, preset.Color, preset.Mode, preset.UseConfigDrivenSource);
                     PrefabUtility.SaveAsPrefabAsset(prefabRoot, path);
                     upgradedCount++;
                 }
@@ -81,7 +82,13 @@ namespace LeiTing.EditorTools
             Debug.Log($"Upgraded {upgradedCount} missile visual prefab(s).");
         }
 
-        private static void CreateMissilePrefab(string prefabName, string spritePath, float radius, Color trailColor, MissileVisualTrailMode trailMode)
+        private static void CreateMissilePrefab(
+            string prefabName,
+            string spritePath,
+            float radius,
+            Color trailColor,
+            MissileVisualTrailMode trailMode,
+            bool useConfigDrivenSource = false)
         {
             var root = new GameObject(prefabName);
             SetLayerRecursively(root, "EnemyMissile");
@@ -97,7 +104,7 @@ namespace LeiTing.EditorTools
             collider.radius = radius;
 
             root.AddComponent<MissileController>();
-            ConfigureMissileVisualEffects(root, radius, trailColor, trailMode);
+            ConfigureMissileVisualEffects(root, radius, trailColor, trailMode, useConfigDrivenSource);
 
             var visual = CreateChild(root.transform, "Visual", Vector3.zero);
             var renderer = visual.gameObject.AddComponent<SpriteRenderer>();
@@ -108,7 +115,12 @@ namespace LeiTing.EditorTools
             UnityEngine.Object.DestroyImmediate(root);
         }
 
-        private static void ConfigureMissileVisualEffects(GameObject root, float radius, Color trailColor, MissileVisualTrailMode trailMode)
+        private static void ConfigureMissileVisualEffects(
+            GameObject root,
+            float radius,
+            Color trailColor,
+            MissileVisualTrailMode trailMode,
+            bool useConfigDrivenSource = false)
         {
             var visualEffects = root.GetComponent<MissileVisualEffects>();
             if (visualEffects == null)
@@ -117,6 +129,7 @@ namespace LeiTing.EditorTools
             }
 
             visualEffects.ResetToDefaults(trailMode, trailColor, radius);
+            visualEffects.UseConfigDrivenSource(useConfigDrivenSource);
             SetLayerRecursively(root, root.layer);
         }
 
@@ -203,7 +216,7 @@ namespace LeiTing.EditorTools
             switch (prefabName)
             {
                 case "missile_03_weak_homing":
-                    return new MissileVisualPreset(MissileVisualTrailMode.Light, new Color(1f, 0.25f, 0.45f, 1f));
+                    return new MissileVisualPreset(MissileVisualTrailMode.Contrail, new Color(0.95f, 0.97f, 1f, 1f), true);
                 case "missile_09_lock_dash":
                     return new MissileVisualPreset(MissileVisualTrailMode.Light, new Color(0.82f, 0.92f, 1f, 1f));
                 case "missile_11_explode":
@@ -244,14 +257,16 @@ namespace LeiTing.EditorTools
 
         private readonly struct MissileVisualPreset
         {
-            public MissileVisualPreset(MissileVisualTrailMode mode, Color color)
+            public MissileVisualPreset(MissileVisualTrailMode mode, Color color, bool useConfigDrivenSource = false)
             {
                 Mode = mode;
                 Color = color;
+                UseConfigDrivenSource = useConfigDrivenSource;
             }
 
             public MissileVisualTrailMode Mode { get; }
             public Color Color { get; }
+            public bool UseConfigDrivenSource { get; }
         }
     }
 }
