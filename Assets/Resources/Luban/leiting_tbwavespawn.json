@@ -1280,22 +1280,6 @@
     "holdDuration": 0
   },
   {
-    "index": 91,
-    "id": "wave_spawn_wave_level_02_helicopter_top_002_01",
-    "waveId": "wave_level_02_helicopter_top_002",
-    "sort": 1,
-    "enemyId": "level2_helicopter_01",
-    "count": 1,
-    "interval": 0.1,
-    "startPositionX": 0,
-    "startPositionY": 0,
-    "attackPatternId": "level2_helicopter_slow_pair@3+0~9",
-    "movementPath": "StopAndLeave",
-    "pathAmplitude": 0,
-    "pathSpeed": 0,
-    "holdDuration": 9
-  },
-  {
     "index": 92,
     "id": "wave_spawn_wave_level_02_resource2_right_arc_005_left",
     "waveId": "wave_level_02_resource2_right_arc_005",
@@ -14059,6 +14043,22 @@
     "startPositionY": 6.75,
     "attackPatternId": "level1_split_fighter_split@3+0.65",
     "movementPath": "Straight:rotateToPath=true,rotationOffset=90",
+    "pathAmplitude": 0,
+    "pathSpeed": 0,
+    "holdDuration": 0
+  },
+  {
+    "index": 925,
+    "id": "wave_spawn_wave_level_02_midboss_105_01",
+    "waveId": "wave_level_02_midboss_105",
+    "sort": 1,
+    "enemyId": "boss_level_02_mid_01",
+    "count": 1,
+    "interval": 0.1,
+    "startPositionX": 0,
+    "startPositionY": 6.2,
+    "attackPatternId": "",
+    "movementPath": "BossEntry",
     "pathAmplitude": 0,
     "pathSpeed": 0,
     "holdDuration": 0

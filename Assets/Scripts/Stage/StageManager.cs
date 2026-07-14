@@ -17,9 +17,8 @@ namespace LeiTing.Stage
         private const string TrophyItemId = "trophy";
 
         private readonly HashSet<string> triggeredEvents = new HashSet<string>();
-        private float stageTime;
 
-        public float StageTime => stageTime;
+        public float StageTime => GameManager.Instance != null ? GameManager.Instance.BattleTimelineTime : 0f;
 
         private void Update()
         {
@@ -33,7 +32,6 @@ namespace LeiTing.Stage
                 return;
             }
 
-            stageTime += Time.deltaTime;
             UpdateStageEvents(ConfigManager.Instance);
         }
 
@@ -46,7 +44,18 @@ namespace LeiTing.Stage
 
             foreach (var stageEvent in configManager.GetStageEventsForLevel(GameManager.Instance.CurrentLevelNumber))
             {
-                if (stageEvent == null || triggeredEvents.Contains(stageEvent.id) || stageTime < stageEvent.startTime)
+                if (stageEvent == null || triggeredEvents.Contains(stageEvent.id))
+                {
+                    continue;
+                }
+
+                if (stageEvent.startTime < GameManager.Instance.CurrentBattleStartTime)
+                {
+                    triggeredEvents.Add(stageEvent.id);
+                    continue;
+                }
+
+                if (StageTime < stageEvent.startTime)
                 {
                     continue;
                 }

@@ -50,6 +50,7 @@ namespace LeiTing.Bullets
         private float lifetimeRemaining;
         private float laserWidth;
         private float laserLength;
+        private Color laserGlowColor = new Color(0.08f, 0.68f, 1f, 0.45f);
         private float swayAmplitude;
         private float swayFrequency;
         private float swayPhase;
@@ -267,13 +268,16 @@ namespace LeiTing.Bullets
 
             laserWidth = size.x;
             laserLength = size.y;
+            laserGlowColor = ResolveLaserColor(bulletConfig.glowColor);
             boxCollider.size = size;
             boxCollider.offset = Vector2.zero;
 
             spriteRenderer.sprite = isLaser ? GetLaserSprite() : LoadConfiguredSprite(bulletConfig.spritePath) ?? GetFallbackSprite();
             spriteRenderer.sortingOrder = IsPlayerOwned() ? 30 : 20;
             spriteRenderer.sharedMaterial = isLaser ? GetLaserMaterial() : GetDefaultSpriteMaterial();
-            spriteRenderer.color = Color.white;
+            spriteRenderer.color = isLaser
+                ? new Color(laserGlowColor.r, laserGlowColor.g, laserGlowColor.b, 1f)
+                : Color.white;
             visualRoot.localPosition = Vector3.zero;
             visualRoot.localRotation = Quaternion.identity;
             visualRoot.localScale = ResolveVisualScale(spriteRenderer.sprite, size);
@@ -479,7 +483,11 @@ namespace LeiTing.Bullets
             var pulse = 0.3f + Mathf.PingPong(Time.time * 5.2f, 0.14f);
 
             glowRenderer.enabled = true;
-            glowRenderer.color = new Color(0.08f, 0.68f, 1f, pulse);
+            glowRenderer.color = new Color(
+                laserGlowColor.r,
+                laserGlowColor.g,
+                laserGlowColor.b,
+                pulse * Mathf.Clamp01(laserGlowColor.a / 0.45f));
             glowRoot.localPosition = Vector3.zero;
             glowRoot.localRotation = Quaternion.identity;
             glowRoot.localScale = new Vector3(glowWidth / GlowSpriteSize, glowLength / GlowSpriteSize, 1f);
@@ -788,6 +796,16 @@ namespace LeiTing.Bullets
             return new Color(1f, 0.48f, 0.12f, 0.58f);
         }
 
+        private static Color ResolveLaserColor(Color configuredColor)
+        {
+            if (configuredColor.a > 0f)
+            {
+                return configuredColor;
+            }
+
+            return new Color(0.08f, 0.68f, 1f, 0.45f);
+        }
+
         private static Material GetDefaultSpriteMaterial()
         {
             if (defaultSpriteMaterial == null)
@@ -847,8 +865,8 @@ namespace LeiTing.Bullets
             texture.filterMode = FilterMode.Bilinear;
             texture.wrapMode = TextureWrapMode.Clamp;
 
-            var glowColor = new Color(0.08f, 0.68f, 1f, 0.28f);
-            var beamColor = new Color(0.24f, 0.92f, 1f, 0.92f);
+            var glowColor = new Color(1f, 1f, 1f, 0.28f);
+            var beamColor = new Color(1f, 1f, 1f, 0.92f);
             var coreColor = Color.white;
 
             for (var y = 0; y < height; y++)

@@ -26,6 +26,10 @@ Unity scene/prefab data, and Luban source tables under `Luban/Datas`.
 - Lobby/menu scene: `Assets/Scenes/SampleScene.unity`
 - Battle scene: `Assets/Scenes/BattleScene.unity`
 - Both scenes are enabled in `ProjectSettings/EditorBuildSettings.asset`.
+- Editor quick testing is available from `LeiTing/Test/Level Selector`. It
+  accepts commands such as `2#1:35` or `2#95`, shows wave/event/Boss markers,
+  and can reload a running battle from a selected timeline time. See
+  `docs/editor-quick-testing.md`.
 - Runtime configuration is generated Luban data in `Assets/Resources/Luban`.
   `ConfigManager.LoadDefaultConfig()` loads Luban only; on failure it leaves
   config unavailable and logs an error. There is no legacy JSON runtime
@@ -98,7 +102,11 @@ and a phone test.
   directly and starts menu BGM from that click; outside the lobby scene it
   falls back to `GameSceneManager.EnterLobby()`.
 - `GameManager` owns state, score, selected level, unlock progression, restart
-  and next-level transitions. On victory it first attracts remaining pickups
+  and next-level transitions. It also owns the shared battle timeline consumed
+  by `StageManager`, `EnemyManager`, and the battle timer HUD. Editor test runs
+  can initialize that timeline at a requested start time; entries strictly
+  before that time are treated as skipped, while entries exactly at that time
+  remain eligible to trigger. On victory it first attracts remaining pickups
   to the player and waits for collection before completing settlement.
 - `StaminaService` gates battle entry in player builds, consuming one stamina
   per start and restoring stamina over time. In the Unity Editor it always
@@ -135,7 +143,11 @@ and a phone test.
 
 ## Combat And Stage Systems
 
-- `EnemyManager` spawns enemies from level wave data.
+- `EnemyManager` spawns enemies from level wave data. The seven opening
+  resource-plane waves in level 2 spawn their configured counts one aircraft
+  at a time. Each battle randomly selects three of those waves, then each
+  selected wave chooses one aircraft that carries a guaranteed attack-power
+  pickup, for three pickups in total.
 - `BulletManager`, `BulletPatternManager`, and `MissileManager` handle
   projectile behavior and configured firing patterns.
 - Enemy bullet `firePattern` values can append options after `:`;
@@ -149,6 +161,20 @@ and a phone test.
   `Spline` when the path needs to pass through configured turn points.
 - `BossController` handles boss entry, HP, configured phase changes, firing,
   defeat, and the victory trigger.
+- Level 2 spawns `boss_level_02_mid_01` at 105 seconds from
+  `enemy_09.prefab`. It uses the Boss phase controller for two HP-based attack
+  stages without showing the Boss HP HUD or phase/entry notices. Defeating it
+  does not settle the level because the final `boss_02` wave remains scheduled
+  at 180 seconds.
+- The level-2 final boss `boss_02` has dedicated 100%-70%, 70%-40%, and
+  40%-0% phases. Its first two phases run independently scheduled center and
+  side attacks. The final phase uses the normal ordered pattern list at a
+  1.25-second step interval, cycling yellow lasers, three-port rings,
+  three-port fast homing missiles, and three-port lock-dash missiles; the
+  four-step loop makes the two-second laser recur every five seconds.
+- Laser bullets tint both their beam and glow from the configured bullet glow
+  color. A bullet with no configured glow color retains the default cyan
+  player-laser treatment.
 - `StageManager` advances level timeline events. A clear-bullets event clears
   both enemy bullets and enemy missiles, and stage messages can substitute
   `{LEVEL}`, `{MAX_LEVEL}`, `{BOSS_ID}`, and `{BOSS}`.
@@ -169,10 +195,16 @@ and a phone test.
 
 - `PickupManager` spawns configured enemy drops and can force active pickups
   toward the player during settlement.
-- `PickupItemController` supports star, coin, magnet, bomb, heal, shield, and
-  trophy behavior. Magnet attracts stars, bomb removes non-boss enemies,
-  trophy requires a 2-second in-range hold with a yellow glow treatment, and
-  star and coin pickups play configured sound paths currently defined in code.
+- Enemies that carry special pickups (including bomb, heal, shield, magnet,
+  and attack-power pickups) render with the same steady cyan soft glow used by
+  special pickups in the scene; the selected level-2 carriers use the same
+  treatment.
+- `PickupItemController` supports star, coin, magnet, bomb, heal, shield,
+  weapon-up, and trophy behavior. Magnet attracts stars, bomb removes non-boss
+  enemies, weapon-up permanently adds 1 to the current player's bullet damage
+  for the rest of the battle, trophy requires a 2-second in-range hold with a
+  yellow glow treatment, and star and coin pickups play configured sound paths
+  currently defined in code.
 - `UIManager` provides battle HUD/settlement behavior and runtime-created UI
   where an authored view is unavailable. In battle, score, timer, and the
   10-segment Boss HP bar are stacked from a fixed 65-pixel top offset instead

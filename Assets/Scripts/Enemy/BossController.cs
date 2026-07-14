@@ -28,6 +28,7 @@ namespace LeiTing.Enemy
         private const float EntrySpeed = 1.65f;
         private const float DefaultAttackInterval = 1.8f;
         private const string EntryWarningSoundPath = "Assets/Art/Sound/SFX/Enemy/SFX_Boss_Attack_Warning_01.wav";
+        private const string Level2MidBossId = "boss_level_02_mid_01";
 
         [SerializeField] private EnemyConfig config;
         [SerializeField] private int currentHp;
@@ -78,9 +79,13 @@ namespace LeiTing.Enemy
             ConfigureRootHitbox();
             UpdateBossUi();
 
-            if (UIManager.Instance != null)
+            if (UIManager.Instance != null && ShouldShowBossPresentation())
             {
                 UIManager.Instance.ShowBossPhaseNotice("警告\n首领来袭");
+            }
+            else if (UIManager.Instance != null)
+            {
+                UIManager.Instance.HideBossHud();
             }
 
             if (AudioManager.Instance != null)
@@ -250,7 +255,7 @@ namespace LeiTing.Enemy
 
             ExplosionEffect.Spawn(transform.position, isInitial ? 1.1f : 1.55f);
 
-            if (UIManager.Instance != null)
+            if (UIManager.Instance != null && ShouldShowBossPresentation())
             {
                 UIManager.Instance.ShowBossPhaseNotice(GetCurrentPhaseName());
             }
@@ -542,7 +547,7 @@ namespace LeiTing.Enemy
                 MissileManager.Instance.ClearEnemyMissiles();
             }
 
-            if (UIManager.Instance != null)
+            if (UIManager.Instance != null && ShouldShowBossPresentation())
             {
                 UIManager.Instance.ShowBossPhaseNotice("首领已击破");
             }
@@ -575,7 +580,10 @@ namespace LeiTing.Enemy
                     UIManager.Instance.ShowScorePopup(transform.position, config.score);
                 }
 
-                UIManager.Instance.HideBossHud();
+                if (ShouldShowBossPresentation())
+                {
+                    UIManager.Instance.HideBossHud();
+                }
             }
 
             var shouldWinGame = EnemyManager.Instance == null || EnemyManager.Instance.NotifyBossDefeated(config != null ? config.id : string.Empty);
@@ -589,10 +597,16 @@ namespace LeiTing.Enemy
 
         private void UpdateBossUi()
         {
-            if (UIManager.Instance != null)
+            if (UIManager.Instance != null && ShouldShowBossPresentation())
             {
                 UIManager.Instance.UpdateBossHud(config != null ? config.displayName : "首领", currentHp, maxHp, GetCurrentPhaseName());
             }
+        }
+
+        private bool ShouldShowBossPresentation()
+        {
+            return config == null
+                || !string.Equals(config.id, Level2MidBossId, StringComparison.OrdinalIgnoreCase);
         }
 
         private BossPhaseConfig GetCurrentPhase()

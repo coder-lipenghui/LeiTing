@@ -200,7 +200,7 @@ Boss 装备在阶段上：
 
 1. 在 `Luban/Datas/PickupItem.xlsx` 的 `PickupItem` sheet 新增一行。
 2. `id` 是掉落物 ID，例如 `coin`、`heal`、`shield`。
-3. `itemType` 决定行为，当前常用 `Star`、`Coin`、`Magnet`、`Bomb`、`Heal`、`Shield`。
+3. `itemType` 决定行为，当前常用 `Star`、`Coin`、`Magnet`、`Bomb`、`Heal`、`Shield`、`WeaponUp`；`WeaponUp` 每次拾取使玩家本局子弹伤害增加 1。
 4. 填 `spritePath`、`lifetime`、`driftSpeed`、`pickupRadius`、`visualScale`。
 
 再挂到敌机：

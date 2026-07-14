@@ -65,9 +65,9 @@
   },
   {
     "index": 9,
-    "id": "spawn_trophy_level_02_left_003:x=-3.2,y=5.7",
+    "id": "spawn_trophy_level_02_left_017:x=-3.2,y=5.7",
     "levelId": "level_02",
-    "startTime": 3,
+    "startTime": 17,
     "message": "",
     "clearEnemyBullets": false
   },
@@ -76,6 +76,70 @@
     "id": "spawn_trophy_level_02_right_034:x=3.2,y=5.7",
     "levelId": "level_02",
     "startTime": 34,
+    "message": "",
+    "clearEnemyBullets": false
+  },
+  {
+    "index": 11,
+    "id": "spawn_trophy_level_02_left_051:x=-3.2,y=5.7",
+    "levelId": "level_02",
+    "startTime": 51,
+    "message": "",
+    "clearEnemyBullets": false
+  },
+  {
+    "index": 12,
+    "id": "spawn_trophy_level_02_right_068:x=3.2,y=5.7",
+    "levelId": "level_02",
+    "startTime": 68,
+    "message": "",
+    "clearEnemyBullets": false
+  },
+  {
+    "index": 13,
+    "id": "spawn_trophy_level_02_left_085:x=-3.2,y=5.7",
+    "levelId": "level_02",
+    "startTime": 85,
+    "message": "",
+    "clearEnemyBullets": false
+  },
+  {
+    "index": 14,
+    "id": "spawn_trophy_level_02_right_102:x=3.2,y=5.7",
+    "levelId": "level_02",
+    "startTime": 102,
+    "message": "",
+    "clearEnemyBullets": false
+  },
+  {
+    "index": 15,
+    "id": "spawn_trophy_level_02_left_119:x=-3.2,y=5.7",
+    "levelId": "level_02",
+    "startTime": 119,
+    "message": "",
+    "clearEnemyBullets": false
+  },
+  {
+    "index": 16,
+    "id": "spawn_trophy_level_02_right_136:x=3.2,y=5.7",
+    "levelId": "level_02",
+    "startTime": 136,
+    "message": "",
+    "clearEnemyBullets": false
+  },
+  {
+    "index": 17,
+    "id": "spawn_trophy_level_02_left_153:x=-3.2,y=5.7",
+    "levelId": "level_02",
+    "startTime": 153,
+    "message": "",
+    "clearEnemyBullets": false
+  },
+  {
+    "index": 18,
+    "id": "spawn_trophy_level_02_right_170:x=3.2,y=5.7",
+    "levelId": "level_02",
+    "startTime": 170,
     "message": "",
     "clearEnemyBullets": false
   }

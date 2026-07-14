@@ -347,6 +347,14 @@ namespace LeiTing.Pickups
                 {
                     player.ActivateInvincibleShield(GetShieldDuration());
                 }
+                else if (IsItemType("WeaponUp") || IsItemId("weaponup"))
+                {
+                    var shooter = player.GetComponent<PlayerShooter>();
+                    if (shooter != null)
+                    {
+                        shooter.IncreaseAttackPower();
+                    }
+                }
 
                 PlayPickupSound(SpecialPickupSoundPath);
             }

@@ -20,8 +20,13 @@ namespace LeiTing.Player
         [SerializeField] private Vector2 firePointOffset = new Vector2(0f, 0.45f);
 
         private float nextFireTime;
+        private int attackPowerBonus;
+        private BulletConfig fallbackRuntimeBulletConfig;
+        private BulletConfig poweredUpSourceConfig;
+        private BulletConfig poweredUpRuntimeConfig;
 
         public string CurrentBulletId => GetBulletId();
+        public int AttackPowerBonus => attackPowerBonus;
 
         public bool AutoFire
         {
@@ -32,6 +37,15 @@ namespace LeiTing.Player
         public void ApplyConfig(PlayerConfig playerConfig)
         {
             config = playerConfig;
+            fallbackRuntimeBulletConfig = null;
+            poweredUpSourceConfig = null;
+            poweredUpRuntimeConfig = null;
+        }
+
+        public void IncreaseAttackPower(int amount = 1)
+        {
+            attackPowerBonus = Mathf.Max(0, attackPowerBonus + Mathf.Max(0, amount));
+            poweredUpRuntimeConfig = null;
         }
 
         public bool TryFire()
@@ -156,20 +170,58 @@ namespace LeiTing.Player
                 ? ConfigManager.Instance.GetBullet(bulletId)
                 : null;
 
-            if (bulletConfig != null)
+            if (bulletConfig == null)
+            {
+                if (fallbackRuntimeBulletConfig == null || fallbackRuntimeBulletConfig.id != bulletId)
+                {
+                    fallbackRuntimeBulletConfig = new BulletConfig
+                    {
+                        id = bulletId,
+                        owner = "Player",
+                        damage = 1,
+                        speed = 12f,
+                        lifetime = 2f,
+                        size = new Vector2(0.12f, 0.32f),
+                        projectileCount = 1
+                    };
+                }
+
+                bulletConfig = fallbackRuntimeBulletConfig;
+            }
+
+            if (attackPowerBonus <= 0)
             {
                 return bulletConfig;
             }
 
+            if (poweredUpRuntimeConfig == null || poweredUpSourceConfig != bulletConfig)
+            {
+                poweredUpSourceConfig = bulletConfig;
+                poweredUpRuntimeConfig = CreatePoweredUpBulletConfig(bulletConfig);
+            }
+
+            return poweredUpRuntimeConfig;
+        }
+
+        private BulletConfig CreatePoweredUpBulletConfig(BulletConfig source)
+        {
             return new BulletConfig
             {
-                id = bulletId,
-                owner = "Player",
-                damage = 1,
-                speed = 12f,
-                lifetime = 2f,
-                size = new Vector2(0.12f, 0.32f),
-                projectileCount = 1
+                id = source.id,
+                owner = source.owner,
+                firePattern = source.firePattern,
+                spritePath = source.spritePath,
+                damage = Mathf.Max(1, source.damage + attackPowerBonus),
+                speed = source.speed,
+                lifetime = source.lifetime,
+                size = source.size,
+                glowColor = source.glowColor,
+                glowRange = source.glowRange,
+                projectileCount = source.projectileCount,
+                spreadAngle = source.spreadAngle,
+                muzzleSpacing = source.muzzleSpacing,
+                pierceCount = source.pierceCount,
+                laserLength = source.laserLength
             };
         }
 

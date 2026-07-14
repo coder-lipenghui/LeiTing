@@ -58,9 +58,22 @@ namespace LeiTing.Core
 
         public void EnterBattle(int levelNumber)
         {
+            EnterBattleInternal(levelNumber, 0f);
+        }
+
+#if UNITY_EDITOR
+        public void EnterBattleForTesting(int levelNumber, float startTime)
+        {
+            EnterBattleInternal(levelNumber, Mathf.Max(0f, startTime));
+        }
+#endif
+
+        private void EnterBattleInternal(int levelNumber, float startTime)
+        {
             var requestedLevelNumber = Mathf.Max(1, levelNumber);
             GameManager.CaptureBattleOptions();
             GameManager.RequestLevel(requestedLevelNumber);
+            GameManager.RequestBattleStartTime(startTime);
             AudioManager.Instance?.StopBgm();
             GameBootstrap.PlayLevelBgm(requestedLevelNumber);
 

@@ -103,5 +103,20 @@
     "driftSpeed": 2.1,
     "pickupRadius": 1.5,
     "visualScale": 1
+  },
+  {
+    "index": 8,
+    "id": "weaponup",
+    "displayName": "攻击力提升",
+    "itemType": "WeaponUp",
+    "spritePath": "Assets/Art/Sprites/Item/item_weaponup.png",
+    "starValue": 0,
+    "coinValue": 0,
+    "healValue": 0,
+    "shieldDuration": 0,
+    "lifetime": 12,
+    "driftSpeed": 1.1,
+    "pickupRadius": 0.22,
+    "visualScale": 1
   }
 ]

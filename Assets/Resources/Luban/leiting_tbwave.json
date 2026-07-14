@@ -162,12 +162,6 @@
     "startTime": 180
   },
   {
-    "index": 38,
-    "id": "wave_level_02_helicopter_top_002",
-    "levelId": "level_02",
-    "startTime": 2
-  },
-  {
     "index": 39,
     "id": "wave_level_02_resource2_right_arc_005",
     "levelId": "level_02",
@@ -1774,5 +1768,11 @@
     "id": "wave_boss_final_12",
     "levelId": "level_12",
     "startTime": 180
+  },
+  {
+    "index": 307,
+    "id": "wave_level_02_midboss_105",
+    "levelId": "level_02",
+    "startTime": 105
   }
 ]

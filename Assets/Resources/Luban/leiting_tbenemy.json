@@ -544,5 +544,19 @@
     "hitScaleFeedback": false,
     "score": 420,
     "hitSoundPath": "Assets/Art/Sound/SFX/Enemy/SFX_Enemy_Hit_01.wav"
+  },
+  {
+    "index": 40,
+    "id": "boss_level_02_mid_01",
+    "displayName": "雷翼中继舰",
+    "prefabPath": "Assets/Prefabs/Enemies/enemy_09.prefab",
+    "hp": 720,
+    "moveSpeed": 1.2,
+    "attackInterval": 2,
+    "bulletId": "level1_midboss_spinning_bullet",
+    "bulletPatternId": "",
+    "hitScaleFeedback": false,
+    "score": 1800,
+    "hitSoundPath": "Assets/Art/Sound/SFX/Enemy/SFX_Enemy_Hit_01.wav"
   }
 ]

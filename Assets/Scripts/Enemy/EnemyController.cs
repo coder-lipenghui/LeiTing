@@ -25,8 +25,13 @@ namespace LeiTing.Enemy
     {
         private const float DespawnY = -6.4f;
         private const float EntryStopY = 2.6f;
+        private const float SpecialDropGlowRange = 0.36f;
+
+        private static readonly Color SpecialDropGlowColor = new Color(0.42f, 0.96f, 1f, 0.56f);
 
         private static Material hitFlashMaterial;
+        private static Material specialDropGlowMaterial;
+        private static Sprite specialDropGlowSprite;
 
         private sealed class ScheduledPattern
         {
@@ -43,6 +48,8 @@ namespace LeiTing.Enemy
         private CircleCollider2D hitbox;
         private SpriteRenderer spriteRenderer;
         private SpriteRenderer flashRenderer;
+        private Transform specialDropGlowRoot;
+        private SpriteRenderer specialDropGlowRenderer;
         private AircraftWingTrailEffect wingTrailEffect;
         private ActorMounts mounts;
         private readonly List<ScheduledPattern> scheduledPatterns = new List<ScheduledPattern>();
@@ -52,6 +59,7 @@ namespace LeiTing.Enemy
         private Vector3 flashBaseLocalScale = Vector3.one;
         private string attackPatternId;
         private string movementPath;
+        private string forcedDropItemId;
         private float pathAmplitude;
         private float pathSpeed;
         private float holdDuration;
@@ -94,9 +102,19 @@ namespace LeiTing.Enemy
 
         public void Initialize(EnemyConfig enemyConfig, Vector2 position, WaveSpawnConfig spawnConfig)
         {
+            Initialize(enemyConfig, position, spawnConfig, null);
+        }
+
+        public void Initialize(
+            EnemyConfig enemyConfig,
+            Vector2 position,
+            WaveSpawnConfig spawnConfig,
+            string forcedDropItemId)
+        {
             EnsureComponents();
 
             config = enemyConfig;
+            this.forcedDropItemId = forcedDropItemId;
             currentHp = Mathf.Max(1, config != null ? config.hp : 1);
             spawnPosition = position;
             attackPatternId = spawnConfig != null && !string.IsNullOrEmpty(spawnConfig.attackPatternId)
@@ -193,6 +211,26 @@ namespace LeiTing.Enemy
                 flashRenderer.sortingOrder = 16;
             }
 
+            if (specialDropGlowRoot == null)
+            {
+                var glow = transform.Find("SpecialDropGlow");
+                if (glow == null)
+                {
+                    glow = new GameObject("SpecialDropGlow").transform;
+                    glow.SetParent(transform, false);
+                }
+
+                specialDropGlowRoot = glow;
+            }
+
+            specialDropGlowRenderer = specialDropGlowRenderer != null
+                ? specialDropGlowRenderer
+                : specialDropGlowRoot.GetComponent<SpriteRenderer>();
+            if (specialDropGlowRenderer == null)
+            {
+                specialDropGlowRenderer = specialDropGlowRoot.gameObject.AddComponent<SpriteRenderer>();
+            }
+
             mounts = mounts != null ? mounts : GetComponent<ActorMounts>();
             if (mounts == null)
             {
@@ -228,6 +266,8 @@ namespace LeiTing.Enemy
                 flashRenderer.sharedMaterial = GetHitFlashMaterial();
                 SyncFlashRendererTransform();
             }
+
+            ConfigureSpecialDropGlow();
         }
 
         private Sprite LoadEnemySprite()
@@ -1101,6 +1141,11 @@ namespace LeiTing.Enemy
                 PickupManager.GetOrCreate().SpawnDrops(config, transform.position);
             }
 
+            if (!string.IsNullOrEmpty(forcedDropItemId))
+            {
+                PickupManager.GetOrCreate().SpawnPickup(forcedDropItemId, transform.position);
+            }
+
             if (UIManager.Instance != null && config != null)
             {
                 UIManager.Instance.ShowScorePopup(transform.position, config.score);
@@ -1130,6 +1175,121 @@ namespace LeiTing.Enemy
                 flashRenderer.color = isFlashing ? new Color(1f, 1f, 1f, 0.72f) : new Color(1f, 1f, 1f, 0f);
                 flashRenderer.transform.localScale = flashBaseLocalScale;
             }
+        }
+
+        private void ConfigureSpecialDropGlow()
+        {
+            if (specialDropGlowRenderer == null || specialDropGlowRoot == null)
+            {
+                return;
+            }
+
+            if (!HasSpecialPickupDrop())
+            {
+                specialDropGlowRenderer.enabled = false;
+                return;
+            }
+
+            var spriteSize = spriteRenderer != null && spriteRenderer.sprite != null
+                ? spriteRenderer.sprite.bounds.size
+                : Vector3.one;
+            var visualScale = spriteRenderer != null && spriteRenderer.transform != transform
+                ? spriteRenderer.transform.localScale
+                : Vector3.one;
+            var glowSize = Mathf.Max(
+                Mathf.Abs(spriteSize.x * visualScale.x),
+                Mathf.Abs(spriteSize.y * visualScale.y)) + SpecialDropGlowRange;
+
+            specialDropGlowRenderer.enabled = true;
+            specialDropGlowRenderer.sprite = GetSpecialDropGlowSprite();
+            specialDropGlowRenderer.color = SpecialDropGlowColor;
+            specialDropGlowRenderer.sortingOrder = spriteRenderer != null ? spriteRenderer.sortingOrder - 1 : 14;
+            specialDropGlowRenderer.sharedMaterial = GetSpecialDropGlowMaterial();
+            specialDropGlowRoot.localPosition = spriteRenderer != null && spriteRenderer.transform != transform
+                ? spriteRenderer.transform.localPosition
+                : Vector3.zero;
+            specialDropGlowRoot.localRotation = Quaternion.identity;
+            specialDropGlowRoot.localScale = new Vector3(glowSize, glowSize, 1f);
+        }
+
+        private bool HasSpecialPickupDrop()
+        {
+            if (IsSpecialPickupItem(forcedDropItemId) || config?.drops == null)
+            {
+                return IsSpecialPickupItem(forcedDropItemId);
+            }
+
+            foreach (var drop in config.drops)
+            {
+                if (drop != null && IsSpecialPickupItem(drop.itemId))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool IsSpecialPickupItem(string itemId)
+        {
+            if (string.IsNullOrEmpty(itemId))
+            {
+                return false;
+            }
+
+            var pickup = ConfigManager.Instance != null && ConfigManager.Instance.IsLoaded
+                ? ConfigManager.Instance.GetPickupItem(itemId)
+                : null;
+            var itemType = pickup?.itemType;
+            return string.Equals(itemType, "Bomb", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(itemType, "Heal", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(itemType, "WeaponUp", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(itemType, "Shield", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(itemType, "Magnet", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static Material GetSpecialDropGlowMaterial()
+        {
+            if (specialDropGlowMaterial == null)
+            {
+                specialDropGlowMaterial = SpriteMaterialUtility.CreateSpriteMaterial("Enemy Special Drop Glow Material");
+            }
+
+            return specialDropGlowMaterial;
+        }
+
+        private static Sprite GetSpecialDropGlowSprite()
+        {
+            if (specialDropGlowSprite != null)
+            {
+                return specialDropGlowSprite;
+            }
+
+            const int size = 64;
+            var texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
+            texture.filterMode = FilterMode.Bilinear;
+            texture.wrapMode = TextureWrapMode.Clamp;
+            var radius = size * 0.5f;
+
+            for (var y = 0; y < size; y++)
+            {
+                for (var x = 0; x < size; x++)
+                {
+                    var dx = x + 0.5f - radius;
+                    var dy = y + 0.5f - radius;
+                    var distance = Mathf.Sqrt(dx * dx + dy * dy) / radius;
+                    var alpha = Mathf.Pow(Mathf.Clamp01(1f - distance), 2.1f);
+                    texture.SetPixel(x, y, new Color(1f, 1f, 1f, alpha));
+                }
+            }
+
+            texture.Apply();
+            specialDropGlowSprite = Sprite.Create(
+                texture,
+                new Rect(0, 0, size, size),
+                new Vector2(0.5f, 0.5f),
+                size);
+            return specialDropGlowSprite;
         }
 
         private bool IsEnemyType(string enemyId)

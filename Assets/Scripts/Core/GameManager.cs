@@ -20,9 +20,11 @@ namespace LeiTing.Core
         private const string LatestUnlockedLevelKey = "leiting_latest_unlocked_level";
 #if UNITY_EDITOR
         private const string EditorRequestedLevelKey = "LeiTing.Editor.RequestedLevelNumber";
+        private const string EditorRequestedBattleStartTimeKey = "LeiTing.Editor.RequestedBattleStartTime";
 #endif
 
         private static int requestedLevelNumber = 1;
+        private static float requestedBattleStartTime;
         private static bool hasRequestedBattleOptions;
         private static bool requestedInvincibleMode;
 
@@ -37,10 +39,14 @@ namespace LeiTing.Core
         private bool levelProgressFinished;
         private bool adReviveUsedThisBattle;
         private PlayerController defeatedPlayer;
+        private float currentBattleStartTime;
+        private float battleTimelineTime;
 
         public GameState CurrentState => currentState;
         public int Score => score;
         public int CurrentLevelNumber => currentLevelNumber;
+        public float CurrentBattleStartTime => currentBattleStartTime;
+        public float BattleTimelineTime => battleTimelineTime;
         public int MaxLevelCount => ResolveMaxLevelCount();
         public int MaxUnlockedLevelNumber => GetMaxUnlockedLevel(MaxLevelCount);
         public bool HasNextLevel => currentLevelNumber < MaxLevelCount;
@@ -49,6 +55,7 @@ namespace LeiTing.Core
         public string CurrentLevelBossDisplayName => ResolveCurrentLevelBossDisplayName();
         public bool CanUseAdRevive => currentState == GameState.Defeat && !adReviveUsedThisBattle && ResolveRevivePlayer() != null;
         public static int RequestedLevelNumber => ResolveRequestedLevelNumber();
+        public static float RequestedBattleStartTime => ResolveRequestedBattleStartTime();
         public static bool InvincibleModeEnabled => Instance != null && Instance.invincibleMode;
 
         public void Initialize()
@@ -56,6 +63,8 @@ namespace LeiTing.Core
             ApplyRequestedBattleOptions();
             CancelPendingVictory();
             currentLevelNumber = Mathf.Clamp(ResolveRequestedLevelNumber(), 1, MaxLevelCount);
+            currentBattleStartTime = ResolveRequestedBattleStartTime();
+            battleTimelineTime = currentBattleStartTime;
             currentState = GameState.Ready;
             score = 0;
             levelProgressFinished = false;
@@ -63,6 +72,14 @@ namespace LeiTing.Core
             defeatedPlayer = null;
             ActiveItemInventory.BeginBattle();
             LevelProgressService.BeginLevel(currentLevelNumber);
+        }
+
+        private void Update()
+        {
+            if (currentState == GameState.Playing)
+            {
+                battleTimelineTime += Time.deltaTime;
+            }
         }
 
         public void StartGame()
@@ -160,7 +177,7 @@ namespace LeiTing.Core
 
         public void RestartCurrentScene()
         {
-            LoadLevel(currentLevelNumber);
+            ReloadLevel(currentLevelNumber, currentBattleStartTime);
         }
 
         public void LoadNextLevel()
@@ -170,14 +187,37 @@ namespace LeiTing.Core
                 return;
             }
 
-            LoadLevel(currentLevelNumber + 1);
+            ReloadLevel(currentLevelNumber + 1, 0f);
         }
 
         public void LoadLevel(int levelNumber)
         {
+            ReloadLevel(levelNumber, 0f);
+        }
+
+#if UNITY_EDITOR
+        public void LoadLevelForTesting(int levelNumber, float startTime)
+        {
+            var requestedLevelNumber = Mathf.Clamp(levelNumber, 1, MaxLevelCount);
+            var requestedStartTime = Mathf.Max(0f, startTime);
+
+            if (!GameSceneManager.IsBattleSceneName(SceneManager.GetActiveScene().name))
+            {
+                ConfirmDefeat();
+                GameSceneManager.GetOrCreate().EnterBattleForTesting(requestedLevelNumber, requestedStartTime);
+                return;
+            }
+
+            ReloadLevel(requestedLevelNumber, requestedStartTime);
+        }
+#endif
+
+        private void ReloadLevel(int levelNumber, float startTime)
+        {
             ConfirmDefeat();
             var requestedLevelNumber = Mathf.Clamp(levelNumber, 1, MaxLevelCount);
             RequestLevel(requestedLevelNumber);
+            RequestBattleStartTime(startTime);
             GameBootstrap.PlayLevelBgm(requestedLevelNumber);
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
         }
@@ -187,6 +227,16 @@ namespace LeiTing.Core
             requestedLevelNumber = Mathf.Max(1, levelNumber);
 #if UNITY_EDITOR
             EditorPrefs.SetInt(EditorRequestedLevelKey, requestedLevelNumber);
+#endif
+        }
+
+        public static void RequestBattleStartTime(float startTime)
+        {
+#if UNITY_EDITOR
+            requestedBattleStartTime = Mathf.Max(0f, startTime);
+            EditorPrefs.SetFloat(EditorRequestedBattleStartTimeKey, requestedBattleStartTime);
+#else
+            requestedBattleStartTime = 0f;
 #endif
         }
 
@@ -204,6 +254,7 @@ namespace LeiTing.Core
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetBattleOptions()
         {
+            requestedBattleStartTime = 0f;
             requestedInvincibleMode = false;
             hasRequestedBattleOptions = false;
         }
@@ -222,6 +273,18 @@ namespace LeiTing.Core
             requestedLevelNumber = Mathf.Max(1, EditorPrefs.GetInt(EditorRequestedLevelKey, requestedLevelNumber));
 #endif
             return requestedLevelNumber;
+        }
+
+        private static float ResolveRequestedBattleStartTime()
+        {
+#if UNITY_EDITOR
+            requestedBattleStartTime = Mathf.Max(
+                0f,
+                EditorPrefs.GetFloat(EditorRequestedBattleStartTimeKey, requestedBattleStartTime));
+            return requestedBattleStartTime;
+#else
+            return 0f;
+#endif
         }
 
         private int ResolveMaxLevelCount()

@@ -97,6 +97,10 @@ MonoBehaviour:
     bundleName: leiting_runtime_assets
     assetName: Assets/Prefabs/Enemies/enemy_08.prefab
     prefab: {fileID: 0}
+  - path: Assets/Prefabs/Enemies/enemy_09.prefab
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Prefabs/Enemies/enemy_09.prefab
+    prefab: {fileID: 0}
   - path: Assets/Prefabs/Enemies/enemy_small_01.prefab
     bundleName: leiting_runtime_assets
     assetName: Assets/Prefabs/Enemies/enemy_small_01.prefab
@@ -273,6 +277,10 @@ MonoBehaviour:
   - path: Assets/Art/Sprites/Item/item_trophy.png
     bundleName: leiting_runtime_assets
     assetName: Assets/Art/Sprites/Item/item_trophy.png
+    sprite: {fileID: 0}
+  - path: Assets/Art/Sprites/Item/item_weaponup.png
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Art/Sprites/Item/item_weaponup.png
     sprite: {fileID: 0}
   - path: Assets/Art/Sprites/UI/A.png
     bundleName: leiting_runtime_assets

@@ -257,5 +257,89 @@
     "bossPhaseId": "boss_helicopter_06_phase_01",
     "sort": 5,
     "patternId": "heli_missile_explode_3"
+  },
+  {
+    "index": 38,
+    "id": "boss_phase_pattern_level2_mid_phase_01_center",
+    "bossPhaseId": "boss_level_02_mid_01_phase_01",
+    "sort": 1,
+    "patternId": "level2_midboss_center_rotating_rice_08@1+0.2"
+  },
+  {
+    "index": 39,
+    "id": "boss_phase_pattern_level2_mid_phase_01_sides",
+    "bossPhaseId": "boss_level_02_mid_01_phase_01",
+    "sort": 2,
+    "patternId": "level2_midboss_side_homing_pair@2+0.5"
+  },
+  {
+    "index": 40,
+    "id": "boss_phase_pattern_level2_mid_phase_02_center",
+    "bossPhaseId": "boss_level_02_mid_01_phase_02",
+    "sort": 1,
+    "patternId": "level2_midboss_center_fan_05@0.2+0.1"
+  },
+  {
+    "index": 41,
+    "id": "boss_phase_pattern_level2_mid_phase_02_sides",
+    "bossPhaseId": "boss_level_02_mid_01_phase_02",
+    "sort": 2,
+    "patternId": "level2_midboss_side_lock_dash_pair@3+0.6"
+  },
+  {
+    "index": 42,
+    "id": "boss_phase_pattern_boss_02_phase_01_ring",
+    "bossPhaseId": "boss_02_phase_01",
+    "sort": 1,
+    "patternId": "boss_02_p1_center_ring_5@4+0.2"
+  },
+  {
+    "index": 43,
+    "id": "boss_phase_pattern_boss_02_phase_01_homing",
+    "bossPhaseId": "boss_02_phase_01",
+    "sort": 2,
+    "patternId": "boss_02_p1_side_homing_3@2+0.8"
+  },
+  {
+    "index": 44,
+    "id": "boss_phase_pattern_boss_02_phase_02_windmill",
+    "bossPhaseId": "boss_02_phase_02",
+    "sort": 1,
+    "patternId": "boss_02_p2_center_windmill@4+0.1"
+  },
+  {
+    "index": 45,
+    "id": "boss_phase_pattern_boss_02_phase_02_lock",
+    "bossPhaseId": "boss_02_phase_02",
+    "sort": 2,
+    "patternId": "boss_02_p2_side_lock_2@1+0.6"
+  },
+  {
+    "index": 46,
+    "id": "boss_phase_pattern_boss_02_phase_03_laser",
+    "bossPhaseId": "boss_02_phase_03",
+    "sort": 1,
+    "patternId": "boss_02_p3_all_yellow_laser"
+  },
+  {
+    "index": 47,
+    "id": "boss_phase_pattern_boss_02_phase_03_ring",
+    "bossPhaseId": "boss_02_phase_03",
+    "sort": 2,
+    "patternId": "boss_02_p3_all_ring"
+  },
+  {
+    "index": 48,
+    "id": "boss_phase_pattern_boss_02_phase_03_homing",
+    "bossPhaseId": "boss_02_phase_03",
+    "sort": 3,
+    "patternId": "boss_02_p3_all_fast_homing"
+  },
+  {
+    "index": 49,
+    "id": "boss_phase_pattern_boss_02_phase_03_lock",
+    "bossPhaseId": "boss_02_phase_03",
+    "sort": 4,
+    "patternId": "boss_02_p3_all_fast_lock"
   }
 ]

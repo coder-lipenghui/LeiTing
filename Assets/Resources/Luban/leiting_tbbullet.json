@@ -262,5 +262,27 @@
     "muzzleSpacing": 0,
     "pierceCount": 0,
     "laserLength": 0
+  },
+  {
+    "index": 13,
+    "id": "boss_02_yellow_laser",
+    "owner": "Enemy",
+    "firePattern": "Laser",
+    "spritePath": "",
+    "damage": 1,
+    "speed": 0,
+    "lifetime": 2,
+    "sizeX": 0.28,
+    "sizeY": 12,
+    "glowColorR": 1,
+    "glowColorG": 0.78,
+    "glowColorB": 0.08,
+    "glowColorA": 0.9,
+    "glowRange": 0.5,
+    "projectileCount": 1,
+    "spreadAngle": 0,
+    "muzzleSpacing": 0,
+    "pierceCount": -1,
+    "laserLength": 12
   }
 ]
