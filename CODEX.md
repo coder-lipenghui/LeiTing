@@ -165,7 +165,9 @@ and a phone test.
   `enemy_09.prefab`. It uses the Boss phase controller for two HP-based attack
   stages without showing the Boss HP HUD or phase/entry notices. Defeating it
   does not settle the level because the final `boss_02` wave remains scheduled
-  at 180 seconds.
+  at 180 seconds. Its side missile patterns resolve `left`, `left1`, `right`,
+  and `right1` as four separate mounts and emit one missile per mount, so each
+  side launches two missiles without overlapping at spawn.
 - The level-2 final boss `boss_02` has dedicated 100%-70%, 70%-40%, and
   40%-0% phases. Its first two phases run independently scheduled center and
   side attacks. The final phase uses the normal ordered pattern list at a
