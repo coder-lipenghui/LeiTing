@@ -291,14 +291,14 @@
     "id": "boss_phase_pattern_boss_02_phase_01_ring",
     "bossPhaseId": "boss_02_phase_01",
     "sort": 1,
-    "patternId": "boss_02_p1_center_ring_5@4+0.2"
+    "patternId": "boss_02_p1_center_ring_3@2+0.2"
   },
   {
     "index": 43,
     "id": "boss_phase_pattern_boss_02_phase_01_homing",
     "bossPhaseId": "boss_02_phase_01",
     "sort": 2,
-    "patternId": "boss_02_p1_side_homing_3@2+0.8"
+    "patternId": "boss_02_p1_side_homing_1@2+0.8"
   },
   {
     "index": 44,
@@ -312,34 +312,20 @@
     "id": "boss_phase_pattern_boss_02_phase_02_lock",
     "bossPhaseId": "boss_02_phase_02",
     "sort": 2,
-    "patternId": "boss_02_p2_side_lock_2@1+0.6"
+    "patternId": "boss_02_p2_side_fast_homing@1+0.6"
   },
   {
     "index": 46,
     "id": "boss_phase_pattern_boss_02_phase_03_laser",
     "bossPhaseId": "boss_02_phase_03",
     "sort": 1,
-    "patternId": "boss_02_p3_all_yellow_laser"
+    "patternId": "boss_02_p3_side_laser@5+0.2"
   },
   {
     "index": 47,
-    "id": "boss_phase_pattern_boss_02_phase_03_ring",
-    "bossPhaseId": "boss_02_phase_03",
-    "sort": 2,
-    "patternId": "boss_02_p3_all_ring"
-  },
-  {
-    "index": 48,
     "id": "boss_phase_pattern_boss_02_phase_03_homing",
     "bossPhaseId": "boss_02_phase_03",
-    "sort": 3,
-    "patternId": "boss_02_p3_all_fast_homing"
-  },
-  {
-    "index": 49,
-    "id": "boss_phase_pattern_boss_02_phase_03_lock",
-    "bossPhaseId": "boss_02_phase_03",
-    "sort": 4,
-    "patternId": "boss_02_p3_all_fast_lock"
+    "sort": 2,
+    "patternId": "boss_02_p3_center_homing_burst@3+3.6"
   }
 ]

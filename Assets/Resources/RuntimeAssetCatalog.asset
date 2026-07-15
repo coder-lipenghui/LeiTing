@@ -17,9 +17,9 @@ MonoBehaviour:
     bundleName: leiting_runtime_assets
     assetName: Assets/Prefabs/Enemies/boss_01.prefab
     prefab: {fileID: 0}
-  - path: Assets/Prefabs/Enemies/boss_02.prefab
+  - path: Assets/Prefabs/Enemies/BOSS_2.prefab
     bundleName: leiting_runtime_assets
-    assetName: Assets/Prefabs/Enemies/boss_02.prefab
+    assetName: Assets/Prefabs/Enemies/BOSS_2.prefab
     prefab: {fileID: 0}
   - path: Assets/Prefabs/Enemies/boss_03.prefab
     bundleName: leiting_runtime_assets

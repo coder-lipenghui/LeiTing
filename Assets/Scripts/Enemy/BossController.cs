@@ -9,6 +9,7 @@ using LeiTing.Core;
 using LeiTing.Effects;
 using LeiTing.Missiles;
 using LeiTing.Pickups;
+using LeiTing.Player;
 using LeiTing.Progress;
 using LeiTing.UI;
 using UnityEngine;
@@ -29,6 +30,14 @@ namespace LeiTing.Enemy
         private const float DefaultAttackInterval = 1.8f;
         private const string EntryWarningSoundPath = "Assets/Art/Sound/SFX/Enemy/SFX_Boss_Attack_Warning_01.wav";
         private const string Level2MidBossId = "boss_level_02_mid_01";
+        private const string Level2FinalBossId = "boss_02";
+        private const string Level2FinalBossLaserPatternId = "boss_02_p3_side_laser";
+        private const float BossLaserTrackingDuration = 2f;
+        private const float BossLaserChargeDuration = 0.5f;
+        private const float BossLaserFireDuration = 0.8f;
+        private const float BossLaserWarningLength = 14f;
+
+        private static Material bossLaserWarningMaterial;
 
         [SerializeField] private EnemyConfig config;
         [SerializeField] private int currentHp;
@@ -36,6 +45,7 @@ namespace LeiTing.Enemy
 
         private BossPhaseConfig[] phases;
         private readonly List<ScheduledPattern> scheduledPatterns = new List<ScheduledPattern>();
+        private readonly List<GameObject> bossLaserWarningObjects = new List<GameObject>();
         private Rigidbody2D body;
         private CircleCollider2D hitbox;
         private SpriteRenderer spriteRenderer;
@@ -50,6 +60,8 @@ namespace LeiTing.Enemy
         private bool isFiringBurst;
         private bool useChildHitboxes;
         private bool isDead;
+        private float movementLockedUntil;
+        private Coroutine bossLaserSequence;
 
         public int CurrentHp => currentHp;
         public int MaxHp => maxHp;
@@ -72,7 +84,10 @@ namespace LeiTing.Enemy
             isEntering = true;
             isFiringBurst = false;
             isDead = false;
+            movementLockedUntil = 0f;
+            bossLaserSequence = null;
             scheduledPatterns.Clear();
+            ClearBossLaserWarnings();
 
             ApplyLayer();
             ApplyVisual();
@@ -236,6 +251,7 @@ namespace LeiTing.Enemy
 
         private void SetPhase(int phaseIndex, bool isInitial)
         {
+            CancelBossLaserSequence();
             currentPhaseIndex = Mathf.Clamp(phaseIndex, 0, Mathf.Max(0, GetPhaseCount() - 1));
             anchorPosition = transform.position;
             phaseMovementTime = 0f;
@@ -263,6 +279,11 @@ namespace LeiTing.Enemy
 
         private void UpdateMovement()
         {
+            if (Time.time < movementLockedUntil)
+            {
+                return;
+            }
+
             var phase = GetCurrentPhase();
             var range = phase != null ? phase.movementRange : new Vector2(1.2f, 0.15f);
             var speed = Mathf.Max(0.1f, phase != null ? phase.movementSpeed : 1.0f);
@@ -332,6 +353,11 @@ namespace LeiTing.Enemy
 
         private void FirePatternId(string patternId)
         {
+            if (TryStartBoss02LaserSequence(patternId))
+            {
+                return;
+            }
+
             if (TryFireBulletPattern(patternId) || TryFireMissilePattern(patternId))
             {
                 return;
@@ -422,6 +448,265 @@ namespace LeiTing.Enemy
             public string patternId;
             public float interval;
             public float nextFireTime;
+        }
+
+        private bool TryStartBoss02LaserSequence(string patternId)
+        {
+            if (!string.Equals(patternId, Level2FinalBossLaserPatternId, StringComparison.OrdinalIgnoreCase)
+                || config == null
+                || !string.Equals(config.id, Level2FinalBossId, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            if (bossLaserSequence == null)
+            {
+                bossLaserSequence = StartCoroutine(FireBoss02LaserSequence(patternId));
+            }
+
+            return true;
+        }
+
+        private IEnumerator FireBoss02LaserSequence(string patternId)
+        {
+            var configManager = ConfigManager.Instance;
+            var bulletManager = BulletManager.Instance;
+            var pattern = configManager != null && configManager.IsLoaded
+                ? configManager.GetBulletPattern(patternId)
+                : null;
+            var sourceBullet = pattern != null ? configManager.GetBullet(pattern.bulletId) : null;
+            var firePoints = pattern != null ? GetFirePoints(pattern.firePointGroup) : null;
+
+            if (bulletManager == null || pattern == null || sourceBullet == null || firePoints == null || firePoints.Length == 0)
+            {
+                bossLaserSequence = null;
+                yield break;
+            }
+
+            var runtimeBullet = CreateRuntimeBulletConfig(sourceBullet, pattern, BossLaserFireDuration);
+            var warningLines = new LineRenderer[firePoints.Length];
+            var lockedDirections = new Vector2[firePoints.Length];
+            var warningLength = Mathf.Max(BossLaserWarningLength, sourceBullet.laserLength);
+
+            for (var index = 0; index < firePoints.Length; index++)
+            {
+                warningLines[index] = CreateBossLaserWarningLine(index);
+                lockedDirections[index] = Vector2.down;
+            }
+
+            var elapsed = 0f;
+            while (elapsed < BossLaserTrackingDuration)
+            {
+                if (!CanContinueBossLaserSequence())
+                {
+                    ClearBossLaserWarnings();
+                    bossLaserSequence = null;
+                    yield break;
+                }
+
+                var player = FindObjectOfType<PlayerController>();
+                for (var index = 0; index < firePoints.Length; index++)
+                {
+                    var firePoint = firePoints[index];
+                    if (firePoint == null)
+                    {
+                        continue;
+                    }
+
+                    var origin = (Vector2)firePoint.position + pattern.firePointOffset;
+                    lockedDirections[index] = ResolveBossLaserDirection(origin, player, lockedDirections[index]);
+                    UpdateBossLaserWarningLine(warningLines[index], origin, lockedDirections[index], warningLength, false);
+                }
+
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            elapsed = 0f;
+            while (elapsed < BossLaserChargeDuration)
+            {
+                if (!CanContinueBossLaserSequence())
+                {
+                    ClearBossLaserWarnings();
+                    bossLaserSequence = null;
+                    yield break;
+                }
+
+                for (var index = 0; index < firePoints.Length; index++)
+                {
+                    var firePoint = firePoints[index];
+                    if (firePoint == null)
+                    {
+                        continue;
+                    }
+
+                    var origin = (Vector2)firePoint.position + pattern.firePointOffset;
+                    UpdateBossLaserWarningLine(warningLines[index], origin, lockedDirections[index], warningLength, true);
+                }
+
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            ClearBossLaserWarnings();
+            movementLockedUntil = Time.time + BossLaserFireDuration;
+
+            for (var index = 0; index < firePoints.Length; index++)
+            {
+                var firePoint = firePoints[index];
+                if (firePoint == null)
+                {
+                    continue;
+                }
+
+                bulletManager.Fire(runtimeBullet, firePoint.position, lockedDirections[index], firePoint);
+            }
+
+            elapsed = 0f;
+            while (elapsed < BossLaserFireDuration && CanContinueBossLaserSequence())
+            {
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            movementLockedUntil = 0f;
+            bossLaserSequence = null;
+        }
+
+        private static BulletConfig CreateRuntimeBulletConfig(BulletConfig source, BulletPatternConfig pattern, float lifetime)
+        {
+            return new BulletConfig
+            {
+                id = source.id,
+                owner = source.owner,
+                firePattern = source.firePattern,
+                spritePath = source.spritePath,
+                damage = source.damage,
+                speed = pattern.bulletSpeed > 0f ? pattern.bulletSpeed : source.speed,
+                lifetime = lifetime,
+                size = source.size,
+                glowColor = source.glowColor,
+                glowRange = source.glowRange,
+                projectileCount = source.projectileCount,
+                spreadAngle = source.spreadAngle,
+                muzzleSpacing = source.muzzleSpacing,
+                pierceCount = source.pierceCount,
+                laserLength = source.laserLength
+            };
+        }
+
+        private bool CanContinueBossLaserSequence()
+        {
+            if (isDead || currentPhaseIndex < 0)
+            {
+                return false;
+            }
+
+            var phase = GetCurrentPhase();
+            if (phase == null || !string.Equals(phase.id, "boss_02_phase_03", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            var gameManager = GameManager.Instance;
+            return gameManager == null
+                || gameManager.CurrentState == GameState.Playing
+                || gameManager.CurrentState == GameState.Paused;
+        }
+
+        private LineRenderer CreateBossLaserWarningLine(int index)
+        {
+            var warningObject = new GameObject($"BossLaserTracking_{index + 1}");
+            warningObject.transform.SetParent(transform, false);
+            var layer = LayerMask.NameToLayer("EnemyBullet");
+            if (layer >= 0)
+            {
+                warningObject.layer = layer;
+            }
+
+            var line = warningObject.AddComponent<LineRenderer>();
+            line.useWorldSpace = true;
+            line.positionCount = 2;
+            line.sharedMaterial = GetBossLaserWarningMaterial();
+            line.sortingOrder = 24;
+            line.numCapVertices = 3;
+            line.enabled = true;
+            bossLaserWarningObjects.Add(warningObject);
+            return line;
+        }
+
+        private static void UpdateBossLaserWarningLine(
+            LineRenderer line,
+            Vector2 origin,
+            Vector2 direction,
+            float length,
+            bool charging)
+        {
+            if (line == null)
+            {
+                return;
+            }
+
+            var pulse = 0.5f + 0.5f * Mathf.Sin(Time.time * (charging ? 24f : 12f));
+            var normalizedDirection = direction.sqrMagnitude > 0.0001f ? direction.normalized : Vector2.down;
+            var width = charging ? Mathf.Lerp(0.035f, 0.065f, pulse) : Mathf.Lerp(0.018f, 0.032f, pulse);
+            var alpha = charging ? Mathf.Lerp(0.72f, 1f, pulse) : Mathf.Lerp(0.42f, 0.82f, pulse);
+            var color = charging
+                ? new Color(1f, 0.34f, 0.04f, alpha)
+                : new Color(1f, 0.04f, 0.02f, alpha);
+
+            line.startWidth = width;
+            line.endWidth = width * 0.58f;
+            line.startColor = color;
+            line.endColor = new Color(color.r, color.g, color.b, color.a * 0.42f);
+            line.SetPosition(0, origin);
+            line.SetPosition(1, origin + normalizedDirection * length);
+        }
+
+        private static Vector2 ResolveBossLaserDirection(Vector2 origin, PlayerController player, Vector2 fallback)
+        {
+            if (player == null)
+            {
+                return fallback.sqrMagnitude > 0.0001f ? fallback.normalized : Vector2.down;
+            }
+
+            var direction = (Vector2)player.transform.position - origin;
+            return direction.sqrMagnitude > 0.0001f ? direction.normalized : Vector2.down;
+        }
+
+        private static Material GetBossLaserWarningMaterial()
+        {
+            if (bossLaserWarningMaterial == null)
+            {
+                bossLaserWarningMaterial = SpriteMaterialUtility.CreateSpriteMaterial("Boss Laser Tracking Material");
+            }
+
+            return bossLaserWarningMaterial;
+        }
+
+        private void CancelBossLaserSequence()
+        {
+            if (bossLaserSequence != null)
+            {
+                StopCoroutine(bossLaserSequence);
+                bossLaserSequence = null;
+            }
+
+            movementLockedUntil = 0f;
+            ClearBossLaserWarnings();
+        }
+
+        private void ClearBossLaserWarnings()
+        {
+            for (var index = 0; index < bossLaserWarningObjects.Count; index++)
+            {
+                if (bossLaserWarningObjects[index] != null)
+                {
+                    Destroy(bossLaserWarningObjects[index]);
+                }
+            }
+
+            bossLaserWarningObjects.Clear();
         }
 
         private bool TryFireBulletPattern(string patternId)
@@ -529,6 +814,7 @@ namespace LeiTing.Enemy
             }
 
             isDead = true;
+            CancelBossLaserSequence();
             hitbox.enabled = false;
             LevelProgressService.RecordEnemyKilled();
 

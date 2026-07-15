@@ -67,16 +67,23 @@ Shader "LeiTing/ProceduralLaser"
 
             fixed4 frag(v2f input) : SV_Target
             {
-                float horizontal = abs(input.uv.x * 2.0 - 1.0);
+                float longitudinal = input.uv.y;
+                float edgeWave = sin((longitudinal * 15.0 + _Time.y * 3.4) * 6.28318) * 0.018;
+                edgeWave += sin((longitudinal * 31.0 - _Time.y * 5.2) * 6.28318) * 0.009;
+                float horizontal = abs(input.uv.x * 2.0 - 1.0 + edgeWave);
                 float core = 1.0 - smoothstep(_CoreWidth, _CoreWidth + 0.08, horizontal);
                 float body = 1.0 - smoothstep(_BodyWidth, _BodyWidth + 0.18, horizontal);
                 float glow = 1.0 - smoothstep(_GlowWidth, 1.0, horizontal);
-                float pulse = 0.72 + 0.28 * sin((input.uv.y * 8.0 - _Time.y * _PulseSpeed) * 6.28318);
+                float pulse = 0.72 + 0.28 * sin((longitudinal * 8.0 - _Time.y * _PulseSpeed) * 6.28318);
+                float edgeBand = 1.0 - smoothstep(0.025, 0.095, abs(horizontal - (_BodyWidth + 0.08)));
+                float energyNoise = 0.5 + 0.5 * sin((longitudinal * 27.0 + _Time.y * 9.0) * 6.28318);
+                float edgeEnergy = edgeBand * smoothstep(0.58, 0.92, energyNoise);
 
                 fixed4 color = _GlowColor * glow;
                 color = lerp(color, _BeamColor, body * pulse);
                 color = lerp(color, _CoreColor, core);
-                color.a *= saturate(max(glow * 0.65, max(body * 0.9, core)) * input.color.a);
+                color.rgb += _BeamColor.rgb * edgeEnergy * 0.42;
+                color.a *= saturate(max(edgeEnergy * 0.78, max(glow * 0.65, max(body * 0.9, core))) * input.color.a);
                 return color;
             }
             ENDCG

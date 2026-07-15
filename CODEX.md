@@ -168,15 +168,23 @@ and a phone test.
   at 180 seconds. Its side missile patterns resolve `left`, `left1`, `right`,
   and `right1` as four separate mounts and emit one missile per mount, so each
   side launches two missiles without overlapping at spawn.
-- The level-2 final boss `boss_02` has dedicated 100%-70%, 70%-40%, and
-  40%-0% phases. Its first two phases run independently scheduled center and
-  side attacks. The final phase uses the normal ordered pattern list at a
-  1.25-second step interval, cycling yellow lasers, three-port rings,
-  three-port fast homing missiles, and three-port lock-dash missiles; the
-  four-step loop makes the two-second laser recur every five seconds.
-- Laser bullets tint both their beam and glow from the configured bullet glow
-  color. A bullet with no configured glow color retains the default cyan
-  player-laser treatment.
+- The level-2 final boss `boss_02` uses
+  `Assets/Prefabs/Enemies/BOSS_2.prefab`, has 500 HP, and uses dedicated
+  100%-70%, 70%-40%, and 40%-0% phases. Phase 1 emits three center rings every
+  two seconds plus one homing missile from each side every two seconds. Phase 2
+  emits a slower 2.3-speed center windmill and fast homing missiles from only
+  the left/right mounts. Phase 3 removes ring fire: the outer `left1`/`right1`
+  mounts track the player with thin red lines for two seconds, freeze their
+  directions, then charge for 0.5 seconds and fire 0.8-second lasers while
+  Boss movement is locked.
+  Laser beams dynamically extend past the viewport edge along their firing
+  direction so their hard end caps remain off-screen. The full laser sequence
+  repeats every five seconds. The center mount starts
+  after the first laser and emits three homing missiles at 0.5-second spacing
+  every three seconds.
+- Laser bullets use a white or warm-white core, their configured color for the
+  beam and outer glow, and animated edge-energy fluctuations. A bullet with no
+  configured glow color retains the default cyan player-laser treatment.
 - `StageManager` advances level timeline events. A clear-bullets event clears
   both enemy bullets and enemy missiles, and stage messages can substitute
   `{LEVEL}`, `{MAX_LEVEL}`, `{BOSS_ID}`, and `{BOSS}`.

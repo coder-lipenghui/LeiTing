@@ -21,7 +21,14 @@ namespace LeiTing.Bullets
         private const float GlowSpriteSize = 1f;
         private const float LaserGlowMinWidth = 0.72f;
         private const float LaserGlowLengthPadding = 0.35f;
+        private const float LaserViewportOvershoot = 2f;
         private const string GlowTrailOption = "GlowTrail";
+        private const string ProceduralLaserShaderName = "LeiTing/ProceduralLaser";
+
+        private static readonly int LaserCoreColorId = Shader.PropertyToID("_CoreColor");
+        private static readonly int LaserBeamColorId = Shader.PropertyToID("_BeamColor");
+        private static readonly int LaserGlowColorId = Shader.PropertyToID("_GlowColor");
+        private static readonly int LaserPulseSpeedId = Shader.PropertyToID("_PulseSpeed");
 
         private static Sprite playerSprite;
         private static Sprite enemySprite;
@@ -41,6 +48,7 @@ namespace LeiTing.Bullets
         private SpriteRenderer spriteRenderer;
         private SpriteRenderer glowRenderer;
         private TrailRenderer glowTrailRenderer;
+        private MaterialPropertyBlock laserPropertyBlock;
         private Vector2 direction = Vector2.up;
         private Vector2 linearOrigin;
         private Vector2 lateralDirection;
@@ -49,6 +57,7 @@ namespace LeiTing.Bullets
         private float projectileAge;
         private float lifetimeRemaining;
         private float laserWidth;
+        private float configuredLaserLength;
         private float laserLength;
         private Color laserGlowColor = new Color(0.08f, 0.68f, 1f, 0.45f);
         private float swayAmplitude;
@@ -267,7 +276,8 @@ namespace LeiTing.Bullets
             }
 
             laserWidth = size.x;
-            laserLength = size.y;
+            configuredLaserLength = size.y;
+            laserLength = configuredLaserLength;
             laserGlowColor = ResolveLaserColor(bulletConfig.glowColor);
             boxCollider.size = size;
             boxCollider.offset = Vector2.zero;
@@ -275,9 +285,8 @@ namespace LeiTing.Bullets
             spriteRenderer.sprite = isLaser ? GetLaserSprite() : LoadConfiguredSprite(bulletConfig.spritePath) ?? GetFallbackSprite();
             spriteRenderer.sortingOrder = IsPlayerOwned() ? 30 : 20;
             spriteRenderer.sharedMaterial = isLaser ? GetLaserMaterial() : GetDefaultSpriteMaterial();
-            spriteRenderer.color = isLaser
-                ? new Color(laserGlowColor.r, laserGlowColor.g, laserGlowColor.b, 1f)
-                : Color.white;
+            spriteRenderer.color = Color.white;
+            ApplyLaserMaterialProperties();
             visualRoot.localPosition = Vector3.zero;
             visualRoot.localRotation = Quaternion.identity;
             visualRoot.localScale = ResolveVisualScale(spriteRenderer.sprite, size);
@@ -311,6 +320,32 @@ namespace LeiTing.Bullets
             glowRoot.localPosition = Vector3.zero;
             glowRoot.localRotation = Quaternion.identity;
             glowRoot.localScale = new Vector3(glowSize.x / GlowSpriteSize, glowSize.y / GlowSpriteSize, 1f);
+        }
+
+        private void ApplyLaserMaterialProperties()
+        {
+            if (!isLaser)
+            {
+                spriteRenderer.SetPropertyBlock(null);
+                return;
+            }
+
+            laserPropertyBlock = laserPropertyBlock ?? new MaterialPropertyBlock();
+            laserPropertyBlock.Clear();
+
+            var coreColor = IsPlayerOwned()
+                ? Color.white
+                : new Color(1f, 0.97f, 0.72f, 1f);
+            var beamColor = Color.Lerp(laserGlowColor, coreColor, IsPlayerOwned() ? 0.56f : 0.4f);
+            beamColor.a = 1f;
+            var outerGlowColor = laserGlowColor;
+            outerGlowColor.a = Mathf.Max(0.45f, outerGlowColor.a);
+
+            laserPropertyBlock.SetColor(LaserCoreColorId, coreColor);
+            laserPropertyBlock.SetColor(LaserBeamColorId, beamColor);
+            laserPropertyBlock.SetColor(LaserGlowColorId, outerGlowColor);
+            laserPropertyBlock.SetFloat(LaserPulseSpeedId, IsPlayerOwned() ? 18f : 23f);
+            spriteRenderer.SetPropertyBlock(laserPropertyBlock);
         }
 
         private void ConfigureGlowTrail(BulletConfig bulletConfig, Vector2 size)
@@ -411,7 +446,7 @@ namespace LeiTing.Bullets
         private void UpdateLaserTransform()
         {
             var origin = followTarget != null ? (Vector2)followTarget.position : (Vector2)transform.position - direction * laserLength * 0.5f;
-            var length = ResolveLaserLengthToScreenTop(origin);
+            var length = ResolveLaserLengthBeyondViewport(origin);
 
             transform.up = direction;
             transform.position = origin + direction * length * 0.5f;
@@ -501,19 +536,51 @@ namespace LeiTing.Bullets
             return new Vector3(targetSize.x / width, targetSize.y / height, 1f);
         }
 
-        private float ResolveLaserLengthToScreenTop(Vector2 origin)
+        private float ResolveLaserLengthBeyondViewport(Vector2 origin)
         {
-            var configuredLength = Mathf.Max(BaseSpriteHeight, laserLength);
+            var configuredLength = Mathf.Max(BaseSpriteHeight, configuredLaserLength);
             var camera = Camera.main;
-            if (camera == null || direction.y <= 0.01f)
+            if (camera == null || direction.sqrMagnitude <= 0.0001f)
             {
                 return configuredLength;
             }
 
-            var distance = Mathf.Abs(camera.transform.position.z - transform.position.z);
-            var top = camera.ViewportToWorldPoint(new Vector3(0.5f, 1f, distance));
-            var lengthToTop = (top.y - origin.y) / direction.y;
-            return Mathf.Max(BaseSpriteHeight, lengthToTop + 0.25f);
+            var originWorld = new Vector3(origin.x, origin.y, transform.position.z);
+            var normalizedDirection = direction.normalized;
+            var aheadWorld = originWorld + new Vector3(normalizedDirection.x, normalizedDirection.y, 0f);
+            var originViewport = camera.WorldToViewportPoint(originWorld);
+            var aheadViewport = camera.WorldToViewportPoint(aheadWorld);
+            var viewportDirection = new Vector2(
+                aheadViewport.x - originViewport.x,
+                aheadViewport.y - originViewport.y);
+            var distanceToEdge = float.PositiveInfinity;
+
+            if (Mathf.Abs(viewportDirection.x) > 0.0001f)
+            {
+                var xBoundary = viewportDirection.x > 0f ? 1f : 0f;
+                var xDistance = (xBoundary - originViewport.x) / viewportDirection.x;
+                if (xDistance > 0f)
+                {
+                    distanceToEdge = Mathf.Min(distanceToEdge, xDistance);
+                }
+            }
+
+            if (Mathf.Abs(viewportDirection.y) > 0.0001f)
+            {
+                var yBoundary = viewportDirection.y > 0f ? 1f : 0f;
+                var yDistance = (yBoundary - originViewport.y) / viewportDirection.y;
+                if (yDistance > 0f)
+                {
+                    distanceToEdge = Mathf.Min(distanceToEdge, yDistance);
+                }
+            }
+
+            if (float.IsInfinity(distanceToEdge) || float.IsNaN(distanceToEdge))
+            {
+                return configuredLength;
+            }
+
+            return Mathf.Max(configuredLength, distanceToEdge + LaserViewportOvershoot);
         }
 
         private bool ShouldRecycleOnHit(Collider2D other)
@@ -820,7 +887,19 @@ namespace LeiTing.Bullets
         {
             if (laserMaterial == null)
             {
-                laserMaterial = SpriteMaterialUtility.CreateSpriteMaterial("Bullet Laser Material");
+                var shader = Shader.Find(ProceduralLaserShaderName);
+                if (shader != null && shader.isSupported)
+                {
+                    laserMaterial = new Material(shader)
+                    {
+                        name = "Bullet Procedural Laser Material",
+                        hideFlags = HideFlags.DontSave
+                    };
+                }
+                else
+                {
+                    laserMaterial = SpriteMaterialUtility.CreateSpriteMaterial("Bullet Laser Material");
+                }
             }
 
             return laserMaterial;
