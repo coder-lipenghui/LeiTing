@@ -1,7 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
+using LeiTing.Bullets;
 using LeiTing.Config;
 using LeiTing.Core;
+using LeiTing.Missiles;
 using LeiTing.Progress;
 using UnityEngine;
 
@@ -13,27 +15,14 @@ namespace LeiTing.Enemy
 {
     public class EnemyManager : MonoSingleton<EnemyManager>
     {
-        private const string Level2WeaponUpItemId = "weaponup";
-        private const int Level2WeaponUpDropWaveCount = 3;
-
-        private static readonly HashSet<string> Level2WeaponUpCandidateWaves = new HashSet<string>
-        {
-            "wave_level_02_resource2_right_arc_005",
-            "wave_level_02_resource2_left_arc_010",
-            "wave_level_02_resource2_n_left_014",
-            "wave_level_02_resource2_n_right_019",
-            "wave_level_02_resource2_w_top_022",
-            "wave_level_02_resource2_l_left_028",
-            "wave_level_02_resource2_l_right_032"
-        };
+        private const float BossHandoffDelay = 1.25f;
 
         private readonly HashSet<string> startedWaves = new HashSet<string>();
-        private readonly HashSet<string> level2WeaponUpDropWaves = new HashSet<string>();
-        private readonly Dictionary<string, int> level2WeaponUpCarrierIndices = new Dictionary<string, int>();
-        private readonly Dictionary<string, int> level2WeaponUpCandidateIndices = new Dictionary<string, int>();
-        private bool level2WeaponUpDropWavesSelected;
         private int activeBossCount;
+        private int timelinePausingBossCount;
         private int pendingBossSpawnCount;
+        private int activeOrdinarySpawnGroupCount;
+        private bool bossSpawnReserved;
 
         private void Update()
         {
@@ -52,7 +41,7 @@ namespace LeiTing.Enemy
 
         public EnemyController SpawnEnemy(string enemyId, Vector2 position)
         {
-            return SpawnEnemy(enemyId, position, null);
+            return SpawnEnemy(enemyId, position, null, null, IsBossId(enemyId));
         }
 
         private void UpdateWaves(ConfigManager configManager)
@@ -70,7 +59,10 @@ namespace LeiTing.Enemy
                     continue;
                 }
 
-                if (GameManager.Instance.BattleTimelineTime < wave.startTime)
+                var waveTime = IsFinalBossWave(wave)
+                    ? GameManager.Instance.BattleElapsedTime
+                    : GameManager.Instance.BattleTimelineTime;
+                if (waveTime < wave.startTime)
                 {
                     continue;
                 }
@@ -94,20 +86,32 @@ namespace LeiTing.Enemy
                     continue;
                 }
 
-                yield return StartCoroutine(SpawnGroup(wave.id, spawn, enforceBossGate));
+                var isOrdinaryGroup = !IsBossId(ResolveSpawnEnemyId(spawn));
+                if (isOrdinaryGroup)
+                {
+                    activeOrdinarySpawnGroupCount++;
+                }
+
+                yield return StartCoroutine(SpawnGroup(wave, spawn, enforceBossGate));
+
+                if (isOrdinaryGroup)
+                {
+                    activeOrdinarySpawnGroupCount = Mathf.Max(0, activeOrdinarySpawnGroupCount - 1);
+                }
             }
         }
 
-        private IEnumerator SpawnGroup(string waveId, WaveSpawnConfig spawn, bool enforceBossGate)
+        private IEnumerator SpawnGroup(WaveConfig wave, WaveSpawnConfig spawn, bool enforceBossGate)
         {
             var count = Mathf.Max(1, spawn.count);
             var interval = Mathf.Max(0.01f, spawn.interval);
             var enemyId = ResolveSpawnEnemyId(spawn);
             var isBossGroup = IsBossId(enemyId);
+            var isFinalBossWave = isBossGroup && IsFinalBossWave(wave);
 
             for (var index = 0; index < count; index++)
             {
-                while (GameManager.Instance != null && GameManager.Instance.CurrentState != GameState.Playing)
+                while (!CanAdvanceSpawn())
                 {
                     yield return null;
                 }
@@ -115,16 +119,54 @@ namespace LeiTing.Enemy
                 if (isBossGroup && enforceBossGate)
                 {
                     pendingBossSpawnCount++;
-                    while (activeBossCount > 0)
+                    var waitedForBoss = false;
+                    while (activeBossCount > 0
+                           || bossSpawnReserved
+                           || activeOrdinarySpawnGroupCount > 0
+                           || (isFinalBossWave && HasUnstartedRequiredWaves(wave)))
                     {
+                        waitedForBoss |= activeBossCount > 0;
                         yield return null;
                     }
 
-                    pendingBossSpawnCount = Mathf.Max(0, pendingBossSpawnCount - 1);
+                    bossSpawnReserved = true;
+                    if (waitedForBoss)
+                    {
+                        var handoffElapsed = 0f;
+                        while (handoffElapsed < BossHandoffDelay)
+                        {
+                            if (CanAdvanceSpawn())
+                            {
+                                handoffElapsed += Time.deltaTime;
+                            }
+
+                            yield return null;
+                        }
+                    }
+
+                    ClearEnemyProjectiles();
+                }
+                else if (!isBossGroup)
+                {
+                    while (activeBossCount > 0 || bossSpawnReserved)
+                    {
+                        yield return null;
+                    }
                 }
 
-                var forcedDropItemId = ResolveForcedDropItemId(waveId);
-                SpawnEnemy(enemyId, ResolveSpawnPosition(spawn, index, count), spawn, forcedDropItemId);
+                var forcedDropItemId = ResolveConfiguredDropItemId(spawn, index);
+                SpawnEnemy(
+                    enemyId,
+                    ResolveSpawnPosition(spawn, index, count),
+                    spawn,
+                    forcedDropItemId,
+                    isBossGroup);
+
+                if (isBossGroup && enforceBossGate)
+                {
+                    pendingBossSpawnCount = Mathf.Max(0, pendingBossSpawnCount - 1);
+                    bossSpawnReserved = false;
+                }
 
                 if (index < count - 1)
                 {
@@ -150,7 +192,8 @@ namespace LeiTing.Enemy
             string enemyId,
             Vector2 position,
             WaveSpawnConfig spawnConfig,
-            string forcedDropItemId = null)
+            string forcedDropItemId = null,
+            bool pauseBattleTimeline = false)
         {
             var enemyConfig = ConfigManager.Instance != null && ConfigManager.Instance.IsLoaded
                 ? ConfigManager.Instance.GetEnemy(enemyId)
@@ -170,8 +213,14 @@ namespace LeiTing.Enemy
             if (IsBossEnemy(enemyConfig))
             {
                 activeBossCount++;
+                if (pauseBattleTimeline)
+                {
+                    timelinePausingBossCount++;
+                    GameManager.Instance?.SetBattleTimelinePaused(true);
+                }
+
                 var boss = enemyObject.GetComponent<BossController>() ?? enemyObject.AddComponent<BossController>();
-                boss.Initialize(enemyConfig, position);
+                boss.Initialize(enemyConfig, position, pauseBattleTimeline);
                 return null;
             }
 
@@ -180,72 +229,102 @@ namespace LeiTing.Enemy
             return enemy;
         }
 
-        private string ResolveForcedDropItemId(string waveId)
+        private static string ResolveConfiguredDropItemId(WaveSpawnConfig spawn, int zeroBasedIndex)
         {
-            if (!Level2WeaponUpCandidateWaves.Contains(waveId))
+            if (spawn == null || string.IsNullOrEmpty(spawn.dropItemId) || spawn.dropIndex <= 0)
             {
                 return null;
             }
 
-            EnsureLevel2WeaponUpDropWavesSelected();
-            if (!level2WeaponUpDropWaves.Contains(waveId))
-            {
-                return null;
-            }
-
-            EnsureLevel2WeaponUpCarrierSelected(waveId);
-            var candidateIndex = level2WeaponUpCandidateIndices[waveId];
-            var isCarrier = candidateIndex == level2WeaponUpCarrierIndices[waveId];
-            level2WeaponUpCandidateIndices[waveId] = candidateIndex + 1;
-            return isCarrier ? Level2WeaponUpItemId : null;
-        }
-
-        private void EnsureLevel2WeaponUpDropWavesSelected()
-        {
-            if (level2WeaponUpDropWavesSelected)
-            {
-                return;
-            }
-
-            level2WeaponUpDropWavesSelected = true;
-            var candidates = new List<string>(Level2WeaponUpCandidateWaves);
-            var selectedCount = Mathf.Min(Level2WeaponUpDropWaveCount, candidates.Count);
-            for (var index = 0; index < selectedCount; index++)
-            {
-                var candidateIndex = Random.Range(0, candidates.Count);
-                level2WeaponUpDropWaves.Add(candidates[candidateIndex]);
-                candidates.RemoveAt(candidateIndex);
-            }
-        }
-
-        private void EnsureLevel2WeaponUpCarrierSelected(string waveId)
-        {
-            if (level2WeaponUpCarrierIndices.ContainsKey(waveId))
-            {
-                return;
-            }
-
-            var candidateCount = 0;
-            if (ConfigManager.Instance != null)
-            {
-                var wave = ConfigManager.Instance.GetWave(waveId);
-                if (wave?.spawns != null)
-                {
-                    foreach (var spawn in wave.spawns)
-                    {
-                        candidateCount += spawn != null ? Mathf.Max(1, spawn.count) : 0;
-                    }
-                }
-            }
-
-            level2WeaponUpCarrierIndices[waveId] = candidateCount > 0 ? Random.Range(0, candidateCount) : -1;
-            level2WeaponUpCandidateIndices[waveId] = 0;
+            return zeroBasedIndex + 1 == spawn.dropIndex ? spawn.dropItemId : null;
         }
 
         public bool NotifyBossDefeated(string bossId)
         {
+            return NotifyBossDefeated(bossId, false);
+        }
+
+        public bool NotifyBossDefeated(string bossId, bool pausedBattleTimeline)
+        {
             activeBossCount = Mathf.Max(0, activeBossCount - 1);
+            if (pausedBattleTimeline)
+            {
+                timelinePausingBossCount = Mathf.Max(0, timelinePausingBossCount - 1);
+                GameManager.Instance?.SetBattleTimelinePaused(timelinePausingBossCount > 0);
+            }
+
             return activeBossCount <= 0 && pendingBossSpawnCount <= 0 && !HasUnstartedBossWaves();
+        }
+
+        private static bool CanAdvanceSpawn()
+        {
+            return GameManager.Instance == null || GameManager.Instance.CurrentState == GameState.Playing;
+        }
+
+        private static void ClearEnemyProjectiles()
+        {
+            BulletManager.Instance?.ClearEnemyBullets();
+            MissileManager.Instance?.ClearEnemyMissiles();
+        }
+
+        private bool IsFinalBossWave(WaveConfig wave)
+        {
+            if (!IsBossWave(wave) || ConfigManager.Instance == null || GameManager.Instance == null)
+            {
+                return false;
+            }
+
+            foreach (var candidate in ConfigManager.Instance.GetWavesForLevel(GameManager.Instance.CurrentLevelNumber))
+            {
+                if (candidate != null && candidate.startTime > wave.startTime && IsBossWave(candidate))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private bool HasUnstartedRequiredWaves(WaveConfig bossWave)
+        {
+            if (bossWave == null || ConfigManager.Instance == null || GameManager.Instance == null)
+            {
+                return false;
+            }
+
+            foreach (var wave in ConfigManager.Instance.GetWavesForLevel(GameManager.Instance.CurrentLevelNumber))
+            {
+                if (wave == null
+                    || wave.startTime > bossWave.startTime
+                    || wave.startTime < GameManager.Instance.CurrentBattleStartTime
+                    || startedWaves.Contains(wave.id)
+                    || IsBossWave(wave))
+                {
+                    continue;
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool IsBossWave(WaveConfig wave)
+        {
+            if (wave?.spawns == null)
+            {
+                return false;
+            }
+
+            foreach (var spawn in wave.spawns)
+            {
+                if (spawn != null && IsBossId(ResolveSpawnEnemyId(spawn)))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static GameObject CreateEnemyObject(EnemyConfig enemyConfig)

@@ -156,9 +156,14 @@ namespace LeiTing.EditorTools
 
             if (EditorApplication.isPlaying && GameManager.Instance != null)
             {
+                var elapsedTime = FormatStageTime(GameManager.Instance.BattleElapsedTime);
+                var contentTime = FormatStageTime(GameManager.Instance.BattleTimelineTime);
+                var timeText = GameManager.Instance.IsBattleTimelinePaused
+                    ? $"总时间 {elapsedTime} / 刷怪时间 {contentTime}（Boss 暂停）"
+                    : elapsedTime;
                 EditorGUILayout.LabelField(
                     "当前运行",
-                    $"{FormatLevelTitle(GameManager.Instance.CurrentLevelNumber)} / {FormatStageTime(GameManager.Instance.BattleTimelineTime)}");
+                    $"{FormatLevelTitle(GameManager.Instance.CurrentLevelNumber)} / {timeText}");
             }
             else
             {
@@ -226,7 +231,7 @@ namespace LeiTing.EditorTools
 
             if (EditorApplication.isPlaying && GameManager.Instance != null)
             {
-                DrawCurrentTimeMarker(trackRect, timelineEnd, GameManager.Instance.BattleTimelineTime);
+                DrawCurrentTimeMarker(trackRect, timelineEnd, GameManager.Instance.BattleElapsedTime);
             }
 
             var currentEvent = Event.current;

@@ -183,14 +183,17 @@ Boss 装备在阶段上：
    - `count` 和 `interval` 决定刷多少、间隔多久。
    - `startPositionX/Y` 决定第一架飞机出生点，多架会自动横向展开。
    - `movementPath` 常用 `Straight`、`Hold`、`StopAndLeave`、`Sine`、`DriftLeft`、`DriftRight`。
+   - `dropItemId` 可指定本组额外掉落物，`dropIndex` 用从 1 开始的序号固定由组内哪架敌机携带；留空并填 `0` 表示不配置。
 4. Boss 波次通常这样配：
    - `Wave.levelId` 填对应关卡。
    - `WaveSpawn.enemyId` 直接填 Boss 的 `Enemy.id`。
    - Boss 如何出现、何时出现、刷哪一个，都交给 `Wave` 和 `WaveSpawn`。
+   - Boss 存活期间普通波次时间线会暂停；同关最后一个 Boss 按总战斗时间到点，且会等待前一个 Boss 和必要普通波次完成后再生成。
 
 关卡事件在 `Luban/Datas/StageEvent.xlsx` 的 `StageEvent` sheet：
 
 - `levelId` 填关卡 ID，留空表示所有关卡通用。
+- `startTime` 使用总战斗时间，即使正在打 Boss 也会继续计时。
 - `message` 可以使用 `{LEVEL}`、`{MAX_LEVEL}`、`{BOSS_ID}`、`{BOSS}` 占位符。
 - `clearEnemyBullets` 为 `true` 时会清除敌方子弹和导弹。
 

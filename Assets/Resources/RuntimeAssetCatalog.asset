@@ -17,10 +17,6 @@ MonoBehaviour:
     bundleName: leiting_runtime_assets
     assetName: Assets/Prefabs/Enemies/boss_01.prefab
     prefab: {fileID: 0}
-  - path: Assets/Prefabs/Enemies/BOSS_2.prefab
-    bundleName: leiting_runtime_assets
-    assetName: Assets/Prefabs/Enemies/BOSS_2.prefab
-    prefab: {fileID: 0}
   - path: Assets/Prefabs/Enemies/boss_03.prefab
     bundleName: leiting_runtime_assets
     assetName: Assets/Prefabs/Enemies/boss_03.prefab
@@ -60,6 +56,10 @@ MonoBehaviour:
   - path: Assets/Prefabs/Enemies/boss_12.prefab
     bundleName: leiting_runtime_assets
     assetName: Assets/Prefabs/Enemies/boss_12.prefab
+    prefab: {fileID: 0}
+  - path: Assets/Prefabs/Enemies/BOSS_2.prefab
+    bundleName: leiting_runtime_assets
+    assetName: Assets/Prefabs/Enemies/BOSS_2.prefab
     prefab: {fileID: 0}
   - path: Assets/Prefabs/Enemies/boss_helicopter_01.prefab
     bundleName: leiting_runtime_assets

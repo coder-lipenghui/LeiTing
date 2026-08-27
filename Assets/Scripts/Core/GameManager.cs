@@ -40,13 +40,17 @@ namespace LeiTing.Core
         private bool adReviveUsedThisBattle;
         private PlayerController defeatedPlayer;
         private float currentBattleStartTime;
+        private float battleElapsedTime;
         private float battleTimelineTime;
+        private bool battleTimelinePaused;
 
         public GameState CurrentState => currentState;
         public int Score => score;
         public int CurrentLevelNumber => currentLevelNumber;
         public float CurrentBattleStartTime => currentBattleStartTime;
+        public float BattleElapsedTime => battleElapsedTime;
         public float BattleTimelineTime => battleTimelineTime;
+        public bool IsBattleTimelinePaused => battleTimelinePaused;
         public int MaxLevelCount => ResolveMaxLevelCount();
         public int MaxUnlockedLevelNumber => GetMaxUnlockedLevel(MaxLevelCount);
         public bool HasNextLevel => currentLevelNumber < MaxLevelCount;
@@ -64,7 +68,9 @@ namespace LeiTing.Core
             CancelPendingVictory();
             currentLevelNumber = Mathf.Clamp(ResolveRequestedLevelNumber(), 1, MaxLevelCount);
             currentBattleStartTime = ResolveRequestedBattleStartTime();
+            battleElapsedTime = currentBattleStartTime;
             battleTimelineTime = currentBattleStartTime;
+            battleTimelinePaused = false;
             currentState = GameState.Ready;
             score = 0;
             levelProgressFinished = false;
@@ -78,8 +84,17 @@ namespace LeiTing.Core
         {
             if (currentState == GameState.Playing)
             {
-                battleTimelineTime += Time.deltaTime;
+                battleElapsedTime += Time.deltaTime;
+                if (!battleTimelinePaused)
+                {
+                    battleTimelineTime += Time.deltaTime;
+                }
             }
+        }
+
+        public void SetBattleTimelinePaused(bool paused)
+        {
+            battleTimelinePaused = paused;
         }
 
         public void StartGame()

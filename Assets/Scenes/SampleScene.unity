@@ -755,6 +755,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   initialPoolSize: 32
+  lightningStarSpawnBudgetPerFrame: 48
   playerBulletLayer: {fileID: 0}
   enemyBulletLayer: {fileID: 0}
 --- !u!114 &1949508812
@@ -784,7 +785,7 @@ MonoBehaviour:
   currentState: 0
   score: 0
   currentLevelNumber: 1
-  invincibleMode: 0
+  invincibleMode: 1
 --- !u!114 &1949508814
 MonoBehaviour:
   m_ObjectHideFlags: 0

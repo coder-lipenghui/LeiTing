@@ -543,7 +543,7 @@
     "index": 28,
     "id": "boss_02_p2_center_windmill",
     "patternType": "Spiral",
-    "bulletId": "boss_s_windmill_bullet",
+    "bulletId": "enemy_bullet_01",
     "firePointGroup": "center",
     "firePointOffsetX": 0,
     "firePointOffsetY": 0,
@@ -554,10 +554,10 @@
     "bulletSpeed": 2.3,
     "bulletLifetime": 5.8,
     "rotate": true,
-    "rotationSpeed": -14,
+    "rotationSpeed": -11,
     "aimAtPlayer": false,
-    "burstCount": 36,
-    "fireInterval": 0.05
+    "burstCount": 24,
+    "fireInterval": 0.08
   },
   {
     "index": 29,

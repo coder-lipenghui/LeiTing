@@ -338,7 +338,9 @@ namespace LeiTing.Config
                 movementPath = row.MovementPath,
                 pathAmplitude = row.PathAmplitude,
                 pathSpeed = row.PathSpeed,
-                holdDuration = row.HoldDuration
+                holdDuration = row.HoldDuration,
+                dropItemId = row.DropItemId,
+                dropIndex = row.DropIndex
             };
         }
 

@@ -18,7 +18,9 @@ namespace LeiTing.Stage
 
         private readonly HashSet<string> triggeredEvents = new HashSet<string>();
 
-        public float StageTime => GameManager.Instance != null ? GameManager.Instance.BattleTimelineTime : 0f;
+        // Stage events such as level 2 trophy supplies stay on wall-clock battle time.
+        // Only the enemy-wave content timeline pauses during a boss encounter.
+        public float StageTime => GameManager.Instance != null ? GameManager.Instance.BattleElapsedTime : 0f;
 
         private void Update()
         {

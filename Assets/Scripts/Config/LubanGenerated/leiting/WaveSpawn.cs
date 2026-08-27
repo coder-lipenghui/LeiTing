@@ -31,6 +31,8 @@ public sealed partial class WaveSpawn : Luban.BeanBase
         { if(!_buf["pathAmplitude"].IsNumber) { throw new SerializationException(); }  PathAmplitude = _buf["pathAmplitude"]; }
         { if(!_buf["pathSpeed"].IsNumber) { throw new SerializationException(); }  PathSpeed = _buf["pathSpeed"]; }
         { if(!_buf["holdDuration"].IsNumber) { throw new SerializationException(); }  HoldDuration = _buf["holdDuration"]; }
+        { if(!_buf["dropItemId"].IsString) { throw new SerializationException(); }  DropItemId = _buf["dropItemId"]; }
+        { if(!_buf["dropIndex"].IsNumber) { throw new SerializationException(); }  DropIndex = _buf["dropIndex"]; }
     }
 
     public static WaveSpawn DeserializeWaveSpawn(JSONNode _buf)
@@ -91,6 +93,14 @@ public sealed partial class WaveSpawn : Luban.BeanBase
     /// 停留时间
     /// </summary>
     public readonly float HoldDuration;
+    /// <summary>
+    /// 固定掉落物ID
+    /// </summary>
+    public readonly string DropItemId;
+    /// <summary>
+    /// 组内携带者序号（从1开始，0表示无）
+    /// </summary>
+    public readonly int DropIndex;
    
     public const int __ID__ = -70279438;
     public override int GetTypeId() => __ID__;
@@ -116,6 +126,8 @@ public sealed partial class WaveSpawn : Luban.BeanBase
         + "pathAmplitude:" + PathAmplitude + ","
         + "pathSpeed:" + PathSpeed + ","
         + "holdDuration:" + HoldDuration + ","
+        + "dropItemId:" + DropItemId + ","
+        + "dropIndex:" + DropIndex + ","
         + "}";
     }
 }

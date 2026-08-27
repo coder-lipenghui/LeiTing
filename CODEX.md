@@ -145,9 +145,13 @@ and a phone test.
 
 - `EnemyManager` spawns enemies from level wave data. The seven opening
   resource-plane waves in level 2 spawn their configured counts one aircraft
-  at a time. Each battle randomly selects three of those waves, then each
-  selected wave chooses one aircraft that carries a guaranteed attack-power
-  pickup, for three pickups in total.
+  at a time. Three fixed `WaveSpawn` rows configure `weaponup` plus a one-based
+  carrier index; the same configured aircraft carry the guaranteed
+  attack-power pickups on every battle, for three pickups in total.
+- At 38 seconds, level 2 spawns eight `enemy_small_04` aircraft from the right
+  edge. They drift down-left and fire scheduled `enemy_single_down` shots after
+  entering. At 42 seconds, a matching eight-aircraft wave enters from the left,
+  drifts down-right, and uses the same firing schedule.
 - `BulletManager`, `BulletPatternManager`, and `MissileManager` handle
   projectile behavior and configured firing patterns.
 - Enemy bullet `firePattern` values can append options after `:`;
@@ -172,8 +176,14 @@ and a phone test.
   `Assets/Prefabs/Enemies/BOSS_2.prefab`, has 500 HP, and uses dedicated
   100%-70%, 70%-40%, and 40%-0% phases. Phase 1 emits three center rings every
   two seconds plus one homing missile from each side every two seconds. Phase 2
-  emits a slower 2.3-speed center windmill and fast homing missiles from only
-  the left/right mounts. Phase 3 removes ring fire: the outer `left1`/`right1`
+  emits a slower 2.3-speed center windmill with the ordinary red enemy bullet
+  (no rice-grain spin/sway motion) and fast homing missiles from only the
+  left/right mounts. The windmill emits 24 six-bullet volleys at 0.08-second
+  spacing with an 11-degree rotation step, and Boss movement is locked for the
+  pattern's generated duration so the spiral center stays stable. Phase-2 fast
+  homing missiles that become due during the windmill are deferred until 0.25
+  seconds after movement unlocks. Phase 3 removes ring fire: the outer
+  `left1`/`right1`
   mounts track the player with thin red lines for two seconds, freeze their
   directions, then charge for 0.5 seconds and fire 0.8-second lasers while
   Boss movement is locked.
@@ -185,6 +195,10 @@ and a phone test.
 - Laser bullets use a white or warm-white core, their configured color for the
   beam and outer glow, and animated edge-energy fluctuations. A bullet with no
   configured glow color retains the default cyan player-laser treatment.
+- Every non-laser enemy bullet has a glow even when its config omits a range.
+  Enemy glow colors are calibrated from each source sprite's dominant hue:
+  ordinary bullets use red-pink, rice-grain bullets use magenta, and the level-2
+  helicopter bullet uses violet, with per-bullet alpha and radius tuning.
 - `StageManager` advances level timeline events. A clear-bullets event clears
   both enemy bullets and enemy missiles, and stage messages can substitute
   `{LEVEL}`, `{MAX_LEVEL}`, `{BOSS_ID}`, and `{BOSS}`.

@@ -1774,5 +1774,17 @@
     "id": "wave_level_02_midboss_105",
     "levelId": "level_02",
     "startTime": 105
+  },
+  {
+    "index": 308,
+    "id": "wave_level_02_single_shot_fighters_038",
+    "levelId": "level_02",
+    "startTime": 38
+  },
+  {
+    "index": 309,
+    "id": "wave_level_02_single_shot_fighters_042",
+    "levelId": "level_02",
+    "startTime": 42
   }
 ]

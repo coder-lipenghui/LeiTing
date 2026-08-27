@@ -186,6 +186,8 @@ namespace LeiTing.Config
         public float pathAmplitude;
         public float pathSpeed;
         public float holdDuration;
+        public string dropItemId;
+        public int dropIndex;
         public OrbitMovementConfig orbitMovement;
     }
 

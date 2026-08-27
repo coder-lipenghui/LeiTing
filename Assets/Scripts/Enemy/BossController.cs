@@ -31,7 +31,10 @@ namespace LeiTing.Enemy
         private const string EntryWarningSoundPath = "Assets/Art/Sound/SFX/Enemy/SFX_Boss_Attack_Warning_01.wav";
         private const string Level2MidBossId = "boss_level_02_mid_01";
         private const string Level2FinalBossId = "boss_02";
+        private const string Level2FinalBossWindmillPatternId = "boss_02_p2_center_windmill";
+        private const string Level2FinalBossFastHomingPatternId = "boss_02_p2_side_fast_homing";
         private const string Level2FinalBossLaserPatternId = "boss_02_p3_side_laser";
+        private const float BossWindmillMissileResumeDelay = 0.25f;
         private const float BossLaserTrackingDuration = 2f;
         private const float BossLaserChargeDuration = 0.5f;
         private const float BossLaserFireDuration = 0.8f;
@@ -60,6 +63,7 @@ namespace LeiTing.Enemy
         private bool isFiringBurst;
         private bool useChildHitboxes;
         private bool isDead;
+        private bool pausesBattleTimeline;
         private float movementLockedUntil;
         private Coroutine bossLaserSequence;
 
@@ -68,9 +72,15 @@ namespace LeiTing.Enemy
 
         public void Initialize(EnemyConfig enemyConfig, Vector2 position)
         {
+            Initialize(enemyConfig, position, true);
+        }
+
+        public void Initialize(EnemyConfig enemyConfig, Vector2 position, bool pauseBattleTimeline)
+        {
             EnsureComponents();
 
             config = enemyConfig;
+            pausesBattleTimeline = pauseBattleTimeline;
             maxHp = Mathf.Max(1, config != null ? config.hp : 1);
             currentHp = maxHp;
             phases = ResolveBossPhases();
@@ -400,9 +410,23 @@ namespace LeiTing.Enemy
                     continue;
                 }
 
+                if (ShouldDeferLevel2FinalBossFastHoming(scheduled.patternId))
+                {
+                    scheduled.nextFireTime = movementLockedUntil + BossWindmillMissileResumeDelay;
+                    continue;
+                }
+
                 FirePatternId(scheduled.patternId);
                 scheduled.nextFireTime = Time.time + scheduled.interval;
             }
+        }
+
+        private bool ShouldDeferLevel2FinalBossFastHoming(string patternId)
+        {
+            return Time.time < movementLockedUntil
+                && config != null
+                && string.Equals(config.id, Level2FinalBossId, StringComparison.OrdinalIgnoreCase)
+                && string.Equals(patternId, Level2FinalBossFastHomingPatternId, StringComparison.OrdinalIgnoreCase);
         }
 
         private static bool TryParseScheduledPattern(string rawPatternId, out string patternId, out float interval, out float offset)
@@ -725,6 +749,8 @@ namespace LeiTing.Enemy
                 return false;
             }
 
+            LockMovementForLevel2FinalBossWindmill(pattern);
+
             var firePoints = GetFirePoints(pattern.firePointGroup);
             if (firePoints != null && firePoints.Length > 0)
             {
@@ -738,6 +764,22 @@ namespace LeiTing.Enemy
 
             patternManager.FirePattern(pattern, transform);
             return true;
+        }
+
+        private void LockMovementForLevel2FinalBossWindmill(BulletPatternConfig pattern)
+        {
+            if (config == null
+                || pattern == null
+                || !string.Equals(config.id, Level2FinalBossId, StringComparison.OrdinalIgnoreCase)
+                || !string.Equals(pattern.id, Level2FinalBossWindmillPatternId, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            var duration = pattern.duration > 0f
+                ? pattern.duration
+                : Mathf.Max(1, pattern.burstCount) * Mathf.Max(0.01f, pattern.fireInterval);
+            movementLockedUntil = Mathf.Max(movementLockedUntil, Time.time + duration);
         }
 
         private bool TryFireMissilePattern(string patternId)
@@ -872,7 +914,10 @@ namespace LeiTing.Enemy
                 }
             }
 
-            var shouldWinGame = EnemyManager.Instance == null || EnemyManager.Instance.NotifyBossDefeated(config != null ? config.id : string.Empty);
+            var shouldWinGame = EnemyManager.Instance == null
+                || EnemyManager.Instance.NotifyBossDefeated(
+                    config != null ? config.id : string.Empty,
+                    pausesBattleTimeline);
             if (shouldWinGame && GameManager.Instance != null)
             {
                 GameManager.Instance.WinGame();

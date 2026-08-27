@@ -19,6 +19,8 @@ namespace LeiTing.Bullets
         private const float BaseSpriteWidth = 0.12f;
         private const float BaseSpriteHeight = 0.32f;
         private const float GlowSpriteSize = 1f;
+        private const float EnemyBulletMinGlowRange = 0.16f;
+        private const float EnemyBulletMinGlowAlpha = 0.5f;
         private const float LaserGlowMinWidth = 0.72f;
         private const float LaserGlowLengthPadding = 0.35f;
         private const float LaserViewportOvershoot = 2f;
@@ -302,14 +304,14 @@ namespace LeiTing.Bullets
                 return;
             }
 
-            var glowRange = Mathf.Max(0f, bulletConfig.glowRange);
-            if (IsPlayerOwned() || glowRange <= 0f)
+            if (IsPlayerOwned())
             {
                 glowRenderer.enabled = false;
                 return;
             }
 
             var glowColor = ResolveGlowColor(bulletConfig.glowColor);
+            var glowRange = ResolveEnemyGlowRange(bulletConfig, size);
             var glowSize = new Vector2(size.x + glowRange * 2f, size.y + glowRange * 2f);
 
             glowRenderer.enabled = true;
@@ -388,7 +390,6 @@ namespace LeiTing.Bullets
             return bulletConfig != null
                 && !IsPlayerOwned()
                 && !isLaser
-                && bulletConfig.glowRange > 0f
                 && HasPatternOption(bulletConfig.firePattern, GlowTrailOption);
         }
 
@@ -855,12 +856,23 @@ namespace LeiTing.Bullets
 
         private static Color ResolveGlowColor(Color configuredColor)
         {
-            if (configuredColor.a > 0f)
-            {
-                return configuredColor;
-            }
+            var resolvedColor = configuredColor.a > 0f
+                ? configuredColor
+                : new Color(1f, 0.32f, 0.42f, 0.58f);
+            Color.RGBToHSV(resolvedColor, out var hue, out var saturation, out var value);
+            var vividColor = Color.HSVToRGB(
+                hue,
+                Mathf.Max(0.62f, saturation),
+                Mathf.Max(0.9f, value));
+            vividColor.a = Mathf.Clamp01(Mathf.Max(EnemyBulletMinGlowAlpha, resolvedColor.a));
+            return vividColor;
+        }
 
-            return new Color(1f, 0.48f, 0.12f, 0.58f);
+        private static float ResolveEnemyGlowRange(BulletConfig bulletConfig, Vector2 size)
+        {
+            var configuredRange = bulletConfig != null ? Mathf.Max(0f, bulletConfig.glowRange) : 0f;
+            var sizeBasedRange = Mathf.Max(size.x, size.y) * 0.55f;
+            return Mathf.Max(EnemyBulletMinGlowRange, Mathf.Max(configuredRange, sizeBasedRange));
         }
 
         private static Color ResolveLaserColor(Color configuredColor)
